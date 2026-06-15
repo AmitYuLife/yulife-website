@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 748" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+<rect x="0" y="0" width="1240" height="748" fill="#ffffff"/>
+<text x="40" y="40" font-size="24" font-weight="700" fill="#1f2937">YuLife 2026 — Sitemap</text>
+<text x="40" y="60" font-size="13" fill="#6b7280">Agreed information architecture (“Revised” frame). Dot = copy status · ⚠ = open decision.</text>
+<rect x="510" y="70" width="220" height="46" rx="10" fill="#111827"/>
+<circle cx="528" cy="93" r="4" fill="#10b981"/>
+<text x="620" y="98" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Home</text>
+<text x="40" y="172" font-size="11" font-weight="700" letter-spacing="1" fill="#6b7280">PRIMARY NAVIGATION</text>
+<path d="M 620 116 C 620 153, 176 153, 176 190" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+<path d="M 620 116 C 620 153, 472 153, 472 190" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+<path d="M 620 116 C 620 153, 768 153, 768 190" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+<path d="M 620 116 C 620 153, 1064 153, 1064 190" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+<rect x="40" y="190" width="272" height="216" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<path d="M 40 228 h 272" stroke="#cbd5e1" stroke-width="1"/>
+<text x="50" y="215" font-size="14" font-weight="700" fill="#1f2937">Products</text>
+<circle cx="54" cy="242" r="4" fill="#10b981"/>
+<text x="66" y="246" font-size="12.5" fill="#1f2937">Health</text>
+<circle cx="54" cy="270" r="4" fill="#10b981"/>
+<text x="66" y="274" font-size="12.5" fill="#1f2937">Cash Plan</text>
+<circle cx="54" cy="298" r="4" fill="#10b981"/>
+<text x="66" y="302" font-size="12.5" fill="#1f2937">Income Protection</text>
+<circle cx="54" cy="326" r="4" fill="#10b981"/>
+<text x="66" y="330" font-size="12.5" fill="#1f2937">Life Insurance</text>
+<circle cx="54" cy="354" r="4" fill="#cbd5e1"/>
+<text x="66" y="358" font-size="12.5" fill="#1f2937">Dental Insurance</text>
+<circle cx="54" cy="382" r="4" fill="#cbd5e1"/>
+<text x="66" y="386" font-size="12.5" fill="#1f2937">Wellbeing Platform (SaaS)</text>
+<rect x="336" y="190" width="272" height="160" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<path d="M 336 228 h 272" stroke="#cbd5e1" stroke-width="1"/>
+<text x="346" y="215" font-size="14" font-weight="700" fill="#1f2937">Who we help</text>
+<circle cx="350" cy="242" r="4" fill="#10b981"/>
+<text x="362" y="246" font-size="12.5" fill="#1f2937">Businesses</text>
+<circle cx="350" cy="270" r="4" fill="#10b981"/>
+<text x="362" y="274" font-size="12.5" fill="#1f2937">Carriers</text>
+<circle cx="350" cy="298" r="4" fill="#10b981"/>
+<text x="362" y="302" font-size="12.5" fill="#1f2937">Advisers</text>
+<circle cx="350" cy="326" r="4" fill="#10b981"/>
+<text x="362" y="330" font-size="12.5" fill="#1f2937">Individuals</text>
+<text x="598" y="330" text-anchor="end" font-size="12" fill="#f59e0b">⚠</text>
+<rect x="632" y="190" width="272" height="160" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<path d="M 632 228 h 272" stroke="#cbd5e1" stroke-width="1"/>
+<text x="642" y="215" font-size="14" font-weight="700" fill="#1f2937">Resources</text>
+<circle cx="646" cy="242" r="4" fill="#cbd5e1"/>
+<text x="658" y="246" font-size="12.5" fill="#1f2937">Case Studies</text>
+<circle cx="646" cy="270" r="4" fill="#cbd5e1"/>
+<text x="658" y="274" font-size="12.5" fill="#1f2937">Blog</text>
+<circle cx="646" cy="298" r="4" fill="#cbd5e1"/>
+<text x="658" y="302" font-size="12.5" fill="#1f2937">News &amp; Events</text>
+<circle cx="646" cy="326" r="4" fill="#cbd5e1"/>
+<text x="658" y="330" font-size="12.5" fill="#1f2937">Ebooks</text>
+<rect x="928" y="190" width="272" height="132" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<path d="M 928 228 h 272" stroke="#cbd5e1" stroke-width="1"/>
+<text x="938" y="215" font-size="14" font-weight="700" fill="#1f2937">About</text>
+<circle cx="942" cy="242" r="4" fill="#10b981"/>
+<text x="954" y="246" font-size="12.5" fill="#1f2937">Careers</text>
+<circle cx="942" cy="270" r="4" fill="#cbd5e1"/>
+<text x="954" y="274" font-size="12.5" fill="#1f2937">Press</text>
+<text x="1190" y="274" text-anchor="end" font-size="12" fill="#f59e0b">⚠</text>
+<circle cx="942" cy="298" r="4" fill="#cbd5e1"/>
+<text x="954" y="302" font-size="12.5" fill="#1f2937">Contact</text>
+<text x="1190" y="302" text-anchor="end" font-size="12" fill="#f59e0b">⚠</text>
+<text x="40" y="452" font-size="11" font-weight="700" letter-spacing="1" fill="#6b7280">SECONDARY NAVIGATION</text>
+<rect x="40" y="466" width="1160" height="172" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="54" y="494" font-size="14" font-weight="700" fill="#1f2937">Solutions</text>
+<text x="54" y="511" font-size="11.5" fill="#6b7280">Feature &amp; solution-led content · rehouses existing primary links</text>
+<rect x="50" y="520" width="274.5" height="40" rx="8" fill="#fff" stroke="#cbd5e1"/>
+<circle cx="64" cy="540" r="4" fill="#10b981"/>
+<text x="76" y="544" font-size="12" fill="#1f2937">Employee Engagement</text>
+<rect x="338.5" y="520" width="274.5" height="40" rx="8" fill="#fff" stroke="#cbd5e1"/>
+<circle cx="352.5" cy="540" r="4" fill="#10b981"/>
+<text x="364.5" y="544" font-size="12" fill="#1f2937">Rewards</text>
+<rect x="627" y="520" width="274.5" height="40" rx="8" fill="#fff" stroke="#cbd5e1"/>
+<circle cx="641" cy="540" r="4" fill="#cbd5e1"/>
+<text x="653" y="544" font-size="12" fill="#1f2937">Benefit Consolidation</text>
+<rect x="915.5" y="520" width="274.5" height="40" rx="8" fill="#fff" stroke="#cbd5e1"/>
+<circle cx="929.5" cy="540" r="4" fill="#10b981"/>
+<text x="941.5" y="544" font-size="12" fill="#1f2937">Mental Health &amp; EAP</text>
+<rect x="50" y="574" width="274.5" height="40" rx="8" fill="#fff" stroke="#cbd5e1"/>
+<circle cx="64" cy="594" r="4" fill="#10b981"/>
+<text x="76" y="598" font-size="12" fill="#1f2937">Virtual GP</text>
+<rect x="338.5" y="574" width="274.5" height="40" rx="8" fill="#fff" stroke="#cbd5e1"/>
+<circle cx="352.5" cy="594" r="4" fill="#10b981"/>
+<text x="364.5" y="598" font-size="12" fill="#1f2937">Wellbeing Insights &amp; Reporting</text>
+<rect x="627" y="574" width="274.5" height="40" rx="8" fill="#fff" stroke="#cbd5e1"/>
+<circle cx="641" cy="594" r="4" fill="#10b981"/>
+<text x="653" y="598" font-size="12" fill="#1f2937">Employee Surveys</text>
+<rect x="915.5" y="574" width="274.5" height="40" rx="8" fill="#fff" stroke="#cbd5e1"/>
+<circle cx="929.5" cy="594" r="4" fill="#10b981"/>
+<text x="941.5" y="598" font-size="12" fill="#1f2937">Reward &amp; Recognition</text>
+<text x="1178" y="598" text-anchor="end" font-size="12" fill="#f59e0b">⚠</text>
+<text x="40" y="682" font-size="11" font-weight="700" letter-spacing="1" fill="#6b7280">LEGEND</text>
+<circle cx="46" cy="700" r="4" fill="#10b981"/>
+<text x="58" y="704" font-size="12" fill="#1f2937">Approved copy in 2026 content doc</text>
+<circle cx="330" cy="700" r="4" fill="#cbd5e1"/>
+<text x="342" y="704" font-size="12" fill="#1f2937">No copy yet (stub only)</text>
+<text x="560" y="704" font-size="12" fill="#f59e0b">⚠</text>
+<text x="576" y="704" font-size="12" fill="#1f2937">Open decision (under consideration / orphan)</text>
+</svg>
