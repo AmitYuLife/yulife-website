@@ -1,5 +1,5 @@
 import Link from "next/link";
-import WfBlock from "@/components/wireframe/WfBlock";
+import SectionBlock from "@/components/hifi/section/SectionBlock";
 import {
   ClosingCtaBand,
   Eyebrow,
@@ -9,17 +9,14 @@ import {
   StatTiles,
   TestimonialGrid,
   TrustpilotStrip,
-  WfPageBanner,
-} from "@/components/wireframe/shared";
-import type { FeaturePageData } from "@/data/wireframes/types";
+} from "@/components/hifi/section/shared";
+import type { FeaturePageData } from "@/data/pages/types";
 
-export default function FeatureWireframe({ data }: { data: FeaturePageData }) {
+export default function FeatureHiFi({ data }: { data: FeaturePageData }) {
   return (
     <>
-      <WfPageBanner pageTitle={data.pageTitle} />
-
       {/* Hero */}
-      <WfBlock block="1" label="Hero" flag={data.flags?.[0]}>
+      <SectionBlock block="1" label="Hero" flag={data.flags?.[0]}>
         <div className="mx-auto max-w-3xl text-center">
           <Eyebrow>{data.hero.eyebrow}</Eyebrow>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
@@ -30,10 +27,10 @@ export default function FeatureWireframe({ data }: { data: FeaturePageData }) {
             <PrimaryButton cta={data.hero.cta} />
           </div>
         </div>
-      </WfBlock>
+      </SectionBlock>
 
       {/* Stats bar */}
-      <WfBlock block="2" label="Stats bar" band>
+      <SectionBlock block="2" label="Stats bar" band>
         {data.statsBar.heading && (
           <h2 className="mb-6 text-center text-lg font-semibold text-gray-900">
             {data.statsBar.heading}
@@ -43,23 +40,23 @@ export default function FeatureWireframe({ data }: { data: FeaturePageData }) {
         {data.statsBar.footnote && (
           <p className="mt-4 text-center text-xs text-amber-700">⚠ {data.statsBar.footnote}</p>
         )}
-      </WfBlock>
+      </SectionBlock>
 
       {/* Explainer */}
       {data.explainer && (
-        <WfBlock block="3" label="Explainer">
+        <SectionBlock block="3" label="Explainer">
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
             {data.explainer.heading}
           </h2>
           {data.explainer.body && (
             <p className="mt-4 max-w-3xl text-sm text-gray-600">{data.explainer.body}</p>
           )}
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {/* How it works — zigzag blocks */}
       {data.zigzagBlocks.map((block, i) => (
-        <WfBlock
+        <SectionBlock
           key={block.heading}
           block={String(i + 4)}
           label={`How it works — ${block.eyebrow ?? `Block ${i + 1}`}`}
@@ -97,23 +94,23 @@ export default function FeatureWireframe({ data }: { data: FeaturePageData }) {
               <ImagePlaceholder />
             </div>
           </div>
-        </WfBlock>
+        </SectionBlock>
       ))}
 
       {/* Extra blocks (rewards page) */}
       {data.extraBlocks?.map((block, i) => (
-        <WfBlock key={block.label} block={`4${String.fromCharCode(97 + i)}`} label={block.label}>
+        <SectionBlock key={block.label} block={`4${String.fromCharCode(97 + i)}`} label={block.label}>
           <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
             <p className="text-sm font-semibold text-gray-700">{block.label}</p>
             <p className="mt-2 text-xs text-gray-500">{block.description}</p>
             <div className="mx-auto mt-6 h-48 max-w-lg rounded-lg border border-dashed border-gray-300 bg-white" />
           </div>
-        </WfBlock>
+        </SectionBlock>
       ))}
 
       {/* Tab switcher (HR Insights) */}
       {data.tabSwitcher && (
-        <WfBlock block="7b" label="Tab switcher (HR Portal views)">
+        <SectionBlock block="7b" label="Tab switcher (HR Portal views)">
           <div className="flex flex-wrap gap-2">
             {data.tabSwitcher.tabs.map((tab, i) => (
               <button
@@ -130,36 +127,36 @@ export default function FeatureWireframe({ data }: { data: FeaturePageData }) {
             ))}
           </div>
           <div className="mt-6 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8">
-            <div className="wf-line mx-auto h-48 w-full max-w-2xl rounded-lg" />
+            <div className="skeleton-line mx-auto h-48 w-full max-w-2xl rounded-lg" />
             <p className="mt-3 text-center text-xs text-gray-400">Dashboard preview placeholder</p>
           </div>
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {/* CTA banner */}
       {data.ctaBanner && (
-        <WfBlock block="8" label="CTA banner" band innerClassName="py-12">
+        <SectionBlock block="8" label="CTA banner" band innerClassName="py-12">
           <ClosingCtaBand heading={data.ctaBanner.heading} cta={data.ctaBanner.cta ?? data.hero.cta} />
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {/* Testimonials */}
-      <WfBlock block="9" label="Testimonial grid" flag="Static grid preferred over carousel">
+      <SectionBlock block="9" label="Testimonial grid" flag="Static grid preferred over carousel">
         <TestimonialGrid testimonials={data.testimonials} />
-      </WfBlock>
+      </SectionBlock>
 
       {/* Trustpilot */}
-      <WfBlock block="10" label="Trustpilot strip" band>
+      <SectionBlock block="10" label="Trustpilot strip" band>
         <TrustpilotStrip />
-      </WfBlock>
+      </SectionBlock>
 
       {/* Key Resources */}
-      <WfBlock block="11" label="Key Resources">
+      <SectionBlock block="11" label="Key Resources">
         <KeyResourcesBlock />
-      </WfBlock>
+      </SectionBlock>
 
       {/* Closing CTA */}
-      <WfBlock block="12" label="Closing CTA" band innerClassName="py-16">
+      <SectionBlock block="12" label="Closing CTA" band innerClassName="py-16">
         <ClosingCtaBand
           heading={data.closingCta?.heading ?? "Speak to our team"}
           body={data.closingCta?.body}
@@ -170,7 +167,7 @@ export default function FeatureWireframe({ data }: { data: FeaturePageData }) {
             {data.disclaimer}
           </p>
         )}
-      </WfBlock>
+      </SectionBlock>
     </>
   );
 }

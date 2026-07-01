@@ -1,20 +1,17 @@
-import WfBlock from "@/components/wireframe/WfBlock";
+import SectionBlock from "@/components/hifi/section/SectionBlock";
 import {
   CarrierQuote,
   ClosingCtaBand,
   Eyebrow,
   LogoPlaceholder,
   StatTiles,
-  WfPageBanner,
-} from "@/components/wireframe/shared";
-import type { AudiencePageData } from "@/data/wireframes/types";
+} from "@/components/hifi/section/shared";
+import type { AudiencePageData } from "@/data/pages/types";
 
-export default function AudienceWireframe({ data }: { data: AudiencePageData }) {
+export default function AudienceHiFi({ data }: { data: AudiencePageData }) {
   return (
     <>
-      <WfPageBanner pageTitle={data.pageTitle} />
-
-      <WfBlock block="1" label="Hero" flag={data.flags?.[0]}>
+      <SectionBlock block="1" label="Hero" flag={data.flags?.[0]}>
         <div className="mx-auto max-w-3xl text-center">
           {data.market && (
             <p className="mb-3 text-xs font-medium text-gray-400">Market: {data.market}</p>
@@ -24,10 +21,10 @@ export default function AudienceWireframe({ data }: { data: AudiencePageData }) 
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base text-gray-600">{data.hero.body}</p>
         </div>
-      </WfBlock>
+      </SectionBlock>
 
       {data.sections.map((section, i) => (
-        <WfBlock
+        <SectionBlock
           key={section.heading}
           block={String(i + 2)}
           label={section.heading}
@@ -66,26 +63,26 @@ export default function AudienceWireframe({ data }: { data: AudiencePageData }) 
               ))}
             </div>
           )}
-        </WfBlock>
+        </SectionBlock>
       ))}
 
       {data.testimonial && (
-        <WfBlock block={String(data.sections.length + 2)} label="Testimonial" band>
+        <SectionBlock block={String(data.sections.length + 2)} label="Testimonial" band>
           <CarrierQuote quote={data.testimonial} />
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {data.partnerLogos && (
-        <WfBlock block={String(data.sections.length + 3)} label="Insurance partners">
+        <SectionBlock block={String(data.sections.length + 3)} label="Insurance partners">
           <div className="flex flex-wrap items-center justify-center gap-4">
             {data.partnerLogos.map((name) => (
               <LogoPlaceholder key={name} name={name} />
             ))}
           </div>
-        </WfBlock>
+        </SectionBlock>
       )}
 
-      <WfBlock
+      <SectionBlock
         block={String(data.sections.length + (data.testimonial ? 4 : 3))}
         label="Final CTA"
         band
@@ -100,7 +97,7 @@ export default function AudienceWireframe({ data }: { data: AudiencePageData }) 
           }
           cta={data.primaryCta}
         />
-      </WfBlock>
+      </SectionBlock>
     </>
   );
 }

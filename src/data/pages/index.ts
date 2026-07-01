@@ -3,7 +3,7 @@ export { featurePages } from "./features";
 export { audiencePages } from "./audience";
 export { editorialPages } from "./editorial";
 
-export const wireframeRoutes = [
+export const authoredRoutes = [
   "/products/income-protection",
   "/products/health",
   "/products/cash-plan",

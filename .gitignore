@@ -3,7 +3,11 @@
 
 # next.js
 /.next/
+/.next-dev/
+/.next-dev-hifi/
 /out/
+/out-wire/
+/out-test/
 
 # production
 /build

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-type WfBlockProps = {
+type SectionBlockProps = {
   block: string;
   label: string;
   flag?: string;
@@ -10,7 +10,7 @@ type WfBlockProps = {
   band?: boolean;
 };
 
-export default function WfBlock({
+export default function SectionBlock({
   block,
   label,
   flag,
@@ -18,7 +18,7 @@ export default function WfBlock({
   className,
   innerClassName,
   band = false,
-}: WfBlockProps) {
+}: SectionBlockProps) {
   return (
     <section
       className={cn(
@@ -28,7 +28,7 @@ export default function WfBlock({
       )}
       aria-labelledby={`block-${block}-label`}
     >
-      <div className={cn("mx-auto max-w-6xl px-4 py-12 md:py-16", innerClassName)}>
+      <div className={cn("page-container py-12 md:py-16", innerClassName)}>
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <span
             id={`block-${block}-label`}

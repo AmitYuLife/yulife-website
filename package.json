@@ -2,20 +2,23 @@
   "name": "yulife-website-2026",
   "version": "0.1.0",
   "private": true,
-  "description": "Low-fidelity wireframe skeleton for the YuLife 2026 website redesign. Next.js + Tailwind, structured for React Bricks.",
+  "description": "YuLife 2026 website redesign. Next.js + Tailwind, structured for React Bricks.",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "NEXT_DIST_DIR=.next-dev next dev --turbopack",
+    "build": "rm -rf .next out && next build",
     "start": "next start",
+    "clean": "rm -rf .next .next-dev out",
     "lint": "next lint",
     "gen:pages": "tsx scripts/generate-pages.mjs",
     "gen:svg": "tsx scripts/generate-sitemap-svg.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
+    "@gsap/react": "^2.1.2",
     "@tailwindcss/postcss": "^4.3.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "gsap": "^3.15.0",
     "lucide-react": "^1.18.0",
     "next": "^15.3.3",
     "react": "^19.1.0",
@@ -28,9 +31,12 @@
     "@types/node": "^22.15.21",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
-    "postcss": "^8.5.4",
+    "postcss": "^8.5.10",
     "tailwindcss": "^4.3.1",
     "tsx": "^4.19.4",
     "typescript": "^5.7.3"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
   }
 }

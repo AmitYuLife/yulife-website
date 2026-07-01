@@ -200,6 +200,7 @@ export const solutions = {
 export const socialProof = {
   heading: "Trusted, proven, scalable",
   body: "Trusted by millions worldwide, YuLife provides a clearer view of population health — enabling more predictable intervention and sustainable risk management.",
+  awards: ["Award A", "Award B", "Award C", "Award D"],
 } as const;
 
 export const finalCta = {

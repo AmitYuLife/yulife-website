@@ -3,21 +3,21 @@
 // -----------------------------------------------------------------------------
 // Reads the sitemap (single source of truth) and writes one Next.js App Router
 // page per route into src/app. Each page is a thin wrapper that looks its own
-// record up from the sitemap data and renders the <PageStub> wireframe.
+// record up from the sitemap data and renders the <PageStub> placeholder.
 //
 // Run:  npm run gen:pages
 //
 // Safe to re-run: it only writes the generated stub files listed below and will
-// not touch hand-authored wireframe pages (see wireframeRoutes) or page.tsx (home)
+// not touch hand-authored pages (see authoredRoutes) or page.tsx (home)
 // or sitemap/page.tsx.
 // -----------------------------------------------------------------------------
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { navGroups } from "../src/data/sitemap.ts";
-import { wireframeRoutes } from "../src/data/wireframes/index.ts";
+import { authoredRoutes } from "../src/data/pages/index.ts";
 
-const wireframeRouteSet = new Set(wireframeRoutes);
+const authoredRouteSet = new Set(authoredRoutes);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const APP_DIR = join(__dirname, "..", "src", "app");
@@ -59,9 +59,9 @@ export default function Page() {
 let count = 0;
 let skipped = 0;
 for (const t of targets) {
-  if (wireframeRouteSet.has(t.route)) {
+  if (authoredRouteSet.has(t.route)) {
     skipped++;
-    console.log(`  ⊘ ${t.route}  (wireframe — skipped)`);
+    console.log(`  ⊘ ${t.route}  (hand-authored — skipped)`);
     continue;
   }
   const { filePath, displayPath } = fileInfoFor(t.route);
@@ -71,4 +71,4 @@ for (const t of targets) {
   console.log(`  ✓ ${t.route}  →  ${displayPath}`);
 }
 
-console.log(`\nGenerated ${count} page stubs from the sitemap (${skipped} wireframe pages skipped).`);
+console.log(`\nGenerated ${count} page stubs from the sitemap (${skipped} hand-authored pages skipped).`);

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import FeatureWireframe from "@/components/wireframe/FeatureWireframe";
-import { featurePages } from "@/data/wireframes/features";
+import FeatureHiFi from "@/components/hifi/FeatureHiFi";
+import { featurePages } from "@/data/pages/features";
 import { getPageByRoute } from "@/data/sitemap";
 
 const route = "/solutions/reward-and-recognition";
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <FeatureWireframe data={data} />;
+  return <FeatureHiFi data={data} />;
 }

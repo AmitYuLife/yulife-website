@@ -5,23 +5,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { Cta, Quote, Rating, Stat, Testimonial } from "@/data/wireframes/types";
+import type { Cta, Quote, Rating, Stat, Testimonial } from "@/data/pages/types";
 
 export function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">{children}</p>
-  );
-}
-
-export function WfPageBanner({ pageTitle }: { pageTitle: string }) {
-  return (
-    <div className="border-b border-gray-200 bg-gray-50 px-4 py-3 text-center">
-      <span className="inline-flex items-center gap-2 text-xs text-gray-500">
-        <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-        {pageTitle} wireframe — approved copy from 2026 content doc ·{" "}
-        <span className="font-medium text-gray-700">wireframe-spec.md</span>
-      </span>
-    </div>
   );
 }
 
@@ -191,9 +179,9 @@ export function KeyResourcesBlock() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((n) => (
           <div key={n} className="rounded-lg border border-gray-200 bg-white p-4">
-            <div className="wf-line mb-3 h-24 w-full rounded-md" />
-            <div className="wf-line mb-2 h-4 w-3/4" />
-            <div className="wf-line h-3 w-full" />
+            <div className="skeleton-line mb-3 h-24 w-full rounded-md" />
+            <div className="skeleton-line mb-2 h-4 w-3/4" />
+            <div className="skeleton-line h-3 w-full" />
           </div>
         ))}
       </div>

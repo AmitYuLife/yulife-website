@@ -1,12 +1,9 @@
-# YuLife 2026 Website — Wireframe Skeleton
+# YuLife 2026 Website
 
-Low-fidelity wireframe skeleton for the website redesign. **Next.js + Tailwind**,
-structured so **React Bricks** can be the headless CMS in the build proper.
-Every page in the agreed IA exists as a real route with a placeholder wireframe
-and a copy-status marker.
-
-> Phase: IA / wireframing. Styling is deliberately **greyscale** — visual design
-> comes later. Don't read look-and-feel into this yet.
+Website redesign built with **Next.js + Tailwind**, structured so **React Bricks**
+can be the headless CMS in the build proper. Every page in the agreed IA exists as
+a real route; pages without bespoke UI yet render a placeholder stub with a
+copy-status marker.
 
 ## Run it
 
@@ -59,7 +56,7 @@ src/
     products/  who-we-help/  resources/  about/  solutions/  contact/
   components/
     Header.tsx  Footer.tsx
-    PageStub.tsx               ← the low-fi wireframe ("bricks")
+    PageStub.tsx               ← placeholder stub for un-built pages ("bricks")
 scripts/
   generate-pages.mjs           ← npm run gen:pages
   generate-sitemap-svg.mjs     ← npm run gen:svg

@@ -4,7 +4,7 @@ import { navGroups } from "@/data/sitemap";
 export default function Footer() {
   return (
     <footer className="mt-16 border-t border-gray-300 bg-gray-50">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="page-container grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-5">
         {navGroups.map((group) => (
           <div key={group.id}>
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -23,7 +23,7 @@ export default function Footer() {
         ))}
       </div>
       <div className="border-t border-gray-200 px-4 py-4 text-center text-xs text-gray-400">
-        YuLife 2026 — wireframe skeleton. Structure only; not for publication. ·{" "}
+        YuLife 2026 — internal preview. Not for publication. ·{" "}
         <Link href="/sitemap" className="underline hover:text-gray-600">
           View sitemap
         </Link>

@@ -69,12 +69,12 @@ export default function PageStub({ page, groupId }: PageStubProps) {
       )}
 
       <div className="mt-10 space-y-6" aria-hidden="true">
-        <div className="wf-block rounded-xl border border-gray-200 p-8">
+        <div className="stub-block rounded-xl border border-gray-200 p-8">
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
             Section: Hero
           </p>
-          <div className="wf-line mb-3 h-7 w-2/3" />
-          <div className="wf-line mb-2 h-4 w-1/2" />
+          <div className="skeleton-line mb-3 h-7 w-2/3" />
+          <div className="skeleton-line mb-2 h-4 w-1/2" />
           <div className="mt-5 flex gap-3">
             <div className="h-9 w-32 rounded-md bg-gray-300" />
             <div className="h-9 w-28 rounded-md border border-gray-300 bg-white" />
@@ -83,27 +83,27 @@ export default function PageStub({ page, groupId }: PageStubProps) {
 
         <div className="grid gap-6 md:grid-cols-2">
           {[1, 2].map((n) => (
-            <div key={n} className="wf-block rounded-xl border border-gray-200 p-6">
+            <div key={n} className="stub-block rounded-xl border border-gray-200 p-6">
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
                 Section: Content {n}
               </p>
-              <div className="wf-line mb-2 h-5 w-1/2" />
-              <div className="wf-line mb-2 h-3 w-full" />
-              <div className="wf-line mb-2 h-3 w-5/6" />
-              <div className="wf-line h-3 w-2/3" />
+              <div className="skeleton-line mb-2 h-5 w-1/2" />
+              <div className="skeleton-line mb-2 h-3 w-full" />
+              <div className="skeleton-line mb-2 h-3 w-5/6" />
+              <div className="skeleton-line h-3 w-2/3" />
             </div>
           ))}
         </div>
 
-        <div className="wf-block rounded-xl border border-gray-200 p-6">
+        <div className="stub-block rounded-xl border border-gray-200 p-6">
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
             Section: Stats / social proof
           </p>
           <div className="grid grid-cols-3 gap-4">
             {[1, 2, 3].map((n) => (
               <div key={n} className="rounded-lg bg-white/60 p-4 text-center">
-                <div className="wf-line mx-auto mb-2 h-8 w-16" />
-                <div className="wf-line mx-auto h-3 w-24" />
+                <div className="skeleton-line mx-auto mb-2 h-8 w-16" />
+                <div className="skeleton-line mx-auto h-3 w-24" />
               </div>
             ))}
           </div>
@@ -113,7 +113,7 @@ export default function PageStub({ page, groupId }: PageStubProps) {
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
             Section: Final CTA
           </p>
-          <div className="wf-line mx-auto mb-4 h-6 w-1/3" />
+          <div className="skeleton-line mx-auto mb-4 h-6 w-1/3" />
           <div className="mx-auto h-10 w-40 rounded-md bg-gray-300" />
         </div>
       </div>

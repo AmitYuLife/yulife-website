@@ -54,7 +54,7 @@ wireframing phase. The same structure drives the live scaffold
 These are the points where the agreed IA and the content doc don't line up. Flagged in the scaffold and diagram so nothing gets lost.
 
 ### Gaps — pages in the IA with no copy (FACT)
-`Dental Insurance` and `Wellbeing Platform (SaaS)` (Products), `Benefit Consolidation` (Solutions), and the whole Resources section (`Case Studies`, `Blog`, `News & Events`, `Ebooks`) have no copy in the doc. These are real, agreed pages — they need copy commissioned before they can be wireframed beyond placeholder.
+`Dental Insurance` and `Wellbeing Platform (SaaS)` (Products), `Benefit Consolidation` (Solutions), and the whole Resources section (`Case Studies`, `Blog`, `News & Events`, `Ebooks`) have no copy in the doc. These are real, agreed pages — they need copy commissioned before they can be built beyond placeholder.
 
 ### Orphan — copy with no home (DECISION NEEDED)
 **Reward & Recognition** has full approved copy in the content doc but does not appear in the "Revised" frame. I've parked it under `/solutions/reward-and-recognition` and flagged it. *Decision:* confirm it belongs in Solutions, or remove it from scope.

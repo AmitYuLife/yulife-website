@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import AudienceWireframe from "@/components/wireframe/AudienceWireframe";
-import { audiencePages } from "@/data/wireframes/audience";
+import AudienceHiFi from "@/components/hifi/AudienceHiFi";
+import { audiencePages } from "@/data/pages/audience";
 import { getPageByRoute } from "@/data/sitemap";
 
 const route = "/who-we-help/carriers";
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <AudienceWireframe data={data} />;
+  return <AudienceHiFi data={data} />;
 }

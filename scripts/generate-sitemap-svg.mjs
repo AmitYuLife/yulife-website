@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 // Sitemap diagram generator — writes docs/sitemap-diagram.svg from sitemap.js
 // Run:  node scripts/generate-sitemap-svg.mjs   (or: npm run gen:svg)
-// Greyscale wireframe palette; emerald = approved copy, grey = none, amber = flag.
+// Greyscale palette; emerald = approved copy, grey = none, amber = flag.
 // -----------------------------------------------------------------------------
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";

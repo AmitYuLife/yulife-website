@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import HomeWireframe from "@/components/home/HomeWireframe";
+import HomeHiFi from "@/components/hifi/HomeHiFi";
 import { home } from "@/data/sitemap";
 
 export const metadata: Metadata = {
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <HomeWireframe />;
+  return <HomeHiFi />;
 }

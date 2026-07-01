@@ -1,4 +1,4 @@
-import WfBlock from "@/components/wireframe/WfBlock";
+import SectionBlock from "@/components/hifi/section/SectionBlock";
 import {
   CarrierQuote,
   ClosingCtaBand,
@@ -10,19 +10,16 @@ import {
   SecondaryButton,
   SocialProofBar,
   StatTiles,
-  WfPageBanner,
-} from "@/components/wireframe/shared";
-import type { ProductPageData } from "@/data/wireframes/types";
+} from "@/components/hifi/section/shared";
+import type { ProductPageData } from "@/data/pages/types";
 
-export default function ProductWireframe({ data }: { data: ProductPageData }) {
+export default function ProductHiFi({ data }: { data: ProductPageData }) {
   const heroCtas = data.hero.ctas ?? [data.primaryCta];
 
   return (
     <>
-      <WfPageBanner pageTitle={data.pageTitle} />
-
       {/* Block 1 — Hero */}
-      <WfBlock block="1" label="Hero">
+      <SectionBlock block="1" label="Hero">
         <div className="mx-auto max-w-3xl text-center">
           {data.hero.eyebrow && <Eyebrow>{data.hero.eyebrow}</Eyebrow>}
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
@@ -48,36 +45,36 @@ export default function ProductWireframe({ data }: { data: ProductPageData }) {
         <p className="mt-4 text-center text-xs text-gray-400">
           Underwritten by {data.carrier}
         </p>
-      </WfBlock>
+      </SectionBlock>
 
       {/* Block 2 — Social proof chips OR carrier quote */}
       {data.statChips && (
-        <WfBlock block="2" label="Social-proof bar (stat chips)" band>
+        <SectionBlock block="2" label="Social-proof bar (stat chips)" band>
           <StatTiles stats={data.statChips} columns={4} />
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {data.carrierQuote && (
-        <WfBlock block="2" label="Carrier quote (lockup)" band={!data.statChips}>
+        <SectionBlock block="2" label="Carrier quote (lockup)" band={!data.statChips}>
           <CarrierQuote quote={data.carrierQuote} />
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {/* Cash plan: explainer */}
       {data.explainer && (
-        <WfBlock block="3" label="What is it?" band={!!data.statChips}>
+        <SectionBlock block="3" label="What is it?" band={!!data.statChips}>
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
             {data.explainer.heading}
           </h2>
           <p className="mt-4 max-w-3xl text-sm text-gray-600 md:text-base">
             {data.explainer.body}
           </p>
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {/* Numbered value sections */}
       {data.valueSections?.map((section, i) => (
-        <WfBlock
+        <SectionBlock
           key={section.number}
           block={String(section.number + 2)}
           label={`${section.number} · ${section.eyebrow}`}
@@ -110,12 +107,12 @@ export default function ProductWireframe({ data }: { data: ProductPageData }) {
               <ImagePlaceholder />
             </div>
           </div>
-        </WfBlock>
+        </SectionBlock>
       ))}
 
       {/* Cash plan: coverage */}
       {data.coverage && (
-        <WfBlock block="4" label="What's covered" band>
+        <SectionBlock block="4" label="What's covered" band>
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
             {data.coverage.heading}
           </h2>
@@ -139,12 +136,12 @@ export default function ProductWireframe({ data }: { data: ProductPageData }) {
               </div>
             ))}
           </div>
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {/* Cash plan: process steps */}
       {data.processSteps && (
-        <WfBlock block="5" label="How it works (4-step process flow)">
+        <SectionBlock block="5" label="How it works (4-step process flow)">
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
             {data.processSteps.heading}
           </h2>
@@ -159,12 +156,12 @@ export default function ProductWireframe({ data }: { data: ProductPageData }) {
               </div>
             ))}
           </div>
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {/* Cash plan: employee section */}
       {data.employeeSection && (
-        <WfBlock block="6" label="For your employees" band>
+        <SectionBlock block="6" label="For your employees" band>
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
             {data.employeeSection.heading}
           </h2>
@@ -181,33 +178,33 @@ export default function ProductWireframe({ data }: { data: ProductPageData }) {
               </footer>
             </blockquote>
           )}
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {/* FAQ */}
-      <WfBlock
+      <SectionBlock
         block={data.coverage ? "7" : "9"}
         label="FAQ accordion"
         flag={data.flags?.includes("FAQ near-duplicates — de-duplicate before build") ? "Near-duplicate questions" : undefined}
       >
         <FaqAccordion questions={data.faqs} />
-      </WfBlock>
+      </SectionBlock>
 
       {/* Legal footer (Cash Plan) */}
       {data.legalFooter && (
-        <WfBlock block="8" label="Legal footer" band>
+        <SectionBlock block="8" label="Legal footer" band>
           <p className="text-xs leading-relaxed text-gray-500">{data.legalFooter}</p>
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {/* Closing CTA for standard product pages */}
       {!data.legalFooter && (
-        <WfBlock block="10" label="Closing CTA" band innerClassName="py-16">
+        <SectionBlock block="10" label="Closing CTA" band innerClassName="py-16">
           <ClosingCtaBand
             heading="Ready to learn more?"
             cta={data.primaryCta}
           />
-        </WfBlock>
+        </SectionBlock>
       )}
     </>
   );

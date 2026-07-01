@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import EditorialWireframe from "@/components/wireframe/EditorialWireframe";
-import { editorialPages } from "@/data/wireframes/editorial";
+import EditorialHiFi from "@/components/hifi/EditorialHiFi";
+import { editorialPages } from "@/data/pages/editorial";
 import { getPageByRoute } from "@/data/sitemap";
 
 const route = "/about/about-us";
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <EditorialWireframe data={data} />;
+  return <EditorialHiFi data={data} />;
 }

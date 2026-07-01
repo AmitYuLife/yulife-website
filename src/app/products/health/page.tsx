@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import ProductWireframe from "@/components/wireframe/ProductWireframe";
-import { productPages } from "@/data/wireframes/products";
+import ProductHiFi from "@/components/hifi/ProductHiFi";
+import { productPages } from "@/data/pages/products";
 import { getPageByRoute } from "@/data/sitemap";
 
 const route = "/products/health";
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <ProductWireframe data={data} />;
+  return <ProductHiFi data={data} />;
 }

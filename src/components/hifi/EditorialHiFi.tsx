@@ -1,4 +1,4 @@
-import WfBlock from "@/components/wireframe/WfBlock";
+import SectionBlock from "@/components/hifi/section/SectionBlock";
 import {
   CarrierQuote,
   ClosingCtaBand,
@@ -7,16 +7,13 @@ import {
   PrimaryButton,
   SecondaryButton,
   StatTiles,
-  WfPageBanner,
-} from "@/components/wireframe/shared";
-import type { EditorialPageData } from "@/data/wireframes/types";
+} from "@/components/hifi/section/shared";
+import type { EditorialPageData } from "@/data/pages/types";
 
-export default function EditorialWireframe({ data }: { data: EditorialPageData }) {
+export default function EditorialHiFi({ data }: { data: EditorialPageData }) {
   return (
     <>
-      <WfPageBanner pageTitle={data.pageTitle} />
-
-      <WfBlock block="1" label="Hero" flag={data.flags?.[0]}>
+      <SectionBlock block="1" label="Hero" flag={data.flags?.[0]}>
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
             {data.hero.heading}
@@ -34,10 +31,10 @@ export default function EditorialWireframe({ data }: { data: EditorialPageData }
             </div>
           )}
         </div>
-      </WfBlock>
+      </SectionBlock>
 
       {data.sections.map((section, i) => (
-        <WfBlock
+        <SectionBlock
           key={section.heading}
           block={String(i + 2)}
           label={section.heading}
@@ -76,11 +73,11 @@ export default function EditorialWireframe({ data }: { data: EditorialPageData }
               ))}
             </div>
           )}
-        </WfBlock>
+        </SectionBlock>
       ))}
 
       {data.values && (
-        <WfBlock block="7" label="Our values — Love Being Yu" band>
+        <SectionBlock block="7" label="Our values — Love Being Yu" band>
           <Eyebrow>Our values</Eyebrow>
           <h2 className="mt-2 text-2xl font-bold text-gray-900">Love Being Yu.</h2>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -91,11 +88,11 @@ export default function EditorialWireframe({ data }: { data: EditorialPageData }
               </div>
             ))}
           </div>
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {data.stats && (
-        <WfBlock block="8" label="YuLife in numbers">
+        <SectionBlock block="8" label="YuLife in numbers">
           <StatTiles stats={data.stats} columns={3} />
           {data.awards && (
             <div className="mt-10">
@@ -114,17 +111,17 @@ export default function EditorialWireframe({ data }: { data: EditorialPageData }
               </div>
             </div>
           )}
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {data.testimonial && (
-        <WfBlock block="5" label="Testimonial" band>
+        <SectionBlock block="5" label="Testimonial" band>
           <CarrierQuote quote={data.testimonial} />
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {data.closingCta && (
-        <WfBlock block="6" label="Open-application CTA" flag={data.closingCta.note}>
+        <SectionBlock block="6" label="Open-application CTA" flag={data.closingCta.note}>
           <p className="text-center text-sm text-gray-600">{data.closingCta.body}</p>
           <div className="mt-6 flex justify-center">
             <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-8 py-6 text-center">
@@ -132,22 +129,22 @@ export default function EditorialWireframe({ data }: { data: EditorialPageData }
               <p className="mt-2 text-xs text-gray-500">Primary component TBC</p>
             </div>
           </div>
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {data.faqs && (
-        <WfBlock block="10" label="FAQ accordion" band>
+        <SectionBlock block="10" label="FAQ accordion" band>
           <FaqAccordion questions={data.faqs} />
-        </WfBlock>
+        </SectionBlock>
       )}
 
       {data.pageTitle === "About Us" && (
-        <WfBlock block="11" label="Closing CTA" innerClassName="py-16">
+        <SectionBlock block="11" label="Closing CTA" innerClassName="py-16">
           <ClosingCtaBand
             heading="Talk to us"
             cta={{ label: "Talk to us", href: "/contact" }}
           />
-        </WfBlock>
+        </SectionBlock>
       )}
     </>
   );
