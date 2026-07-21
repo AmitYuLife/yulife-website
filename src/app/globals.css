@@ -1,469 +1,243 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import "../../design-tokens/theme.css";
 
-@custom-variant dark (&:is(.dark *));
+/* Extend the design-system theme for existing components and Tailwind defaults. */
+@theme {
+  --spacing: 0.25rem;
 
-@theme inline {
-  /* Desktop XL — Full HD (1920px) and larger monitors */
-  --breakpoint-3xl: 120rem;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-2xl: 1536px;
+  --breakpoint-3xl: 1920px;
 
-  /* Page content width — scales up on wider viewports (Boost uses ~1216px baseline) */
-  --width-page: 76rem;
-  --width-page-xl: 80rem;
-  --width-page-2xl: 90rem;
-  --width-page-3xl: 96rem;
+  --font-body: var(--font-sans);
+  --font-display: var(--font-serif);
 
-  --font-sans: var(--font-sans);
-  --font-display: var(--font-display);
-  --font-body: var(--font-body);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-ring: var(--blue-600);
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
 }
 
-/* Centred page gutter — replaces scattered max-w-6xl + px-* patterns */
-@utility page-container {
-  width: 100%;
-  margin-inline: auto;
-  padding-inline: 1rem;
-  max-width: var(--width-page);
-
-  @variant md {
-    padding-inline: 1.5rem;
+/* Legacy class aliases → design-system typography roles */
+@layer components {
+  /* Fluid container: grows smoothly with the viewport (no fixed jump at each
+     breakpoint) and caps at the design's 1216px content width. This keeps
+     content filling the viewport at laptop widths (1024–1279) instead of
+     snapping to the narrow 688px tablet container. */
+  .page-container {
+    width: 100%;
+    max-width: 1216px;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 6vw, 5rem);
   }
 
-  @variant xl {
-    max-width: var(--width-page-xl);
+  .type-display {
+    font-family: var(--display-hero-family);
+    font-weight: var(--display-hero-weight);
+    font-size: var(--display-hero-size);
+    line-height: var(--display-hero-line-height);
+    letter-spacing: var(--display-hero-letter-spacing);
   }
 
-  @variant 2xl {
-    max-width: var(--width-page-2xl);
-    padding-inline: 2rem;
+  .type-section-display,
+  .type-heading {
+    font-family: var(--heading-h2-family);
+    font-weight: var(--heading-h2-weight);
+    font-size: var(--heading-h2-size);
+    line-height: var(--heading-h2-line-height);
+    letter-spacing: var(--heading-h2-letter-spacing);
   }
 
-  @variant 3xl {
-    max-width: var(--width-page-3xl);
-    padding-inline: 3rem;
+  .type-lead,
+  .type-body-lg {
+    font-family: var(--body-lg-family);
+    font-weight: var(--body-lg-weight);
+    font-size: var(--body-lg-size);
+    line-height: var(--body-lg-line-height);
+    letter-spacing: var(--body-lg-letter-spacing);
+  }
+
+  .type-body {
+    font-family: var(--body-md-family);
+    font-weight: var(--body-md-weight);
+    font-size: var(--body-md-size);
+    line-height: var(--body-md-line-height);
+    letter-spacing: var(--body-md-letter-spacing);
+  }
+
+  .type-card-title {
+    font-family: var(--heading-card-family);
+    font-weight: var(--heading-card-weight);
+    font-size: var(--heading-card-size);
+    line-height: var(--heading-card-line-height);
+    letter-spacing: var(--heading-card-letter-spacing);
+  }
+
+  .type-subheading {
+    font-family: var(--heading-h5-family);
+    font-weight: var(--heading-h5-weight);
+    font-size: var(--heading-h5-size);
+    line-height: var(--heading-h5-line-height);
+    letter-spacing: var(--heading-h5-letter-spacing);
+  }
+
+  .type-button {
+    font-family: var(--button-lg-family);
+    font-weight: var(--button-lg-weight);
+    font-size: var(--button-lg-size);
+    line-height: var(--button-lg-line-height);
+    letter-spacing: var(--button-lg-letter-spacing);
+  }
+
+  .type-micro {
+    font-family: var(--caption-family);
+    font-weight: var(--caption-weight);
+    font-size: var(--caption-size);
+    line-height: var(--caption-line-height);
+    letter-spacing: var(--caption-letter-spacing);
+    text-transform: uppercase;
   }
 }
 
-@utility section-y {
-  padding-block: 4rem;
-
-  @variant md {
-    padding-block: 6rem;
-  }
-
-  @variant 3xl {
-    padding-block: 7rem;
-  }
-}
-
-/* Greyscale skeleton tokens — used by placeholder section blocks and skeleton
-   lines on stub pages while their real UI is still being built. */
-
+/* Skeleton placeholders — not part of the design token system */
 :root {
   --skeleton-ink: #1f2937;
   --skeleton-muted: #6b7280;
   --skeleton-line: #d1d5db;
   --skeleton-fill: #f3f4f6;
   --skeleton-fill-2: #e5e7eb;
-
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* Component aliases → semantic colour tokens */
+:root {
+  --hero-canvas: var(--surface-default);
+  --hero-ink: var(--text-default);
+  --hero-purple: var(--surface-inverse);
+  --hero-indigo: var(--text-emphasis);
+  --hero-mist: var(--surface-subtle);
+  --hero-sage: var(--green-600);
+  --hero-coral: var(--blue-600);
+  --hero-pink: var(--purple-600);
+  --hero-divider: var(--border-inverse);
+
+  /* Floating pill: 16px top inset + 72px NavMenuTop bar */
+  --header-h: 88px;
+
+  --hero-aurora-mint: var(--green-600);
+  --hero-aurora-sky: var(--blue-600);
+  --hero-aurora-yellow: var(--yellow-600);
+  --hero-aurora-purple: var(--purple-600);
 }
 
-/* Brand theme. Applied via the `.hifi` class on <html>. These are
-   starting-point brand tokens to iterate on — replace the values with the
-   confirmed YuLife palette. */
-.hifi {
-  /* Hero palette — Persimmon + Deep Indigo */
-  --hero-canvas: #fafaf9;
-  --hero-ink: #1b1340;
-  --hero-coral: #e8573a;
-  --hero-pink: #e6248c;
-  --hero-indigo: #4a38a0;
-  --hero-sage: #3dbb78;
-  --hero-mist: #edebf4;
-
-  /* Deep purple canvas + hairline divider used across the dark hero region */
-  --hero-purple: #290163;
-  --hero-divider: rgba(105, 83, 243, 0.4);
-
-  /* Sticky header bar height — used to overlay the dark hero behind it */
-  --header-h: 72px;
-
-  /* Hero aurora gradient stops */
-  --hero-aurora-mint: #00ed9d;
-  --hero-aurora-sky: #00c0f3;
-  --hero-aurora-yellow: #ffd600;
-  --hero-aurora-purple: #956aff;
-
-  /* Type scale — Boost-inspired rhythm (boostinsurance.com, desktop baseline) */
-  --type-display-size: clamp(3.12rem, 7vw + 0.5rem, 7.5rem); /* 50px → 120px */
-  --type-display-leading: 0.85;
-  --type-display-tracking: -0.04em;
-
-  --type-section-display-size: clamp(2.34rem, 5.5vw + 0.75rem, 5.625rem); /* 37px → 90px */
-  --type-section-display-leading: 0.85;
-  --type-section-display-tracking: -0.04em;
-
-  --type-heading-size: clamp(2.34rem, 1.5vw + 1.75rem, 3rem); /* 37px → 48px */
-  --type-heading-leading: 1.1;
-  --type-heading-tracking: -0.03em;
-
-  --type-lead-size: 1.375rem; /* 22px */
-  --type-lead-leading: 1.3;
-
-  --type-body-size: 1rem; /* 16px */
-  --type-body-leading: 1.3;
-
-  --type-eyebrow-size: 0.75rem; /* 12px */
-  --type-eyebrow-leading: 1.05;
-  --type-eyebrow-tracking: 0.35em;
-
-  --type-card-title-size: clamp(1.375rem, 1vw + 1.125rem, 1.625rem); /* 22px → 26px */
-  --type-card-title-leading: 1.2;
-  --type-card-title-tracking: -0.02em;
-
-  --type-body-lg-size: 1.125rem; /* 18px — card copy, featured descriptions */
-  --type-body-lg-leading: 1.3;
-
-  --type-subheading-size: 1.125rem; /* 18px semibold — award titles, accordion labels */
-  --type-subheading-leading: 1.45;
-  --type-subheading-tracking: -0.01em;
-
-  --type-button-size: 1.25rem; /* 20px — primary CTAs */
-  --type-button-leading: 1.3;
-  --type-button-tracking: -0.02em;
-
-  --type-label-size: 0.875rem; /* 14px — nav, stat labels, metadata */
-  --type-label-leading: 1.3;
-  --type-label-tracking: -0.01em;
-
-  --type-caption-size: 0.75rem; /* 12px — supporting descriptive text */
-  --type-caption-leading: 1.3;
-
-  --type-micro-size: 0.6875rem; /* 11px — mega menu group labels */
-  --type-micro-leading: 1.25;
-  --type-micro-tracking: 0.06em;
-
-  /* Legacy aliases — used by inline styles elsewhere */
-  --hero-display-size: var(--type-display-size);
-  --hero-section-size: var(--type-section-display-size);
-  --hero-body-size: var(--type-lead-size);
-  --hero-caption-size: var(--type-eyebrow-size);
-
-  /* Shadcn token overrides — coral primary for CTAs */
-  --primary: oklch(0.62 0.19 28);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.35 0.09 290);
-  --secondary-foreground: oklch(0.98 0 0);
-  --accent: oklch(0.86 0.13 160);
-  --accent-foreground: oklch(0.21 0.04 160);
-  --ring: oklch(0.62 0.19 28);
-  --radius: 0.875rem;
+.hero-dark {
+  --hero-canvas: var(--surface-inverse);
+  --hero-ink: var(--text-on-inverse);
+  --hero-mist: color-mix(in srgb, var(--text-on-inverse) 6%, transparent);
 }
 
-/* Dark hero theme — deep indigo canvas with light ink. Scoped to the homepage
-   hero so the below-fold sections keep their light tokens. Descendants inherit
-   these overridden custom properties automatically. */
-.hifi .hero-dark {
-  --hero-canvas: #290163;
-  --hero-ink: #ffffff;
-  --hero-mist: rgba(255, 255, 255, 0.06);
-}
-
-/* Spectrum gradient for the emphasised hero word — mint → sky → yellow → violet.
-   Matches the rainbow line motif used in the hero curves graphic. */
-.hifi .hero-accent-gradient {
+.hero-accent-gradient {
   background-image: linear-gradient(
     90deg,
-    #00ed9d 15.87%,
-    #00c0f3 38.94%,
-    #ffd600 58.17%,
-    #956aff 78.85%
+    var(--green-600) 15.87%,
+    var(--blue-600) 38.94%,
+    var(--yellow-600) 58.17%,
+    var(--purple-600) 78.85%
   );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* Hi-fi type utilities — map to Boost's display / section / card rhythm */
-@utility type-display {
-  font-family: var(--font-display);
-  font-size: var(--type-display-size);
-  line-height: var(--type-display-leading);
-  letter-spacing: var(--type-display-tracking);
-  font-weight: 700;
+.stub-block h2 {
+  font-family: var(--heading-h2-family);
+  font-weight: var(--heading-h2-weight);
+  font-size: var(--heading-h2-size);
+  line-height: var(--heading-h2-line-height);
+  letter-spacing: var(--heading-h2-letter-spacing);
+  color: var(--text-default);
 }
 
-@utility type-section-display {
-  font-family: var(--font-display);
-  font-size: var(--type-section-display-size);
-  line-height: var(--type-section-display-leading);
-  letter-spacing: var(--type-section-display-tracking);
-  font-weight: 700;
+section[aria-labelledby="block-7-label"] h2 {
+  font-family: var(--heading-h2-family);
+  font-weight: var(--heading-h2-weight);
+  font-size: var(--heading-h2-size);
+  line-height: var(--heading-h2-line-height);
+  letter-spacing: var(--heading-h2-letter-spacing);
 }
 
-@utility type-heading {
-  font-family: var(--font-display);
-  font-size: var(--type-heading-size);
-  line-height: var(--type-heading-leading);
-  letter-spacing: var(--type-heading-tracking);
-  font-weight: 700;
+.stub-block h3 {
+  font-family: var(--heading-card-family);
+  font-weight: var(--heading-card-weight);
+  font-size: var(--heading-card-size);
+  line-height: var(--heading-card-line-height);
+  letter-spacing: var(--heading-card-letter-spacing);
+  color: var(--text-default);
 }
 
-@utility type-lead {
-  font-family: var(--font-body);
-  font-size: var(--type-lead-size);
-  line-height: var(--type-lead-leading);
-  font-weight: 400;
+.stub-block .text-3xl {
+  font-family: var(--heading-h2-family);
+  font-weight: var(--heading-h2-weight);
+  font-size: var(--heading-h2-size);
+  line-height: var(--heading-h2-line-height);
+  letter-spacing: var(--heading-h2-letter-spacing);
 }
 
-@utility type-body {
-  font-family: var(--font-body);
-  font-size: var(--type-body-size);
-  line-height: var(--type-body-leading);
-  font-weight: 400;
-}
-
-@utility type-eyebrow {
-  font-family: var(--font-body);
-  font-size: var(--type-eyebrow-size);
-  line-height: var(--type-eyebrow-leading);
-  letter-spacing: var(--type-eyebrow-tracking);
-  font-weight: 300;
+.stub-block p.text-xs.font-semibold.uppercase {
+  font-family: var(--eyebrow-family);
+  font-weight: var(--eyebrow-weight);
+  font-size: var(--eyebrow-size);
+  line-height: var(--eyebrow-line-height);
+  letter-spacing: var(--eyebrow-letter-spacing);
   text-transform: uppercase;
+  color: color-mix(in srgb, var(--text-default) 45%, transparent);
 }
 
-@utility type-card-title {
-  font-family: var(--font-body);
-  font-size: var(--type-card-title-size);
-  line-height: var(--type-card-title-leading);
-  letter-spacing: var(--type-card-title-tracking);
-  font-weight: 600;
+.stub-block > div > p:not(.text-xs),
+.stub-block li {
+  font-family: var(--body-md-family);
+  font-weight: var(--body-md-weight);
+  font-size: var(--body-md-size);
+  line-height: var(--body-md-line-height);
+  letter-spacing: var(--body-md-letter-spacing);
 }
 
-@utility type-body-lg {
-  font-family: var(--font-body);
-  font-size: var(--type-body-lg-size);
-  line-height: var(--type-body-lg-leading);
-  font-weight: 400;
+.stub-block .grid p,
+.stub-block .grid li,
+.stub-block .rounded-xl p,
+.stub-block .rounded-lg p {
+  font-family: var(--body-lg-family);
+  font-weight: var(--body-lg-weight);
+  font-size: var(--body-lg-size);
+  line-height: var(--body-lg-line-height);
+  letter-spacing: var(--body-lg-letter-spacing);
 }
 
-@utility type-subheading {
-  font-family: var(--font-body);
-  font-size: var(--type-subheading-size);
-  line-height: var(--type-subheading-leading);
-  letter-spacing: var(--type-subheading-tracking);
-  font-weight: 600;
+.stub-block a.inline-flex.rounded-md,
+.stub-block a.inline-flex.rounded-md.border {
+  font-family: var(--button-lg-family);
+  font-weight: var(--button-lg-weight);
+  font-size: var(--button-lg-size);
+  line-height: var(--button-lg-line-height);
+  letter-spacing: var(--button-lg-letter-spacing);
 }
 
-@utility type-button {
-  font-family: var(--font-body);
-  font-size: var(--type-button-size);
-  line-height: var(--type-button-leading);
-  letter-spacing: var(--type-button-tracking);
-  font-weight: 600;
+.stub-block .text-xs:not(.font-semibold.uppercase),
+.stub-block .text-sm.text-gray-400,
+.stub-block .text-sm.text-gray-500 {
+  font-family: var(--caption-family);
+  font-weight: var(--caption-weight);
+  font-size: var(--caption-size);
+  line-height: var(--caption-line-height);
+  letter-spacing: var(--caption-letter-spacing);
 }
 
-@utility type-label {
-  font-family: var(--font-body);
-  font-size: var(--type-label-size);
-  line-height: var(--type-label-leading);
-  letter-spacing: var(--type-label-tracking);
-  font-weight: 500;
-}
-
-@utility type-caption {
-  font-family: var(--font-body);
-  font-size: var(--type-caption-size);
-  line-height: var(--type-caption-leading);
-  font-weight: 400;
-}
-
-@utility type-micro {
-  font-family: var(--font-body);
-  font-size: var(--type-micro-size);
-  line-height: var(--type-micro-leading);
-  letter-spacing: var(--type-micro-tracking);
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-/* Placeholder stub blocks — Boost type tiers applied on stub pages */
-.hifi .stub-block h2 {
-  font-family: var(--font-display);
-  font-size: var(--type-heading-size);
-  line-height: var(--type-heading-leading);
-  letter-spacing: var(--type-heading-tracking);
-  font-weight: 700;
-  color: var(--hero-ink);
-}
-
-.hifi section[aria-labelledby="block-7-label"] h2 {
-  font-size: var(--type-section-display-size);
-  line-height: var(--type-section-display-leading);
-  letter-spacing: var(--type-section-display-tracking);
-}
-
-.hifi .stub-block h3 {
-  font-family: var(--font-body);
-  font-size: var(--type-card-title-size);
-  line-height: var(--type-card-title-leading);
-  letter-spacing: var(--type-card-title-tracking);
-  font-weight: 600;
-  color: var(--hero-ink);
-}
-
-.hifi .stub-block .text-3xl {
-  font-family: var(--font-display);
-  font-size: var(--type-heading-size);
-  line-height: var(--type-heading-leading);
-  letter-spacing: var(--type-heading-tracking);
-  font-weight: 700;
-}
-
-.hifi .stub-block p.text-xs.font-semibold.uppercase {
-  font-size: var(--type-eyebrow-size);
-  line-height: var(--type-eyebrow-leading);
-  letter-spacing: var(--type-eyebrow-tracking);
-  font-weight: 300;
-  color: color-mix(in oklch, var(--hero-ink) 45%, transparent);
-}
-
-.hifi .stub-block > div > p:not(.text-xs),
-.hifi .stub-block li {
-  font-size: var(--type-body-size);
-  line-height: var(--type-body-leading);
-}
-
-.hifi .stub-block .grid p,
-.hifi .stub-block .grid li,
-.hifi .stub-block .rounded-xl p,
-.hifi .stub-block .rounded-lg p {
-  font-size: var(--type-body-lg-size);
-  line-height: var(--type-body-lg-leading);
-}
-
-.hifi .stub-block a.inline-flex.rounded-md,
-.hifi .stub-block a.inline-flex.rounded-md.border {
-  font-size: var(--type-button-size);
-  line-height: var(--type-button-leading);
-  letter-spacing: var(--type-button-tracking);
-  font-weight: 600;
-}
-
-.hifi .stub-block .text-xs:not(.font-semibold.uppercase),
-.hifi .stub-block .text-sm.text-gray-400,
-.hifi .stub-block .text-sm.text-gray-500 {
-  font-size: var(--type-caption-size);
-  line-height: var(--type-caption-leading);
-}
-
-/* Placeholder "content block" — the greyscale boxes that stand in for real
-   sections / React Bricks blocks on pages whose UI is not yet built. */
 .stub-block {
   background-image: linear-gradient(135deg, var(--skeleton-fill) 25%, transparent 25%),
     linear-gradient(225deg, var(--skeleton-fill) 25%, transparent 25%),
@@ -474,16 +248,49 @@
   background-repeat: repeat;
 }
 
-/* Skeleton text lines */
 .skeleton-line {
   background: var(--skeleton-fill-2);
   border-radius: 4px;
 }
 
+/* Mega-menu reveal — fade + slide down from behind the pill (no scale). */
+
+#nav-mega-menu-panel {
+  overflow: visible;
+}
+
+#nav-mega-menu-panel .mega-menu-drop-motion {
+  opacity: 0;
+  transform: translate3d(0, calc(-1 * var(--mega-drop-tuck, 98px)), 0);
+  transition-property: opacity, transform;
+  transition-duration: var(--mega-close-ms, 80ms), var(--mega-close-ms, 80ms);
+  transition-timing-function: cubic-bezier(0.55, 0.05, 1, 0.85),
+    cubic-bezier(0.55, 0.05, 1, 0.85);
+}
+
+#nav-mega-menu-panel[data-expanded="true"] .mega-menu-drop-motion {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition-duration: var(--mega-open-fade-ms, 120ms),
+    var(--mega-open-ms, 120ms);
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1),
+    cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Menu-to-menu switch — Stripe/Linear-style directional cross-slide. */
+.mega-menu-panel[data-switching="true"] {
+  transition: height var(--mega-switch-ms, 120ms)
+    cubic-bezier(0.2, 0, 0, 1);
+}
+
+.mega-menu-switch-layer {
+  will-change: transform, opacity;
+}
+
 @keyframes megaPanelEnterRight {
   from {
     opacity: 0;
-    transform: translate3d(8px, 0, 0);
+    transform: translate3d(24px, 0, 0);
   }
   to {
     opacity: 1;
@@ -494,7 +301,7 @@
 @keyframes megaPanelEnterLeft {
   from {
     opacity: 0;
-    transform: translate3d(-8px, 0, 0);
+    transform: translate3d(-24px, 0, 0);
   }
   to {
     opacity: 1;
@@ -502,9 +309,48 @@
   }
 }
 
+@keyframes megaPanelExitRight {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(-24px, 0, 0);
+  }
+}
+
+@keyframes megaPanelExitLeft {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(24px, 0, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mega-menu-panel {
+    transition: none !important;
+  }
+
+  .mega-menu-switch-layer {
     animation: none !important;
+  }
+
+  #nav-mega-menu-panel {
+    transition: none !important;
+  }
+
+  #nav-mega-menu-panel .mega-menu-drop-motion {
+    transition: none !important;
+  }
+
+  #nav-mega-menu-panel[data-expanded="true"] .mega-menu-drop-motion {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -519,23 +365,17 @@
   }
 }
 
-/* Mega menu nav — no focus ring/underline from global base styles */
-.mega-header nav button:focus,
-.mega-header nav button:focus-visible {
-  outline: none;
-  box-shadow: none;
-}
-
 @layer base {
   * {
-    @apply border-border outline-ring/50;
-  }
-
-  body {
-    @apply bg-background text-foreground;
+    @apply border-line outline-accent-blue/50;
   }
 
   html {
     @apply font-sans;
+    background-color: var(--surface-default);
+  }
+
+  body {
+    @apply bg-surface text-default antialiased;
   }
 }

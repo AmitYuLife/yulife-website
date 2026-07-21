@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import HomeHiFi from "@/components/hifi/HomeHiFi";
+import HomePage from "@/components/HomePage";
 import { home } from "@/data/sitemap";
 
 export const metadata: Metadata = {
@@ -7,6 +7,6 @@ export const metadata: Metadata = {
   description: home.purpose,
 };
 
-export default function HomePage() {
-  return <HomeHiFi />;
+export default function Page() {
+  return <HomePage />;
 }

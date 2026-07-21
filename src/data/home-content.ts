@@ -40,28 +40,31 @@ export const hero = {
 } as const;
 
 export const ecosystem = {
-  eyebrow: "Complete health ecosystem",
+  eyebrow: "The complete health ecosystem",
   heading: "Built for daily life, not just moments of need",
   stats: [
     {
       value: "80%",
-      label: "adoption",
-      description: "a benefit your people actually use.",
+      label: "employee adoption",
     },
     {
       value: "25%",
       label: "lower claims risk",
-      description: "healthier teams mean fewer claims and steadier costs.",
+      note: "Our model reaches the people other platforms miss, ensuring your investment works for the whole workforce.",
       footnote: 1,
     },
     {
-      value: "11.5%",
-      label: "less sickness absence",
-      description: "more workdays back, through earlier intervention.",
+      value: "12%",
+      label: "reduction in sickness absence",
       footnote: 2,
     },
   ],
-  insurers: ["Bupa", "MetLife", "Dai-ichi", "Mutual of Omaha"],
+  insurers: [
+    { name: "Aviva", src: "/home/logo-aviva.svg", width: 108 },
+    { name: "MetLife", src: "/home/logo-metlife.svg", width: 106 },
+    { name: "Bupa", src: "/home/logo-bupa.svg", width: 82 },
+    { name: "Daiichi Life", src: "/home/logo-daiichi.svg", width: 125 },
+  ],
 } as const;
 
 export const products = {

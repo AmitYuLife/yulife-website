@@ -1,0 +1,315 @@
+/* =============================================================================
+   YuLife Website Refresh 2026 — Tailwind v4 theme
+   Generated from Figma (file PZs2ZaR8I3fShBqvAZxC7U). Naming revised 20 Jul 2026.
+   Layers: 1) primitives  2) canonical semantic vars (1:1 with Figma token names)
+   3) @theme wires those into Tailwind namespaces so utilities generate.
+   Import AFTER `@import "tailwindcss";` in your global stylesheet.
+   ============================================================================= */
+
+@import "tailwindcss";
+
+/* ---- 1. Primitives (Brand / Foundations — the ONLY layer with raw values) ---- */
+:root {
+  --purple-900: #290163; --purple-800: #340080; --purple-700: #6953f3; --purple-600: #956aff; --purple-500: #c7b4fd;
+  --neutral-white: #ffffff; --neutral-200: #f5f5f5; --neutral-400: #d9d9d7; --neutral-300: #e3e3e1;
+  --green-600: #00ed9d;
+  --blue-600: #00c0f3;
+  --yellow-600: #ffd600;
+}
+
+/* ---- 2. Canonical semantic tokens (names map 1:1 to Figma) ---- */
+:root {
+  /* colour — always alias a primitive, never a raw hex */
+  --text-default: var(--purple-900);
+  --text-emphasis: var(--purple-800);
+  --text-on-inverse: var(--neutral-white);
+  --text-on-inverse-muted: var(--purple-700);
+  --text-on-accent: var(--purple-900);
+  --text-accent-purple: var(--purple-600);
+  --text-accent-green: var(--green-600);
+  --text-accent-blue: var(--blue-600);
+  --text-accent-yellow: var(--yellow-600);
+  --surface-default: var(--neutral-white);
+  --surface-subtle: var(--neutral-200);
+  --surface-muted: var(--neutral-400);
+  --surface-inverse: var(--purple-900);
+  --surface-inverse-raised: var(--purple-800);
+  --surface-accent-purple: var(--purple-500);
+  --surface-accent-green: var(--green-600);
+  --surface-accent-yellow: var(--yellow-600);
+  --surface-accent-blue: var(--blue-600);
+  --border-default: var(--neutral-300);
+  --border-emphasis: var(--purple-700);
+  --border-inverse: rgb(255 255 255 / 0.4);
+  --border-subtle-purple: rgb(105 83 243 / 0.4);
+  --action-primary-bg: var(--neutral-white);
+  --action-primary-text: var(--purple-900);
+  --action-secondary-border: var(--neutral-white);
+  /* NOTE: radius (--radius-*) and spacing (--spacing-*) are defined once in @theme below
+     — they are neither responsive nor aliased, so no separate canonical layer is needed. */
+}
+
+/* ---- Responsive type sizes + layout (mobile-first; swap at min-width breakpoints) ---- */
+:root {
+  /* non-responsive type props (constant across breakpoints) */
+  --display-hero-family: var(--font-serif); --display-hero-weight: 700; --display-hero-letter-spacing: 0;
+  --display-number-family: var(--font-serif); --display-number-weight: 700; --display-number-letter-spacing: 0;
+  --heading-h2-family: var(--font-serif); --heading-h2-weight: 700; --heading-h2-letter-spacing: 0;
+  --heading-card-family: var(--font-serif); --heading-card-weight: 700; --heading-card-letter-spacing: 0;
+  --heading-h3-family: var(--font-serif); --heading-h3-weight: 700; --heading-h3-letter-spacing: 0;
+  --quote-family: var(--font-serif); --quote-weight: 700; --quote-letter-spacing: 0;
+  --heading-h4-family: var(--font-sans); --heading-h4-weight: 700; --heading-h4-letter-spacing: 0;
+  --heading-h5-family: var(--font-sans); --heading-h5-weight: 700; --heading-h5-letter-spacing: 0;
+  --body-lg-family: var(--font-sans); --body-lg-weight: 400; --body-lg-letter-spacing: 0;
+  --body-md-family: var(--font-sans); --body-md-weight: 400; --body-md-letter-spacing: 0;
+  --body-sm-family: var(--font-sans); --body-sm-weight: 400; --body-sm-letter-spacing: 0;
+  --eyebrow-family: var(--font-sans); --eyebrow-weight: 400; --eyebrow-letter-spacing: 0;
+  --label-family: var(--font-sans); --label-weight: 700; --label-letter-spacing: 0;
+  --button-lg-family: var(--font-sans); --button-lg-weight: 700; --button-lg-letter-spacing: 0;
+  --button-md-family: var(--font-sans); --button-md-weight: 700; --button-md-letter-spacing: 0;
+  --nav-link-family: var(--font-sans); --nav-link-weight: 700; --nav-link-letter-spacing: 0;
+  --caption-family: var(--font-sans); --caption-weight: 400; --caption-letter-spacing: 0;
+
+  /* Mobile (< 768px) — base */
+  --display-hero-size: 44px; --display-hero-line-height: 44px;
+  --display-number-size: 56px; --display-number-line-height: 56px;
+  --heading-h2-size: 36px; --heading-h2-line-height: 38px;
+  --heading-card-size: 36px; --heading-card-line-height: 32px;
+  --heading-h3-size: 28px; --heading-h3-line-height: 32px;
+  --quote-size: 24px; --quote-line-height: 32px;
+  --heading-h4-size: 22px; --heading-h4-line-height: 28px;
+  --heading-h5-size: 18px; --heading-h5-line-height: 26px;
+  --body-lg-size: 18px; --body-lg-line-height: 26px;
+  --body-md-size: 16px; --body-md-line-height: 24px;
+  --body-sm-size: 14px; --body-sm-line-height: 20px;
+  --eyebrow-size: 14px; --eyebrow-line-height: 18px;
+  --label-size: 16px; --label-line-height: 20px;
+  --button-lg-size: 18px; --button-lg-line-height: 24px;
+  --button-md-size: 16px; --button-md-line-height: 24px;
+  --nav-link-size: 16px; --nav-link-line-height: 24px;
+  --caption-size: 12px; --caption-line-height: 16px;
+  --layout-container-max: 335px;
+  --layout-page-margin: 20px;
+  --layout-section-x: 20px;
+  --layout-section-y: 64px;
+  --layout-section-y-lg: 80px;
+  --layout-section-gap-xl: 56px;
+  --layout-section-gap: 40px;
+  --layout-block-gap: 24px;
+  --layout-grid-gutter: 16px;
+  --layout-breakout-max: 335px;
+  --gap-none: 0px; --gap-inline: 8px; --gap-related: 12px; --gap-stack: 16px; --gap-controls: 20px; --gap-flow: 24px; --gap-group: 32px; --gap-split: 48px;
+}
+@media (min-width: 768px)  { :root { /* Tablet */
+    --display-hero-size: 64px; --display-hero-line-height: 60px;
+    --display-number-size: 72px; --display-number-line-height: 72px;
+    --heading-h2-size: 48px; --heading-h2-line-height: 48px;
+    --heading-card-size: 44px; --heading-card-line-height: 40px;
+    --heading-h3-size: 32px; --heading-h3-line-height: 36px;
+    --quote-size: 28px; --quote-line-height: 36px;
+    --heading-h4-size: 24px; --heading-h4-line-height: 32px;
+    --heading-h5-size: 20px; --heading-h5-line-height: 28px;
+    --body-lg-size: 20px; --body-lg-line-height: 28px;
+    --body-md-size: 16px; --body-md-line-height: 24px;
+    --body-sm-size: 14px; --body-sm-line-height: 20px;
+    --eyebrow-size: 16px; --eyebrow-line-height: 20px;
+    --label-size: 16px; --label-line-height: 20px;
+    --button-lg-size: 18px; --button-lg-line-height: 24px;
+    --button-md-size: 16px; --button-md-line-height: 24px;
+    --nav-link-size: 16px; --nav-link-line-height: 24px;
+    --caption-size: 13px; --caption-line-height: 18px;
+    --layout-container-max: 688px;
+    --layout-page-margin: 40px;
+    --layout-section-x: 40px;
+    --layout-section-y: 96px;
+    --layout-section-y-lg: 120px;
+    --layout-section-gap-xl: 72px;
+    --layout-section-gap: 48px;
+    --layout-block-gap: 32px;
+    --layout-grid-gutter: 24px;
+    --layout-breakout-max: 688px;
+    --gap-none: 0px; --gap-inline: 8px; --gap-related: 12px; --gap-stack: 20px; --gap-controls: 24px; --gap-flow: 28px; --gap-group: 40px; --gap-split: 80px;
+  } }
+@media (min-width: 1280px) { :root { /* Desktop */
+    --display-hero-size: 96px; --display-hero-line-height: 88px;
+    --display-number-size: 96px; --display-number-line-height: 96px;
+    --heading-h2-size: 64px; --heading-h2-line-height: 60px;
+    --heading-card-size: 56px; --heading-card-line-height: 48px;
+    --heading-h3-size: 40px; --heading-h3-line-height: 44px;
+    --quote-size: 32px; --quote-line-height: 40px;
+    --heading-h4-size: 28px; --heading-h4-line-height: 36px;
+    --heading-h5-size: 24px; --heading-h5-line-height: 32px;
+    --body-lg-size: 24px; --body-lg-line-height: 32px;
+    --body-md-size: 18px; --body-md-line-height: 28px;
+    --body-sm-size: 16px; --body-sm-line-height: 24px;
+    --eyebrow-size: 18px; --eyebrow-line-height: 24px;
+    --label-size: 18px; --label-line-height: 24px;
+    --button-lg-size: 20px; --button-lg-line-height: 28px;
+    --button-md-size: 16px; --button-md-line-height: 24px;
+    --nav-link-size: 16px; --nav-link-line-height: 24px;
+    --caption-size: 14px; --caption-line-height: 20px;
+    --layout-container-max: 1216px;
+    --layout-page-margin: 80px;
+    --layout-section-x: 112px;
+    --layout-section-y: 128px;
+    --layout-section-y-lg: 160px;
+    --layout-section-gap-xl: 96px;
+    --layout-section-gap: 64px;
+    --layout-block-gap: 40px;
+    --layout-grid-gutter: 32px;
+    --layout-breakout-max: 1440px;
+    --gap-none: 0px; --gap-inline: 8px; --gap-related: 16px; --gap-stack: 24px; --gap-controls: 28px; --gap-flow: 32px; --gap-group: 48px; --gap-split: 128px;
+  } }
+@media (min-width: 1920px) { :root { /* Desktop XL */
+    --display-hero-size: 120px; --display-hero-line-height: 104px;
+    --display-number-size: 120px; --display-number-line-height: 120px;
+    --heading-h2-size: 80px; --heading-h2-line-height: 72px;
+    --heading-card-size: 64px; --heading-card-line-height: 56px;
+    --heading-h3-size: 48px; --heading-h3-line-height: 52px;
+    --quote-size: 40px; --quote-line-height: 48px;
+    --heading-h4-size: 32px; --heading-h4-line-height: 40px;
+    --heading-h5-size: 24px; --heading-h5-line-height: 32px;
+    --body-lg-size: 24px; --body-lg-line-height: 32px;
+    --body-md-size: 18px; --body-md-line-height: 28px;
+    --body-sm-size: 16px; --body-sm-line-height: 24px;
+    --eyebrow-size: 20px; --eyebrow-line-height: 24px;
+    --label-size: 20px; --label-line-height: 24px;
+    --button-lg-size: 24px; --button-lg-line-height: 32px;
+    --button-md-size: 16px; --button-md-line-height: 24px;
+    --nav-link-size: 16px; --nav-link-line-height: 24px;
+    --caption-size: 14px; --caption-line-height: 20px;
+    --layout-container-max: 1216px;
+    --layout-page-margin: 80px;
+    --layout-section-x: 352px;
+    --layout-section-y: 160px;
+    --layout-section-y-lg: 200px;
+    --layout-section-gap-xl: 120px;
+    --layout-section-gap: 80px;
+    --layout-block-gap: 48px;
+    --layout-grid-gutter: 32px;
+    --layout-breakout-max: 1568px;
+    --gap-none: 0px; --gap-inline: 8px; --gap-related: 16px; --gap-stack: 24px; --gap-controls: 32px; --gap-flow: 40px; --gap-group: 64px; --gap-split: 200px;
+  } }
+
+/* ---- 3. Tailwind theme: wire canonical vars into Tailwind namespaces ---- */
+@theme {
+  /* reset the namespaces we fully own so only design-system values exist */
+  --color-*: initial;
+  --breakpoint-*: initial;
+  --radius-*: initial;
+  --text-*: initial;      /* font-size utilities removed — use .type-* role classes */
+  --spacing: initial;     /* disable the dynamic 4px scale — use explicit steps below */
+
+  /* breakpoints = the 4 design modes (Mobile is the base, no query) */
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1280px;
+  --breakpoint-xl: 1920px;
+
+  /* fonts */
+  --font-serif: "Berlingske Serif", Georgia, "Times New Roman", serif;
+  --font-sans: "Lota Grotesque", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* radius (rounded-sm, rounded-md, …) */
+  --radius-none: 0px;
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-2xl: 64px;
+  --radius-full: 999px;
+
+  /* spacing primitives — suffix = pixels: space/16 -> --spacing-16 -> p-16 = 16px (fixed) */
+  --spacing-0: 0px;
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+  --spacing-80: 80px;
+  --spacing-96: 96px;
+  --spacing-120: 120px;
+  --spacing-160: 160px;
+  --spacing-200: 200px;
+  --spacing-240: 240px;
+  --spacing-320: 320px;
+
+  /* semantic gap scale (RESPONSIVE) — use gap-2xs … gap-xl for element/content gaps.
+     These reference the responsive --gap-* vars, so they shrink per breakpoint. */
+  --spacing-none: var(--gap-none);
+  --spacing-inline: var(--gap-inline);
+  --spacing-related: var(--gap-related);
+  --spacing-stack: var(--gap-stack);
+  --spacing-controls: var(--gap-controls);
+  --spacing-flow: var(--gap-flow);
+  --spacing-group: var(--gap-group);
+  --spacing-split: var(--gap-split);
+  --spacing-section-gap: var(--layout-section-gap);
+
+  /* keep transparent/current (always available) + convenience black/white */
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* colour utilities — Scheme A: the utility prefix names the property, so:
+       text/*    -> text-<tier>        (text-default, text-emphasis, text-on-inverse, text-accent-purple …)
+       surface/* -> bg-surface[-<tier>] (bg-surface, bg-surface-inverse, bg-surface-accent-green …)
+       border/*  -> border-line[-<tier>] (border-line, border-line-emphasis, border-line-inverse)
+       action/*  -> bg-action-primary, text-on-action-primary, border-action-secondary
+     Canonical vars above (--text-*, --surface-*, --border-*, --action-*) remain 1:1 with Figma. */
+  --color-default: var(--text-default);
+  --color-emphasis: var(--text-emphasis);
+  --color-on-inverse: var(--text-on-inverse);
+  --color-on-inverse-muted: var(--text-on-inverse-muted);
+  --color-on-accent: var(--text-on-accent);
+  --color-accent-purple: var(--text-accent-purple);
+  --color-accent-green: var(--text-accent-green);
+  --color-accent-blue: var(--text-accent-blue);
+  --color-accent-yellow: var(--text-accent-yellow);
+  --color-surface: var(--surface-default);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-surface-inverse-raised: var(--surface-inverse-raised);
+  --color-surface-accent-purple: var(--surface-accent-purple);
+  --color-surface-accent-green: var(--surface-accent-green);
+  --color-surface-accent-yellow: var(--surface-accent-yellow);
+  --color-surface-accent-blue: var(--surface-accent-blue);
+  --color-line: var(--border-default);
+  --color-line-emphasis: var(--border-emphasis);
+  --color-line-inverse: var(--border-inverse);
+  --color-line-subtle: var(--border-subtle-purple);
+  --color-action-primary: var(--action-primary-bg);
+  --color-on-action-primary: var(--action-primary-text);
+  --color-action-secondary: var(--action-secondary-border);
+}
+
+/* ---- Typography role classes (complete: family + weight + responsive size/line-height) ---- */
+@layer components {
+  .type-display-hero { font-family: var(--display-hero-family); font-weight: var(--display-hero-weight); font-size: var(--display-hero-size); line-height: var(--display-hero-line-height); letter-spacing: var(--display-hero-letter-spacing); }
+  .type-display-number { font-family: var(--display-number-family); font-weight: var(--display-number-weight); font-size: var(--display-number-size); line-height: var(--display-number-line-height); letter-spacing: var(--display-number-letter-spacing); }
+  .type-heading-h2 { font-family: var(--heading-h2-family); font-weight: var(--heading-h2-weight); font-size: var(--heading-h2-size); line-height: var(--heading-h2-line-height); letter-spacing: var(--heading-h2-letter-spacing); }
+  .type-heading-card { font-family: var(--heading-card-family); font-weight: var(--heading-card-weight); font-size: var(--heading-card-size); line-height: var(--heading-card-line-height); letter-spacing: var(--heading-card-letter-spacing); }
+  .type-heading-h3 { font-family: var(--heading-h3-family); font-weight: var(--heading-h3-weight); font-size: var(--heading-h3-size); line-height: var(--heading-h3-line-height); letter-spacing: var(--heading-h3-letter-spacing); }
+  .type-quote { font-family: var(--quote-family); font-weight: var(--quote-weight); font-size: var(--quote-size); line-height: var(--quote-line-height); letter-spacing: var(--quote-letter-spacing); }
+  .type-heading-h4 { font-family: var(--heading-h4-family); font-weight: var(--heading-h4-weight); font-size: var(--heading-h4-size); line-height: var(--heading-h4-line-height); letter-spacing: var(--heading-h4-letter-spacing); }
+  .type-heading-h5 { font-family: var(--heading-h5-family); font-weight: var(--heading-h5-weight); font-size: var(--heading-h5-size); line-height: var(--heading-h5-line-height); letter-spacing: var(--heading-h5-letter-spacing); }
+  .type-body-lg { font-family: var(--body-lg-family); font-weight: var(--body-lg-weight); font-size: var(--body-lg-size); line-height: var(--body-lg-line-height); letter-spacing: var(--body-lg-letter-spacing); }
+  .type-body-md { font-family: var(--body-md-family); font-weight: var(--body-md-weight); font-size: var(--body-md-size); line-height: var(--body-md-line-height); letter-spacing: var(--body-md-letter-spacing); }
+  .type-body-sm { font-family: var(--body-sm-family); font-weight: var(--body-sm-weight); font-size: var(--body-sm-size); line-height: var(--body-sm-line-height); letter-spacing: var(--body-sm-letter-spacing); }
+  .type-eyebrow { font-family: var(--eyebrow-family); font-weight: var(--eyebrow-weight); font-size: var(--eyebrow-size); line-height: var(--eyebrow-line-height); letter-spacing: var(--eyebrow-letter-spacing); }
+  .type-label { font-family: var(--label-family); font-weight: var(--label-weight); font-size: var(--label-size); line-height: var(--label-line-height); letter-spacing: var(--label-letter-spacing); }
+  .type-button-lg { font-family: var(--button-lg-family); font-weight: var(--button-lg-weight); font-size: var(--button-lg-size); line-height: var(--button-lg-line-height); letter-spacing: var(--button-lg-letter-spacing); }
+  .type-button-md { font-family: var(--button-md-family); font-weight: var(--button-md-weight); font-size: var(--button-md-size); line-height: var(--button-md-line-height); letter-spacing: var(--button-md-letter-spacing); }
+  .type-nav-link { font-family: var(--nav-link-family); font-weight: var(--nav-link-weight); font-size: var(--nav-link-size); line-height: var(--nav-link-line-height); letter-spacing: var(--nav-link-letter-spacing); }
+  .type-caption { font-family: var(--caption-family); font-weight: var(--caption-weight); font-size: var(--caption-size); line-height: var(--caption-line-height); letter-spacing: var(--caption-letter-spacing); }
+}
+
+/* ---- Layout helpers (optional; raw --layout-* vars are the source) ---- */
+@layer components {
+  .container-page { width: 100%; max-width: var(--layout-container-max); margin-inline: auto; padding-inline: var(--layout-page-margin); }
+  .section-y     { padding-block: var(--layout-section-y); }
+  .section-y-lg  { padding-block: var(--layout-section-y-lg); }
+}

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import EditorialHiFi from "@/components/hifi/EditorialHiFi";
+import EditorialPage from "@/components/EditorialPage";
 import { editorialPages } from "@/data/pages/editorial";
 import { getPageByRoute } from "@/data/sitemap";
 
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <EditorialHiFi data={data} />;
+  return <EditorialPage data={data} />;
 }

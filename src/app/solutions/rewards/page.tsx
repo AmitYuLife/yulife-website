@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import FeatureHiFi from "@/components/hifi/FeatureHiFi";
+import FeaturePage from "@/components/FeaturePage";
 import { featurePages } from "@/data/pages/features";
 import { getPageByRoute } from "@/data/sitemap";
 
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <FeatureHiFi data={data} />;
+  return <FeaturePage data={data} />;
 }

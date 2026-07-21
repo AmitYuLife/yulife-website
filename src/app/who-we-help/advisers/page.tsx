@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AudienceHiFi from "@/components/hifi/AudienceHiFi";
+import AudiencePage from "@/components/AudiencePage";
 import { audiencePages } from "@/data/pages/audience";
 import { getPageByRoute } from "@/data/sitemap";
 
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <AudienceHiFi data={data} />;
+  return <AudiencePage data={data} />;
 }

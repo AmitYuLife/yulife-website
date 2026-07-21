@@ -4,7 +4,6 @@
 # next.js
 /.next/
 /.next-dev/
-/.next-dev-hifi/
 /out/
 /out-wire/
 /out-test/
@@ -16,6 +15,11 @@
 # misc
 .DS_Store
 *.pem
+
+# editor / agent tooling (local or optional — not part of the app build)
+.cursor/
+.agents/
+skills-lock.json
 
 # debug
 npm-debug.log*
