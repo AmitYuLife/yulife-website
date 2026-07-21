@@ -247,6 +247,7 @@
   --spacing-flow: var(--gap-flow);
   --spacing-group: var(--gap-group);
   --spacing-split: var(--gap-split);
+  --spacing-block-gap: var(--layout-block-gap);
   --spacing-section-gap: var(--layout-section-gap);
 
   /* keep transparent/current (always available) + convenience black/white */

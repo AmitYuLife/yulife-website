@@ -38,6 +38,15 @@
     padding-inline: clamp(1.25rem, 6vw, 5rem);
   }
 
+  /* Same gutters as page content; only the max width is slightly wider
+     so the floating pill doesn't share a hard edge with sections below. */
+  .nav-container {
+    width: 100%;
+    max-width: 1248px;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 6vw, 5rem);
+  }
+
   .type-display {
     font-family: var(--display-hero-family);
     font-weight: var(--display-hero-weight);
@@ -331,12 +340,140 @@ section[aria-labelledby="block-7-label"] h2 {
   }
 }
 
+/* Product showcase — carousel scrollport. Spans the full viewport so cards can
+   bleed past both edges unclipped, while the inline padding matches the
+   .page-container inset (centred 1216px + fluid gutters) so the first card
+   lines up with the container's left edge. */
+.product-showcase-track {
+  --carousel-inset: calc(
+    max((100vw - 1216px) / 2, 0px) + clamp(1.25rem, 6vw, 5rem)
+  );
+  width: 100%;
+  padding-inline: var(--carousel-inset);
+  scroll-padding-inline-start: var(--carousel-inset);
+  /* Drag-controlled, not wheel/trackpad: hide the x overflow so pointer input
+     can't scroll it horizontally (scrollLeft is still driven programmatically
+     by the drag handlers). touch-action keeps vertical page scroll on touch. */
+  overflow-x: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+}
+
+.product-showcase-track.is-dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
+}
+
+/* Product showcase — animated gradient stroke on the active card
+   (Figma SliderItem active: green → blue → yellow → purple). The wrapper paints
+   the brand accent gradient as a conic gradient and reveals it as a 1px frame
+   via its padding; the inner card sits on top and covers the rest. The frame
+   spins by animating the registered --ring-angle custom property. Drawing the
+   gradient on this wrapper (rather than a ::before on the card) avoids the
+   card's own overflow:hidden — needed to clip the photo — from clipping it. */
+@property --ring-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.product-showcase-ring {
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: var(--radius-md);
+  background: conic-gradient(
+    from var(--ring-angle),
+    var(--green-600),
+    var(--blue-600),
+    var(--yellow-600),
+    var(--purple-600),
+    var(--green-600)
+  );
+  /* Reveal only the 1px padding band as the stroke; punch out the interior. */
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: productRingSpin 5s linear infinite;
+}
+
+@keyframes productRingSpin {
+  to {
+    --ring-angle: 360deg;
+  }
+}
+
+/* Product showcase card backgrounds — the photo travels with the direction of
+   movement: it exits the old card and enters the new one on the same vector. */
+.product-showcase-bg-layer {
+  will-change: transform, opacity;
+}
+
+@keyframes productBgEnterRight {
+  from {
+    opacity: 0;
+    transform: translate3d(-64px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes productBgEnterLeft {
+  from {
+    opacity: 0;
+    transform: translate3d(64px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes productBgExitRight {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(64px, 0, 0);
+  }
+}
+
+@keyframes productBgExitLeft {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(-64px, 0, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mega-menu-panel {
     transition: none !important;
   }
 
   .mega-menu-switch-layer {
+    animation: none !important;
+  }
+
+  .product-showcase-bg-layer {
+    animation: none !important;
+  }
+
+  .product-showcase-ring {
     animation: none !important;
   }
 

@@ -12,30 +12,23 @@ export const hero = {
     { name: "Novartis", approved: true },
     { name: "Fujitsu", approved: true },
     { name: "Sodexo", approved: true },
-    { name: "Severn Trent", approved: true },
     { name: "Paramount", approved: true },
     { name: "Havas", approved: true },
-    { name: "Financial Times", approved: false },
     { name: "Qinetiq", approved: true },
-    { name: "Wolseley", approved: true },
-    { name: "Del Monte UK", approved: true },
-    { name: "Kiko Milano", approved: false },
     { name: "Mintel", approved: true },
     { name: "Bruntwood", approved: true },
+    { name: "Kiko Milano", approved: true },
+    { name: "Old Mutual", approved: true },
+    { name: "Aviva", approved: true },
+    { name: "Dishoom", approved: true },
     { name: "XMA", approved: true },
-    { name: "Nice-Pak", approved: true },
     { name: "what3words", approved: true },
     { name: "ManyPets", approved: true },
     { name: "Curve", approved: true },
-    { name: "ITRS Group", approved: true },
     { name: "Paymentology", approved: true },
     { name: "Moneyhub", approved: true },
-    { name: "CreateFuture (xDesign)", approved: false },
-    { name: "Dishoom", approved: false },
-    { name: "Wolf & Badger", approved: true },
-    { name: "Abel & Cole", approved: true },
     { name: "Oddbox", approved: true },
-    { name: "Chilly's", approved: true },
+    { name: "CreateFuture (xDesign)", approved: true },
   ],
 } as const;
 
@@ -45,7 +38,8 @@ export const ecosystem = {
   stats: [
     {
       value: "80%",
-      label: "employee adoption",
+      label: "employee\nadoption",
+      note: "Engaged YuLife users have significantly fewer claims, supporting more sustainable premiums over time.",
     },
     {
       value: "25%",
@@ -56,45 +50,64 @@ export const ecosystem = {
     {
       value: "12%",
       label: "reduction in sickness absence",
+      note: "Active prevention and daily engagement build healthier teams with fewer sick days.",
       footnote: 2,
     },
   ],
   insurers: [
-    { name: "Aviva", src: "/home/logo-aviva.svg", width: 108 },
-    { name: "MetLife", src: "/home/logo-metlife.svg", width: 106 },
-    { name: "Bupa", src: "/home/logo-bupa.svg", width: 82 },
-    { name: "Daiichi Life", src: "/home/logo-daiichi.svg", width: 125 },
+    { name: "Aviva", src: "/home/logo-aviva.svg", width: 189, height: 34 },
+    { name: "MetLife", src: "/home/logo-metlife.svg", width: 186, height: 40 },
+    { name: "Bupa", src: "/home/logo-bupa.svg", width: 143, height: 38 },
+    { name: "Daiichi Life", src: "/home/logo-daiichi.svg", width: 219, height: 40 },
   ],
+} as const;
+
+/** Shared card background — Figma SliderItem (1727:1469). */
+export const productCardBackground = {
+  src: "/home/products/health-insurance-bg.png",
+  width: "369.65%",
+  height: "107.16%",
+  left: "-158.23%",
+  top: "0",
 } as const;
 
 export const products = {
   eyebrow: "A new standard",
   heading: "Protection for today's world",
+  intro:
+    "YuLife is the centralised one-stop-shop that unifies world-class cover with a digital-first health experience.",
   cards: [
     {
-      title: "Group Health Insurance",
+      titleEmphasis: "Health",
+      titleRest: " insurance",
       description:
         "Private medical cover with fast-track access to specialists and hospitals.",
-      carrier: "Bupa",
+      carrier: "bupa",
       href: "/products/health",
     },
     {
-      title: "Health Cash Plan",
+      titleEmphasis: "Health",
+      titleRest: " cash plan",
+      titleBreakBeforeRest: true,
       description:
         "Simple, digital reimbursements for everyday healthcare costs like dental and optical.",
-      carrier: "Bupa",
+      carrier: "bupa",
       href: "/products/cash-plan",
     },
     {
-      title: "Group Life Insurance",
-      description: "Essential financial security for the people your employees love.",
-      carrier: "MetLife",
+      titleEmphasis: "Life",
+      titleRest: " insurance",
+      titleBreakBeforeRest: true,
+      description: "A tax-efficient lump sum payment for families if a loved one dies.",
+      carrier: "metlife",
       href: "/products/life-insurance",
     },
     {
-      title: "Group Income Protection",
-      description: "Income and expert rehabilitation support if an employee cannot work.",
-      carrier: "MetLife",
+      titleEmphasis: "Income",
+      titleRest: " protection",
+      description:
+        "Financial support and rehabilitation for employees unable to work due to illness.",
+      carrier: "bupa",
       href: "/products/income-protection",
     },
   ],
