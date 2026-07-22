@@ -1,0 +1,90 @@
+<svg width="120" height="22" viewBox="0 0 120 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Aviva">
+<g id="Aviva_2">
+<g id="Group-6">
+<g id="Mask group">
+<mask id="mask0_1479_2532" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="15" y="0" width="7" height="19">
+<g id="Group">
+<path id="Vector" d="M15.5972 0.0243031L17.3805 18.2038C18.8024 18.121 20.2545 18.0746 21.7377 18.0713L21.7433 0.0243031L15.5972 0.0220947V0.0243031Z" fill="white"/>
+</g>
+</mask>
+<g mask="url(#mask0_1479_2532)">
+<path id="Fill-4" fill-rule="evenodd" clip-rule="evenodd" d="M10.022 23.7248H27.3195V-5.4989H10.022V23.7248Z" fill="white"/>
+</g>
+</g>
+</g>
+<g id="Group-9">
+<g id="Mask group_2">
+<mask id="mask1_1479_2532" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="22">
+<g id="Group_2">
+<path id="Vector_2" d="M0 0.0022084L0.00872374 22C3.70759 20.3614 8.52419 19.1401 13.9743 18.5284L15.7464 0.0022084V0L0 0.0022084Z" fill="white"/>
+</g>
+</mask>
+<g mask="url(#mask1_1479_2532)">
+<path id="Fill-7" fill-rule="evenodd" clip-rule="evenodd" d="M-5.45215 27.521H21.1989V-5.521H-5.45215V27.521Z" fill="white"/>
+</g>
+</g>
+</g>
+<g id="Group-12">
+<g id="Mask group_3">
+<mask id="mask2_1479_2532" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="70" y="0" width="7" height="19">
+<g id="Group_3">
+<path id="Vector_3" d="M70.2114 0.124756V0.691208C70.6164 0.761877 72.0675 1.16933 72.0675 2.1631V18.0834H76.9806V0.124756H70.2114Z" fill="white"/>
+</g>
+</mask>
+<g mask="url(#mask2_1479_2532)">
+<path id="Fill-10" fill-rule="evenodd" clip-rule="evenodd" d="M64.4761 23.6044H82.7164V-5.39734H64.4761V23.6044Z" fill="white"/>
+</g>
+</g>
+</g>
+<g id="Group-15">
+<g id="Mask group_4">
+<mask id="mask3_1479_2532" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="27" y="0" width="21" height="19">
+<g id="Group_4">
+<path id="Vector_4" d="M32.9604 0.124756V0.691208C33.523 0.811566 34.745 1.15828 34.2497 2.27904L27.3135 18.0834H30.9782L33.1505 13.1565H40.8351L42.7347 18.0834H47.554L40.67 0.124756H32.9604ZM37.2507 3.86136L39.9748 10.926H34.1345L37.2507 3.86136Z" fill="white"/>
+</g>
+</mask>
+<g mask="url(#mask3_1479_2532)">
+<path id="Fill-13" fill-rule="evenodd" clip-rule="evenodd" d="M21.8818 23.6044H52.985V-5.39734H21.8818V23.6044Z" fill="white"/>
+</g>
+</g>
+</g>
+<g id="Group-18">
+<g id="Mask group_5">
+<mask id="mask4_1479_2532" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="99" y="0" width="21" height="19">
+<g id="Group_5">
+<path id="Vector_5" d="M105.403 0.123657V0.124761V0.691214C105.965 0.811571 107.189 1.15829 106.692 2.27905L99.7573 18.0834H103.422L105.591 13.1565H113.276L115.176 18.0834H120L113.111 0.123657H105.403ZM109.693 3.86136L112.418 10.926H106.577L109.693 3.86136Z" fill="white"/>
+</g>
+</mask>
+<g mask="url(#mask4_1479_2532)">
+<path id="Fill-16" fill-rule="evenodd" clip-rule="evenodd" d="M94.3257 23.6044H125.43V-5.39734H94.3257V23.6044Z" fill="white"/>
+</g>
+</g>
+</g>
+<g id="Group-21">
+<g id="Mask group_6">
+<mask id="mask5_1479_2532" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="79" y="0" width="22" height="19">
+<g id="Group_6">
+<path id="Vector_6" d="M96.8273 0.124756L91.4335 13.2934L86.2992 0.124756H79.7627V0.691208C80.5176 0.839171 81.3648 1.16933 81.7515 2.1631L87.9567 18.0834H92.9508L100.306 0.124756H96.8273Z" fill="white"/>
+</g>
+</mask>
+<g mask="url(#mask5_1479_2532)">
+<path id="Fill-19" fill-rule="evenodd" clip-rule="evenodd" d="M74.3311 23.6044H105.737V-5.39734H74.3311V23.6044Z" fill="white"/>
+</g>
+</g>
+</g>
+<g id="Group-24">
+<g id="Mask group_7">
+<mask id="mask6_1479_2532" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="46" y="0" width="23" height="19">
+<g id="Group_7">
+<path id="Vector_7" d="M64.4284 0.124756L58.8901 13.2934L53.6183 0.124756H46.9067V0.691208C47.683 0.839171 48.5517 1.16933 48.9499 2.1631L55.3191 18.0834H60.4481L68.0028 0.124756H64.4284Z" fill="white"/>
+</g>
+</mask>
+<g mask="url(#mask6_1479_2532)">
+<path id="Fill-22" fill-rule="evenodd" clip-rule="evenodd" d="M41.3306 23.6044H73.5792V-5.39734H41.3306V23.6044Z" fill="white"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</svg>

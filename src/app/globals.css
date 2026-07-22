@@ -38,6 +38,15 @@
     padding-inline: clamp(1.25rem, 6vw, 5rem);
   }
 
+  /* Same gutters as page content; only the max width is slightly wider
+     so the floating pill doesn't share a hard edge with sections below. */
+  .nav-container {
+    width: 100%;
+    max-width: 1248px;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 6vw, 5rem);
+  }
+
   .type-display {
     font-family: var(--display-hero-family);
     font-weight: var(--display-hero-weight);
@@ -153,6 +162,18 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+.hero-accent-gradient-interactive {
+  background-size: 260% 190%;
+  background-position: 50% 50%;
+  transition: background-position 0.4s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-accent-gradient-interactive {
+    transition: none;
+  }
 }
 
 .stub-block h2 {
@@ -331,6 +352,207 @@ section[aria-labelledby="block-7-label"] h2 {
   }
 }
 
+/* Product showcase — carousel scrollport. Spans the full viewport so cards can
+   bleed past both edges unclipped, while the inline padding matches the
+   .page-container inset (centred 1216px + fluid gutters) so the first card
+   lines up with the container's left edge. */
+.product-showcase-shell {
+  overflow: visible;
+  padding-bottom: 24px;
+  margin-bottom: -24px;
+}
+
+.product-showcase-track {
+  --carousel-inset: calc(
+    max((100vw - 1216px) / 2, 0px) + clamp(1.25rem, 6vw, 5rem)
+  );
+  width: 100%;
+  padding-inline: var(--carousel-inset);
+  overflow: visible;
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+}
+
+.product-showcase-row {
+  display: flex;
+  width: max-content;
+  gap: 32px;
+  will-change: transform;
+}
+
+.product-showcase-track.is-dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
+}
+
+/* Product showcase — animated gradient stroke on the active card
+   (Figma SliderItem active: green → blue → yellow → purple). The wrapper paints
+   the brand accent gradient as a conic gradient and reveals it as a 1px frame
+   via its padding; the inner card sits on top and covers the rest. The frame
+   spins by animating the registered --ring-angle custom property. Drawing the
+   gradient on this wrapper (rather than a ::before on the card) avoids the
+   card's own overflow:hidden — needed to clip the photo — from clipping it. */
+@property --ring-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.product-showcase-ring {
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: var(--radius-md);
+  background: conic-gradient(
+    from var(--ring-angle),
+    var(--green-600),
+    var(--blue-600),
+    var(--yellow-600),
+    var(--purple-600),
+    var(--green-600)
+  );
+  /* Reveal only the 1px padding band as the stroke; punch out the interior. */
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: productRingSpin 5s linear infinite;
+}
+
+@keyframes productRingSpin {
+  to {
+    --ring-angle: 360deg;
+  }
+}
+
+/* Yunity outcome cards — the same animated brand gradient stroke as the
+   insurance cards, applied as a spinning 1px frame around each card. */
+.pillar-card-ring {
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: var(--radius-md);
+  background: conic-gradient(
+    from var(--ring-angle),
+    var(--green-600),
+    var(--blue-600),
+    var(--yellow-600),
+    var(--purple-600),
+    var(--green-600)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: productRingSpin 5s linear infinite;
+}
+
+/* Platform capability boxes — CSS-driven hover keeps the four-column grid
+   responsive; JS/GSAP state was prone to sticking when crossing 1px grid gaps. */
+.pillar-box-reveal {
+  opacity: 0;
+}
+
+.pillar-box-track,
+.pillar-box-default,
+.pillar-box-reveal {
+  transition:
+    transform 0.38s cubic-bezier(0.45, 0, 0.55, 1),
+    opacity 0.38s cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pillar-box--hover-capable:hover .pillar-box-track,
+  .pillar-box--active .pillar-box-track {
+    transform: translate3d(0, -50%, 0);
+  }
+
+  .pillar-box--hover-capable:hover .pillar-box-default,
+  .pillar-box--active .pillar-box-default {
+    opacity: 0;
+  }
+
+  .pillar-box--hover-capable:hover .pillar-box-reveal,
+  .pillar-box--active .pillar-box-reveal {
+    opacity: 1;
+  }
+}
+
+@media not ((hover: hover) and (pointer: fine)) {
+  .pillar-box--active .pillar-box-track {
+    transform: translate3d(0, -50%, 0);
+  }
+
+  .pillar-box--active .pillar-box-default {
+    opacity: 0;
+  }
+
+  .pillar-box--active .pillar-box-reveal {
+    opacity: 1;
+  }
+}
+
+/* Product showcase card backgrounds — the photo travels with the direction of
+   movement: it exits the old card and enters the new one on the same vector. */
+.product-showcase-bg-layer {
+  will-change: transform, opacity;
+}
+
+@keyframes productBgEnterRight {
+  from {
+    opacity: 0;
+    transform: translate3d(-64px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes productBgEnterLeft {
+  from {
+    opacity: 0;
+    transform: translate3d(64px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes productBgExitRight {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(64px, 0, 0);
+  }
+}
+
+@keyframes productBgExitLeft {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(-64px, 0, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mega-menu-panel {
     transition: none !important;
@@ -338,6 +560,24 @@ section[aria-labelledby="block-7-label"] h2 {
 
   .mega-menu-switch-layer {
     animation: none !important;
+  }
+
+  .product-showcase-bg-layer {
+    animation: none !important;
+  }
+
+  .product-showcase-ring {
+    animation: none !important;
+  }
+
+  .pillar-card-ring {
+    animation: none !important;
+  }
+
+  .pillar-box-track,
+  .pillar-box-default,
+  .pillar-box-reveal {
+    transition: none !important;
   }
 
   #nav-mega-menu-panel {

@@ -12,30 +12,23 @@ export const hero = {
     { name: "Novartis", approved: true },
     { name: "Fujitsu", approved: true },
     { name: "Sodexo", approved: true },
-    { name: "Severn Trent", approved: true },
     { name: "Paramount", approved: true },
     { name: "Havas", approved: true },
-    { name: "Financial Times", approved: false },
     { name: "Qinetiq", approved: true },
-    { name: "Wolseley", approved: true },
-    { name: "Del Monte UK", approved: true },
-    { name: "Kiko Milano", approved: false },
     { name: "Mintel", approved: true },
     { name: "Bruntwood", approved: true },
+    { name: "Kiko Milano", approved: true },
+    { name: "Old Mutual", approved: true },
+    { name: "Aviva", approved: true },
+    { name: "Dishoom", approved: true },
     { name: "XMA", approved: true },
-    { name: "Nice-Pak", approved: true },
     { name: "what3words", approved: true },
     { name: "ManyPets", approved: true },
     { name: "Curve", approved: true },
-    { name: "ITRS Group", approved: true },
     { name: "Paymentology", approved: true },
     { name: "Moneyhub", approved: true },
-    { name: "CreateFuture (xDesign)", approved: false },
-    { name: "Dishoom", approved: false },
-    { name: "Wolf & Badger", approved: true },
-    { name: "Abel & Cole", approved: true },
     { name: "Oddbox", approved: true },
-    { name: "Chilly's", approved: true },
+    { name: "CreateFuture (xDesign)", approved: true },
   ],
 } as const;
 
@@ -45,7 +38,8 @@ export const ecosystem = {
   stats: [
     {
       value: "80%",
-      label: "employee adoption",
+      label: "employee\nadoption",
+      note: "Engaged YuLife users have significantly fewer claims, supporting more sustainable premiums over time.",
     },
     {
       value: "25%",
@@ -56,46 +50,107 @@ export const ecosystem = {
     {
       value: "12%",
       label: "reduction in sickness absence",
+      note: "Active prevention and daily engagement build healthier teams with fewer sick days.",
       footnote: 2,
     },
   ],
   insurers: [
-    { name: "Aviva", src: "/home/logo-aviva.svg", width: 108 },
-    { name: "MetLife", src: "/home/logo-metlife.svg", width: 106 },
-    { name: "Bupa", src: "/home/logo-bupa.svg", width: 82 },
-    { name: "Daiichi Life", src: "/home/logo-daiichi.svg", width: 125 },
+    { name: "Aviva", src: "/home/logo-aviva.svg", width: 189, height: 34 },
+    { name: "MetLife", src: "/home/logo-metlife.svg", width: 186, height: 40 },
+    { name: "Bupa", src: "/home/logo-bupa.svg", width: 153, height: 40 },
+    { name: "Daiichi Life", src: "/home/logo-daiichi.svg", width: 219, height: 40 },
   ],
 } as const;
+
+/** Per-card background — Figma Carousel (2047:1567) SliderItem specs. */
+export type ProductCardBackground =
+  | {
+      src: string;
+      fit: "cover";
+    }
+  | {
+      src: string;
+      fit: "positioned";
+      width: string;
+      height: string;
+      left: string;
+      top: string;
+    };
 
 export const products = {
   eyebrow: "A new standard",
   heading: "Protection for today's world",
+  intro:
+    "YuLife is the centralised one-stop-shop that unifies world-class cover with a digital-first health experience.",
   cards: [
     {
-      title: "Group Health Insurance",
-      description:
-        "Private medical cover with fast-track access to specialists and hospitals.",
-      carrier: "Bupa",
-      href: "/products/health",
-    },
-    {
-      title: "Health Cash Plan",
+      titleEmphasis: "Health",
+      titleRest: "Cash Plan",
+      titleBreakBeforeRest: true,
       description:
         "Simple, digital reimbursements for everyday healthcare costs like dental and optical.",
-      carrier: "Bupa",
+      carrier: "bupa",
       href: "/products/cash-plan",
+      background: {
+        src: "/home/products/health-cash-plan-bg.webp",
+        fit: "positioned",
+        width: "369.65%",
+        height: "107.16%",
+        left: "-158.23%",
+        top: "0",
+      },
     },
     {
-      title: "Group Life Insurance",
-      description: "Essential financial security for the people your employees love.",
-      carrier: "MetLife",
+      titleEmphasis: "Life",
+      titleRest: "Insurance",
+      titleBreakBeforeRest: true,
+      description: "A tax-efficient lump sum payment for families if a loved one dies.",
+      carrier: "metlife",
       href: "/products/life-insurance",
+      background: {
+        src: "/home/products/life-insurance-bg.webp",
+        fit: "cover",
+      },
     },
     {
-      title: "Group Income Protection",
-      description: "Income and expert rehabilitation support if an employee cannot work.",
-      carrier: "MetLife",
+      titleEmphasis: "Health",
+      titleRest: " insurance",
+      description:
+        "Private medical cover with fast-track access to specialists and hospitals.",
+      carrier: "bupa",
+      href: "/products/health",
+      background: {
+        src: "/home/products/health-insurance-bg.webp",
+        fit: "cover",
+      },
+    },
+    {
+      titleEmphasis: "Dental",
+      titleRest: "Insurance",
+      titleBreakBeforeRest: true,
+      description: "High-visibility benefit employees use.",
+      carrier: "bupa",
+      href: "/products/dental-insurance",
+      background: {
+        src: "/home/products/dental-insurance-bg.webp",
+        fit: "cover",
+      },
+    },
+    {
+      titleEmphasis: "Income",
+      titleRest: " Protection",
+      description:
+        "Financial support and rehabilitation for employees unable to work due to illness",
+      carrier: "metlife",
       href: "/products/income-protection",
+      background: {
+        src: "/home/products/income-protection-bg.webp",
+        fit: "positioned",
+        width: "221.62%",
+        height: "100%",
+        left: "-93.88%",
+        top: "0.07%",
+      },
     },
   ],
 } as const;
@@ -141,15 +196,18 @@ export const pillars = [
       "Aggregated Wellbeing Data: Combine employee feedback with app activity for a clear, holistic view of workforce health.",
       "Predictive Insights: Spot rising burnout and absence risk earlier, so you can act before it costs you.",
       "Live eNPS Tracking: Monitor Employee Net Promoter Scores in real time to understand cultural health and retention risk.",
-      "Leadership-ready reporting that turns wellbeing into boardroom outcomes and shows the ROI of your investment in people.",
+      "Leadership-ready reporting: that turns wellbeing into boardroom outcomes and shows the ROI of your investment in people.",
     ],
   },
 ] as const;
 
 export const yunity = {
-  heading: "The more your people use it the smarter it gets",
+  eyebrow: "Powered by",
+  heading: "The more your people use it, the smarter it gets",
   intro:
-    "Most platforms tell you what happened last quarter. YuLife tells you what's about to happen next week. Every check-in, every challenge, every consultation adds to a continuously learning picture of your workforce's health: sensing what's changing, interpreting what it means, and guiding what to do next.",
+    "Most platforms tell you what happened last quarter. YuLife tells you what's about to happen next week. Every check-in, every challenge, every consultation adds to a continuously learning picture of your workforce's health.",
+  body:
+    "Yunity sits beneath the YuLife experience, quietly turning everyday engagement into insight. It helps YuLife understand what's changing in people's lives, interpret what that means, and guide more relevant, timely support.",
   steps: [
     {
       title: "Sense",
