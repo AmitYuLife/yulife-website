@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const BOX_HEIGHT = "h-[132px] tablet:h-[148px]";
 
@@ -28,11 +28,12 @@ export default function PillarBox({
   /** When set, marks this box as a connecting-path anchor at this index. */
   anchorIndex?: number;
 }) {
-  const hoverCapableRef = useRef<boolean | null>(null);
-  if (hoverCapableRef.current === null) {
-    hoverCapableRef.current = prefersHoverInteraction();
-  }
-  const hoverCapable = hoverCapableRef.current;
+  // Detect hover capability after mount so the initial (server-prerendered)
+  // render never touches `window`. Defaults to tap behaviour until then.
+  const [hoverCapable, setHoverCapable] = useState(false);
+  useEffect(() => {
+    setHoverCapable(prefersHoverInteraction());
+  }, []);
 
   const [tapped, setTapped] = useState(false);
 
