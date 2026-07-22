@@ -332,7 +332,7 @@ export default function Header() {
         className="mega-header sticky top-0 z-50"
         aria-hidden={mobileOpen ? true : undefined}
       >
-        <div className="page-container relative pt-16">
+        <div className="nav-container relative pt-16">
           {/*
             In-flow spacer = top bar only. Dropdown is absolutely positioned
             behind the top-bar pill and translates independently — the pill
@@ -362,6 +362,7 @@ export default function Header() {
                     panelId={PANEL_ID}
                     onTriggerEnter={handleEnter}
                     onTriggerToggle={handleTriggerToggle}
+                    onTriggerLeave={handleLeave}
                     onNavigate={() => closeMenu()}
                     onOpenMobile={() => setMobileOpen(true)}
                     mobileOpen={mobileOpen}

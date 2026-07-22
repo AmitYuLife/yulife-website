@@ -33,6 +33,7 @@ function DesktopNavCluster({
   panelId,
   onTriggerEnter,
   onTriggerToggle,
+  onTriggerLeave,
   onNavigate,
   measureOnly = false,
 }: {
@@ -42,6 +43,7 @@ function DesktopNavCluster({
   panelId: string;
   onTriggerEnter: (id: string) => void;
   onTriggerToggle: (id: string) => void;
+  onTriggerLeave: () => void;
   onNavigate: () => void;
   measureOnly?: boolean;
 }) {
@@ -108,6 +110,7 @@ function DesktopNavCluster({
         <Button
           href={measureOnly ? undefined : "/contact"}
           onClick={measureOnly ? undefined : onNavigate}
+          onMouseEnter={measureOnly ? undefined : onTriggerLeave}
           variant="solid"
           theme="onDark"
           tabIndex={measureOnly ? -1 : undefined}
@@ -127,6 +130,7 @@ export function NavMenuTop({
   panelId,
   onTriggerEnter,
   onTriggerToggle,
+  onTriggerLeave,
   onNavigate,
   onOpenMobile,
   mobileOpen,
@@ -139,6 +143,7 @@ export function NavMenuTop({
   panelId: string;
   onTriggerEnter: (id: string) => void;
   onTriggerToggle: (id: string) => void;
+  onTriggerLeave: () => void;
   onNavigate: () => void;
   onOpenMobile: () => void;
   mobileOpen: boolean;
@@ -175,6 +180,7 @@ export function NavMenuTop({
           panelId={panelId}
           onTriggerEnter={onTriggerEnter}
           onTriggerToggle={onTriggerToggle}
+          onTriggerLeave={onTriggerLeave}
           onNavigate={onNavigate}
           measureOnly
         />
@@ -188,6 +194,7 @@ export function NavMenuTop({
           panelId={panelId}
           onTriggerEnter={onTriggerEnter}
           onTriggerToggle={onTriggerToggle}
+          onTriggerLeave={onTriggerLeave}
           onNavigate={onNavigate}
         />
       )}

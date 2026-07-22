@@ -3,14 +3,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { productCardBackground, products } from "@/data/home-content";
+import gsap from "gsap";
+import { products, type ProductCardBackground } from "@/data/home-content";
 import { useReveal } from "./useReveal";
 
 const SWITCH_MS = 300;
 const SWITCH_EASE = "cubic-bezier(0.33, 0, 0.2, 1)";
+const DRAG_START_PX = 3;
+/** px/ms — lower value makes flick-to-next easier */
+const FLICK_VELOCITY = 0.28;
+/** Fraction of a card step required to commit on a slow release */
+const SNAP_BIAS = 0.16;
 
 const CARD_CLASS =
-  "relative flex h-[440px] w-[280px] shrink-0 flex-col justify-end overflow-hidden rounded-md p-32 tablet:h-[520px] tablet:w-[380px] desktop:h-[656px] desktop:w-[592px] desktop:p-80";
+  "relative flex h-[440px] w-[280px] shrink-0 flex-col items-start justify-start overflow-hidden rounded-md p-32 tablet:h-[520px] tablet:w-[380px] desktop:h-[656px] desktop:w-[592px] desktop:p-80";
 
 const CARRIER_LOGOS = {
   bupa: { src: "/home/logo-bupa.svg", width: 153, height: 40 },
@@ -43,10 +49,40 @@ function ControlButton({
   );
 }
 
+function cardBackgroundImageStyle(background: ProductCardBackground) {
+  const base = {
+    // maxWidth inline: the max-w-none utility resolves to 0px because the
+    // theme defines a --spacing-none token that shadows it.
+    maxWidth: "none" as const,
+    opacity: 0.16,
+  };
+
+  if (background.fit === "cover") {
+    return {
+      ...base,
+      width: "100%",
+      height: "100%",
+      left: "0",
+      top: "0",
+      objectFit: "cover" as const,
+    };
+  }
+
+  return {
+    ...base,
+    width: background.width,
+    height: background.height,
+    left: background.left,
+    top: background.top,
+  };
+}
+
 function CardBackground({
+  background,
   slideVariant,
   animationName,
 }: {
+  background: ProductCardBackground;
   slideVariant: "Left" | "Right";
   animationName?: string;
 }) {
@@ -64,18 +100,9 @@ function CardBackground({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         alt=""
-        src={productCardBackground.src}
+        src={background.src}
         className="pointer-events-none absolute select-none"
-        style={{
-          // maxWidth inline: the max-w-none utility resolves to 0px because the
-          // theme defines a --spacing-none token that shadows it.
-          maxWidth: "none",
-          opacity: 0.16,
-          width: productCardBackground.width,
-          height: productCardBackground.height,
-          left: productCardBackground.left,
-          top: productCardBackground.top,
-        }}
+        style={cardBackgroundImageStyle(background)}
         draggable={false}
       />
     </div>
@@ -125,53 +152,60 @@ function ProductCard({
 
   return (
     <div className="relative shrink-0" data-card-index={index}>
-      <Link
-        href={card.href}
-        data-card
-        onMouseEnter={() => onEnter(index)}
-        onFocus={() => onEnter(index)}
-        className={[
-          CARD_CLASS,
-          "group block border transition-colors duration-200",
-          isActive ? "border-transparent" : "border-line-emphasis",
-        ].join(" ")}
-      >
-        {(isActive || isExiting) && (
-          <div
-            className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]"
-            aria-hidden="true"
-          >
-            {isExiting ? (
-              <CardBackground slideVariant={slideVariant} animationName="productBgExit" />
-            ) : (
-              <CardBackground
-                slideVariant={slideVariant}
-                animationName={isSwitching ? "productBgEnter" : undefined}
-              />
-            )}
+      <div className="relative" data-reveal-on="carousel">
+        <Link
+          href={card.href}
+          data-card
+          onMouseEnter={() => onEnter(index)}
+          onFocus={() => onEnter(index)}
+          className={[
+            CARD_CLASS,
+            "group block border transition-colors duration-200",
+            isActive ? "border-transparent" : "border-line-emphasis",
+          ].join(" ")}
+        >
+          {(isActive || isExiting) && (
+            <div
+              className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]"
+              aria-hidden="true"
+            >
+              {isExiting ? (
+                <CardBackground
+                  background={card.background}
+                  slideVariant={slideVariant}
+                  animationName="productBgExit"
+                />
+              ) : (
+                <CardBackground
+                  background={card.background}
+                  slideVariant={slideVariant}
+                  animationName={isSwitching ? "productBgEnter" : undefined}
+                />
+              )}
+            </div>
+          )}
+
+          <div className="relative z-10 flex flex-col gap-stack">
+            <Image
+              src={logo.src}
+              alt=""
+              width={logo.width}
+              height={logo.height}
+              className="h-40 w-auto object-contain object-left"
+              draggable={false}
+            />
+            <ProductCardTitle card={card} />
+            <p className="type-body-lg text-on-inverse">{card.description}</p>
           </div>
+        </Link>
+
+        {/* Gradient stroke overlay — an absolute sibling of the card so it isn't
+            clipped by the card's overflow:hidden and doesn't change layout on
+            activation (no hover shift). */}
+        {isActive && (
+          <span className="product-showcase-ring" aria-hidden="true" />
         )}
-
-        <div className="relative z-10 flex flex-col gap-stack">
-          <Image
-            src={logo.src}
-            alt=""
-            width={logo.width}
-            height={logo.height}
-            className="h-40 w-auto object-contain object-left"
-            draggable={false}
-          />
-          <ProductCardTitle card={card} />
-          <p className="type-body-lg text-on-inverse">{card.description}</p>
-        </div>
-      </Link>
-
-      {/* Gradient stroke overlay — an absolute sibling of the card so it isn't
-          clipped by the card's overflow:hidden and doesn't change layout on
-          activation (no hover shift). */}
-      {isActive && (
-        <span className="product-showcase-ring" aria-hidden="true" />
-      )}
+      </div>
     </div>
   );
 }
@@ -179,6 +213,8 @@ function ProductCard({
 export default function ProductShowcase() {
   const scope = useReveal<HTMLElement>();
   const trackRef = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const scrollXRef = useRef(0);
   const switchTimeoutRef = useRef<number>(undefined);
   const [activeIndex, setActiveIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState<number | null>(null);
@@ -194,51 +230,103 @@ export default function ProductShowcase() {
     startX: 0,
     startScroll: 0,
     moved: false,
+    lastX: 0,
+    lastTime: 0,
+    velocity: 0,
   });
 
-  const trackInset = useCallback(() => {
-    const track = trackRef.current;
-    if (!track) return 0;
-    return parseFloat(window.getComputedStyle(track).paddingLeft) || 0;
-  }, []);
+  const cardScrollTarget = useCallback((card: HTMLElement) => card.offsetLeft, []);
+
+  const maxScrollX = useCallback(() => {
+    const row = rowRef.current;
+    if (!row) return 0;
+
+    const cards = row.querySelectorAll<HTMLElement>("[data-card-index]");
+    const lastCard = cards[cards.length - 1];
+    return lastCard ? cardScrollTarget(lastCard) : 0;
+  }, [cardScrollTarget]);
+
+  const clampScrollX = useCallback(
+    (x: number) => Math.min(maxScrollX(), Math.max(0, x)),
+    [maxScrollX],
+  );
+
+  const applyScrollX = useCallback(
+    (x: number, smooth = false) => {
+      const row = rowRef.current;
+      if (!row) return;
+
+      const clamped = clampScrollX(x);
+      scrollXRef.current = clamped;
+      gsap.killTweensOf(row);
+
+      if (smooth) {
+        gsap.to(row, {
+          x: -clamped,
+          duration: 0.45,
+          ease: "power3.out",
+        });
+      } else {
+        gsap.set(row, { x: -clamped });
+      }
+    },
+    [clampScrollX],
+  );
 
   const scrollToIndex = useCallback(
     (index: number) => {
-      const track = trackRef.current;
-      if (!track) return;
+      const row = rowRef.current;
+      if (!row) return;
 
-      const card = track.querySelector<HTMLElement>(
+      const card = row.querySelector<HTMLElement>(
         `[data-card-index="${index}"]`,
       );
       if (!card) return;
 
-      track.scrollTo({
-        left: card.offsetLeft - trackInset(),
-        behavior: "smooth",
-      });
+      applyScrollX(cardScrollTarget(card), true);
     },
-    [trackInset],
+    [applyScrollX, cardScrollTarget],
   );
 
-  const nearestIndex = useCallback(() => {
-    const track = trackRef.current;
-    if (!track) return 0;
+  const resolveDragTargetIndex = useCallback(() => {
+    const drag = dragRef.current;
+    const row = rowRef.current;
+    if (!row) return slotIndex;
 
-    const cards = track.querySelectorAll<HTMLElement>("[data-card-index]");
-    const target = track.scrollLeft + trackInset();
-    let closestIndex = 0;
-    let closestDistance = Number.POSITIVE_INFINITY;
+    if (Math.abs(drag.velocity) > FLICK_VELOCITY) {
+      return slotIndex + (drag.velocity < 0 ? 1 : -1);
+    }
 
-    cards.forEach((card) => {
-      const index = Number(card.dataset.cardIndex);
-      const distance = Math.abs(card.offsetLeft - target);
-      if (distance < closestDistance) {
-        closestDistance = distance;
-        closestIndex = index;
+    const slotCard = row.querySelector<HTMLElement>(
+      `[data-card-index="${slotIndex}"]`,
+    );
+    if (!slotCard) return slotIndex;
+
+    const slotScroll = cardScrollTarget(slotCard);
+    const offset = scrollXRef.current - slotScroll;
+
+    if (slotIndex < lastCardIndex) {
+      const nextCard = row.querySelector<HTMLElement>(
+        `[data-card-index="${slotIndex + 1}"]`,
+      );
+      if (nextCard) {
+        const step = cardScrollTarget(nextCard) - slotScroll;
+        if (offset > step * SNAP_BIAS) return slotIndex + 1;
       }
-    });
-    return closestIndex;
-  }, [trackInset]);
+    }
+
+    if (slotIndex > 0) {
+      const prevCard = row.querySelector<HTMLElement>(
+        `[data-card-index="${slotIndex - 1}"]`,
+      );
+      if (prevCard) {
+        const step = slotScroll - cardScrollTarget(prevCard);
+        if (offset < -step * SNAP_BIAS) return slotIndex - 1;
+      }
+    }
+
+    return slotIndex;
+  }, [cardScrollTarget, lastCardIndex, slotIndex]);
 
   const runSwitch = useCallback(
     (index: number, direction: 1 | -1) => {
@@ -269,32 +357,60 @@ export default function ProductShowcase() {
 
   const goToIndex = useCallback(
     (index: number) => {
-      const clamped = Math.max(0, Math.min(lastCardIndex, index));
-      if (clamped !== activeIndex) {
-        runSwitch(clamped, clamped > activeIndex ? 1 : -1);
+      const cardCount = lastCardIndex + 1;
+      const wrapped = ((index % cardCount) + cardCount) % cardCount;
+
+      if (wrapped !== activeIndex) {
+        let direction: 1 | -1;
+        if (wrapped === 0 && activeIndex === lastCardIndex) {
+          direction = 1;
+        } else if (wrapped === lastCardIndex && activeIndex === 0) {
+          direction = -1;
+        } else {
+          direction = wrapped > activeIndex ? 1 : -1;
+        }
+        runSwitch(wrapped, direction);
       }
-      setSlotIndex(clamped);
-      scrollToIndex(clamped);
+
+      setSlotIndex(wrapped);
+      scrollToIndex(wrapped);
     },
     [activeIndex, lastCardIndex, runSwitch, scrollToIndex],
   );
 
   const scrollByStep = useCallback(
-    (dir: 1 | -1) => goToIndex(slotIndex + dir),
-    [goToIndex, slotIndex],
+    (dir: 1 | -1) => {
+      const next = slotIndex + dir;
+      if (next < 0) {
+        goToIndex(lastCardIndex);
+        return;
+      }
+      if (next > lastCardIndex) {
+        goToIndex(0);
+        return;
+      }
+      goToIndex(next);
+    },
+    [goToIndex, lastCardIndex, slotIndex],
   );
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     // Ignore secondary buttons; let real clicks through until movement begins.
     if (e.button !== 0) return;
     const track = trackRef.current;
-    if (!track) return;
+    const row = rowRef.current;
+    if (!track || !row) return;
+
+    gsap.killTweensOf(row);
 
     dragRef.current = {
       dragging: true,
       startX: e.clientX,
-      startScroll: track.scrollLeft,
+      startScroll: scrollXRef.current,
       moved: false,
+      lastX: e.clientX,
+      lastTime: performance.now(),
+      velocity: 0,
     };
     track.classList.add("is-dragging");
   }, []);
@@ -306,7 +422,9 @@ export default function ProductShowcase() {
     if (!track) return;
 
     const dx = e.clientX - drag.startX;
-    if (!drag.moved && Math.abs(dx) > 4) {
+    const now = performance.now();
+
+    if (!drag.moved && Math.abs(dx) > DRAG_START_PX) {
       drag.moved = true;
       // Take pointer capture once we know it's a drag, not a click.
       try {
@@ -315,10 +433,18 @@ export default function ProductShowcase() {
         /* no active pointer (e.g. synthetic event) — safe to ignore */
       }
     }
+
     if (drag.moved) {
-      track.scrollLeft = drag.startScroll - dx;
+      const dt = now - drag.lastTime;
+      if (dt > 0) {
+        const instantVelocity = (e.clientX - drag.lastX) / dt;
+        drag.velocity = drag.velocity * 0.5 + instantVelocity * 0.5;
+      }
+      drag.lastX = e.clientX;
+      drag.lastTime = now;
+      applyScrollX(drag.startScroll - dx);
     }
-  }, []);
+  }, [applyScrollX]);
 
   const endDrag = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
@@ -337,10 +463,10 @@ export default function ProductShowcase() {
       }
 
       if (drag.moved) {
-        goToIndex(nearestIndex());
+        goToIndex(resolveDragTargetIndex());
       }
     },
-    [goToIndex, nearestIndex],
+    [goToIndex, resolveDragTargetIndex],
   );
 
   // Cancel the navigation click that follows a drag gesture.
@@ -355,7 +481,7 @@ export default function ProductShowcase() {
   return (
     <section
       ref={scope}
-      className="relative border-b border-line-emphasis bg-surface-inverse"
+      className="relative overflow-x-clip overflow-y-visible border-b border-line-emphasis bg-surface-inverse"
       aria-labelledby="protect-heading"
     >
       <div className="page-container pt-[var(--layout-section-y-lg)]">
@@ -388,34 +514,40 @@ export default function ProductShowcase() {
           edge (via --carousel-inset padding), the rest bleed to the viewport.
           Drag-to-scroll with snap; wheel/trackpad scrolling is disabled. */}
       <div
-        ref={trackRef}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-        onClickCapture={onClickCapture}
-        onDragStart={(e) => e.preventDefault()}
-        className="product-showcase-track relative mt-section-gap flex gap-32 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="product-showcase-shell relative mt-section-gap overflow-visible"
+        data-reveal-anchor="carousel"
       >
-        {products.cards.map((card, index) => (
-          <ProductCard
-            key={card.href}
-            card={card}
-            index={index}
-            isActive={activeIndex === index}
-            isExiting={isSwitching && prevIndex === index && activeIndex !== index}
-            isSwitching={isSwitching}
-            slideVariant={slideVariant}
-            onEnter={activateIndex}
-          />
-        ))}
+        <div
+          ref={trackRef}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          onClickCapture={onClickCapture}
+          onDragStart={(e) => e.preventDefault()}
+          className="product-showcase-track relative"
+        >
+          <div ref={rowRef} className="product-showcase-row">
+            {products.cards.map((card, index) => (
+              <ProductCard
+                key={card.href}
+                card={card}
+                index={index}
+                isActive={activeIndex === index}
+                isExiting={isSwitching && prevIndex === index && activeIndex !== index}
+                isSwitching={isSwitching}
+                slideVariant={slideVariant}
+                onEnter={activateIndex}
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="page-container pb-[var(--layout-section-y-lg)] pt-section-gap">
-        <div data-reveal className="flex justify-end gap-stack">
+        <div data-reveal-on="carousel" className="flex justify-end gap-stack">
           <ControlButton
             label="Previous product"
-            disabled={slotIndex === 0}
             onClick={() => scrollByStep(-1)}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -431,7 +563,6 @@ export default function ProductShowcase() {
           </ControlButton>
           <ControlButton
             label="Next product"
-            disabled={slotIndex === lastCardIndex}
             onClick={() => scrollByStep(1)}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">

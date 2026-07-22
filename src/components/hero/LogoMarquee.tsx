@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -17,7 +17,7 @@ const LOGO_HEIGHT_PX = 34;
 const LOGO_GAP_PX = 56;
 const LOGO_SLOT_MAX_PX = 132;
 /** Scroll speed — keeps loop duration proportional to track width. */
-const PIXELS_PER_SECOND = 80;
+const PIXELS_PER_SECOND = 24;
 
 const approvedBrands = hero.marquee
   .filter((b) => b.approved)
@@ -65,8 +65,6 @@ function LogoSet({
               height: LOGO_HEIGHT_PX,
               width: "auto",
               maxWidth: LOGO_SLOT_MAX_PX,
-              // Render the (dark) brand SVGs as solid white on the indigo canvas
-              filter: "brightness(0) invert(1)",
               opacity: 0.8,
             }}
             draggable={false}
@@ -75,6 +73,13 @@ function LogoSet({
       ))}
     </ul>
   );
+}
+
+function copiesForViewport(containerWidth: number, setWidth: number): number {
+  const distance = setWidth + LOGO_GAP_PX;
+  if (distance <= 0) return 2;
+  // Enough duplicated sets so every scroll offset fills the full row width.
+  return Math.max(2, Math.ceil((containerWidth + distance) / distance));
 }
 
 function MarqueeRow({
@@ -87,19 +92,32 @@ function MarqueeRow({
   direction: 1 | -1;
   rowKey: string;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const tweenRef = useRef<gsap.core.Tween | null>(null);
+  const [copyCount, setCopyCount] = useState(2);
 
   useGSAP(
     () => {
+      const container = containerRef.current;
       const track = trackRef.current;
       const set = track?.querySelector<HTMLUListElement>(".marquee-set");
-      if (!track || !set) return;
+      if (!container || !track || !set) return;
 
       const mm = gsap.matchMedia();
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const syncLayout = () => {
+          const needed = copiesForViewport(
+            container.offsetWidth,
+            set.offsetWidth,
+          );
+          setCopyCount((prev) => (prev === needed ? prev : needed));
+        };
+
         const startLoop = () => {
+          syncLayout();
+
           tweenRef.current?.kill();
           const distance = set.offsetWidth + LOGO_GAP_PX;
           if (distance <= 0) return;
@@ -119,17 +137,11 @@ function MarqueeRow({
         startLoop();
 
         const ro = new ResizeObserver(startLoop);
+        ro.observe(container);
         ro.observe(set);
-
-        const onEnter = () => tweenRef.current?.pause();
-        const onLeave = () => tweenRef.current?.resume();
-        track.addEventListener("mouseenter", onEnter);
-        track.addEventListener("mouseleave", onLeave);
 
         return () => {
           ro.disconnect();
-          track.removeEventListener("mouseenter", onEnter);
-          track.removeEventListener("mouseleave", onLeave);
           tweenRef.current?.kill();
           tweenRef.current = null;
           gsap.set(track, { x: 0 });
@@ -144,18 +156,24 @@ function MarqueeRow({
 
       return () => mm.revert();
     },
-    { dependencies: [direction] },
+    { dependencies: [direction, copyCount] },
   );
 
   return (
-    <div className="overflow-hidden py-2.5">
+    <div ref={containerRef} className="overflow-hidden py-2.5">
       <div
         ref={trackRef}
         className="flex w-max will-change-transform"
         style={{ gap: LOGO_GAP_PX }}
       >
-        <LogoSet brands={brands} setKey={`${rowKey}-a`} />
-        <LogoSet brands={brands} setKey={`${rowKey}-b`} aria />
+        {Array.from({ length: copyCount }, (_, index) => (
+          <LogoSet
+            key={`${rowKey}-${index}`}
+            brands={brands}
+            setKey={`${rowKey}-${index}`}
+            aria={index > 0}
+          />
+        ))}
       </div>
     </div>
   );
@@ -165,7 +183,7 @@ export default function LogoMarquee() {
   return (
     <div className="hero-marquee w-full py-14 md:py-20">
       <div
-        className="relative flex flex-col gap-4"
+        className="relative flex flex-col gap-flow"
         style={{
           maskImage:
             "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",

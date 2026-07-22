@@ -13,6 +13,16 @@ export const HERO_ASSET = {
 /** Design px the coin field extends above the 720px artboard (into headline area). */
 export const HERO_COIN_SPILL_TOP = 520;
 
+/**
+ * Design px the coin canvas extends BELOW the artboard. This is pure fall-room
+ * for the gravity drop: coins still LAND within [minY, maxY], but a dropped coin
+ * can keep falling past the hero band and slip behind the next section instead of
+ * clipping at a fixed edge. Rendering-only — not part of the landing field. Kept
+ * generous so a coin dropped while the field is pinned up (intro) still clears the
+ * band before it's culled.
+ */
+export const HERO_COIN_SPILL_BOTTOM = 900;
+
 /** Extended coin-field bounds in design coordinates (y=0 is still the artboard top). */
 export const HERO_COIN_FIELD = {
   minY: -HERO_COIN_SPILL_TOP,
@@ -131,7 +141,10 @@ export function heroFieldMetrics(
   sceneHeightPx: number,
   viewportWidthPx: number,
 ): HeroFieldMetrics {
-  const nominalSceneWidth = sceneHeightPx * (HERO_ASSET.width / HERO_COIN_FIELD.height);
+  // sceneHeightPx is the full (fall-room-extended) canvas; recover the band
+  // height so the width/aspect derivation matches the original mapping.
+  const bandHeightPx = sceneHeightPx / HERO_COIN_CANVAS_SCALE;
+  const nominalSceneWidth = bandHeightPx * (HERO_ASSET.width / HERO_COIN_FIELD.height);
   // Keep px-per-design-unit identical on both axes at every viewport: narrow
   // viewports get a NARROWER field (cropped lanes), never a squashed render.
   // The old max(1, …) clamp held the field at 1920 design px and compressed
@@ -155,15 +168,53 @@ export function heroFieldMetrics(
   };
 }
 
+// Vertical frustum bounds in world units. Width-independent, so precomputed.
+// The top clears the upward spill (plus a coin radius + margin). The artboard
+// bottom is where the visible hero band ends; the real bottom drops further so a
+// falling coin has somewhere to go before the next section covers it.
+const FRUSTUM_TOP =
+  (ARTBOARD_CENTER_Y - HERO_COIN_FIELD.minY + MAX_COIN_RADIUS + 56) / DESIGN_UNIT;
+const FRUSTUM_BOTTOM_ARTBOARD = -ARTBOARD_CENTER_Y / DESIGN_UNIT;
+const FRUSTUM_BOTTOM = FRUSTUM_BOTTOM_ARTBOARD - HERO_COIN_SPILL_BOTTOM / DESIGN_UNIT;
+/** Frustum heights before/after the fall-room extension (for scale preservation). */
+const FRUSTUM_HEIGHT_ARTBOARD = FRUSTUM_TOP - FRUSTUM_BOTTOM_ARTBOARD;
+const FRUSTUM_HEIGHT = FRUSTUM_TOP - FRUSTUM_BOTTOM;
+
+/**
+ * How much taller the canvas is than the original band-only canvas, once the
+ * fall-room is added. Formulas that assume the canvas maps to HERO_COIN_FIELD
+ * (the landing field) must divide the measured canvas height by this to recover
+ * the band height — coin placement is otherwise unchanged.
+ */
+export const HERO_COIN_CANVAS_SCALE = FRUSTUM_HEIGHT / FRUSTUM_HEIGHT_ARTBOARD;
+
+/** World y below the frustum floor where a fallen coin is fully gone. */
+export const HERO_COIN_EXIT_Y = FRUSTUM_BOTTOM - 0.4;
+
 export function orthoFrustumForField(fieldWidth: number) {
   const halfW = fieldWidth / DESIGN_UNIT / 2;
   return {
     left: -halfW,
     right: halfW,
-    top:
-      (ARTBOARD_CENTER_Y - HERO_COIN_FIELD.minY + MAX_COIN_RADIUS + 56) / DESIGN_UNIT,
-    bottom: -ARTBOARD_CENTER_Y / DESIGN_UNIT,
+    top: FRUSTUM_TOP,
+    bottom: FRUSTUM_BOTTOM,
   };
+}
+
+/**
+ * Convert a point on the coin canvas — given as fractions of its width/height
+ * from the top-left — into world coordinates for the current frustum. Lets the
+ * fountain launch from wherever the phone actually sits on screen (measured live),
+ * so the origin tracks the phone across breakpoints and through any coin-layer
+ * transform (the intro pin, the scroll follow) rather than a baked-in constant.
+ */
+export function canvasFractionToWorld(
+  fracX: number,
+  fracY: number,
+  fieldWidth: number,
+): [number, number] {
+  const { left, right, top, bottom } = orthoFrustumForField(fieldWidth);
+  return [left + fracX * (right - left), top - fracY * (top - bottom)];
 }
 
 /** Phone centre in the orthographic world space (matches designToWorld). */
@@ -172,8 +223,6 @@ export const PHONE_CENTER_WORLD: [number, number] = [
   -(phoneCenterY - ARTBOARD_CENTER_Y) / DESIGN_UNIT,
 ];
 
-const HERO_COIN_SEED_KEY = "hero-coin-layout-seed";
-
 export type BuildHeroCoinsOptions = {
   spread: { horizontal: number; vertical: number };
   sessionSeed: number;
@@ -181,22 +230,22 @@ export type BuildHeroCoinsOptions = {
   sceneHeightPx: number;
   viewportWidthPx: number;
   coinsPerSide: number;
+  /**
+   * Design-space y the coins' top edges must stay below (measured from the
+   * sub-heading's bottom at runtime). Shrinks the upward spill so no coin
+   * rests behind the headline copy. Defaults to the full spill.
+   */
+  spillTopY?: number;
 };
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-/** One seed per browser session — layout stays stable until the tab closes. */
-export function getHeroCoinSessionSeed(): number {
+/** Fresh layout seed on each page load; stays stable for the lifetime of the mount. */
+export function createHeroCoinLayoutSeed(): number {
   if (typeof window === "undefined") return 0xdecafbad;
-
-  const stored = sessionStorage.getItem(HERO_COIN_SEED_KEY);
-  if (stored) return Number(stored);
-
-  const seed = Math.floor(Math.random() * 0x1_0000_0000);
-  sessionStorage.setItem(HERO_COIN_SEED_KEY, String(seed));
-  return seed;
+  return Math.floor(Math.random() * 0x1_0000_0000);
 }
 
 function createRng(seed: number) {
@@ -271,7 +320,21 @@ function relFromCenter(
   };
 }
 
-type MutableCoin = HeroCoinLayout & { cx: number; cy: number; half: number };
+type MutableCoin = HeroCoinLayout & {
+  cx: number;
+  cy: number;
+  half: number;
+  laneMinX: number;
+  laneMaxX: number;
+};
+
+/**
+ * Centre-travel span, in coin halves, below which a lane reads as a rigid
+ * vertical column. Tight lanes are widened outward past the canvas edge.
+ */
+const LANE_MIN_SPAN_HALVES = 3;
+/** How far past the canvas edge a coin centre may sit (fraction of a half). */
+const LANE_OVERHANG = 0.4;
 
 function sideBounds(
   side: HeroCoinSide,
@@ -282,37 +345,49 @@ function sideBounds(
   const innerPad = half + 4;
   const edge = field.edgeInset + half;
 
+  let minX: number;
+  let maxX: number;
   if (side === "left") {
-    return {
-      minX: edge,
-      maxX: field.phoneLeft - innerPad,
-    };
+    minX = edge;
+    maxX = field.phoneLeft - innerPad;
+  } else {
+    minX = field.phoneRight + innerPad;
+    maxX = field.fieldWidth - edge;
   }
-  return {
-    minX: field.phoneRight + innerPad,
-    maxX: field.fieldWidth - edge,
-  };
+
+  // On narrow viewports the side lanes collapse into single-file columns.
+  // Widen them outward only — letting some coins hang partly off canvas —
+  // so the scatter stays two-dimensional; the phone-side bound never moves.
+  const deficit = half * LANE_MIN_SPAN_HALVES - (maxX - minX);
+  if (deficit > 0) {
+    if (side === "left") {
+      minX = Math.max(minX - deficit, -half * LANE_OVERHANG);
+    } else {
+      maxX = Math.min(maxX + deficit, field.fieldWidth + half * LANE_OVERHANG);
+    }
+  }
+
+  return { minX, maxX };
 }
 
-function verticalBounds(half: number) {
+function verticalBounds(half: number, spillTopY: number) {
   return {
     maxY: HERO_COIN_FIELD.maxY - half,
-    spillMinY: HERO_COIN_FIELD.minY + half,
+    spillMinY: spillTopY + half,
   };
 }
 
 /** Pick a well-separated random point in the allowed zone for this coin. */
 function randomCoinCenter(
   rand: () => number,
-  side: HeroCoinSide,
+  bounds: { minX: number; maxX: number },
   half: number,
   minEdgeGap: number,
-  field: HeroFieldMetrics,
-  spread: { horizontal: number; vertical: number },
+  spillTopY: number,
   placed: MutableCoin[],
 ) {
-  const { minX, maxX } = sideBounds(side, half, field, spread);
-  const { maxY, spillMinY } = verticalBounds(half);
+  const { minX, maxX } = bounds;
+  const { maxY, spillMinY } = verticalBounds(half, spillTopY);
 
   let best = {
     cx: minX + rand() * (maxX - minX),
@@ -379,16 +454,25 @@ function pushFromPhone(coin: MutableCoin, field: HeroFieldMetrics) {
   }
 }
 
-function clampCoinToField(coin: MutableCoin, fieldWidth: number) {
-  coin.cx = clamp(coin.cx, coin.half, fieldWidth - coin.half);
+function clampCoinToField(coin: MutableCoin, spillTopY: number) {
+  // Horizontal bounds are the coin's own lane (including any off-canvas
+  // overhang granted on tight viewports), so separation passes can never
+  // shove a coin past the edge inset or onto the phone. The vertical floor
+  // of the spill honours the sub-heading exclusion zone.
+  coin.cx = clamp(coin.cx, coin.laneMinX, coin.laneMaxX);
   coin.cy = clamp(
     coin.cy,
-    HERO_COIN_FIELD.minY + coin.half,
+    spillTopY + coin.half,
     HERO_COIN_FIELD.maxY - coin.half,
   );
 }
 
-function separateCoins(coins: MutableCoin[], minEdgeGap: number, field: HeroFieldMetrics) {
+function separateCoins(
+  coins: MutableCoin[],
+  minEdgeGap: number,
+  field: HeroFieldMetrics,
+  spillTopY: number,
+) {
   for (let iter = 0; iter < SEPARATION_ITERATIONS; iter++) {
     for (let i = 0; i < coins.length; i++) {
       for (let j = i + 1; j < coins.length; j++) {
@@ -419,7 +503,7 @@ function separateCoins(coins: MutableCoin[], minEdgeGap: number, field: HeroFiel
 
     for (const coin of coins) {
       pushFromPhone(coin, field);
-      clampCoinToField(coin, field.fieldWidth);
+      clampCoinToField(coin, spillTopY);
     }
   }
 }
@@ -431,17 +515,26 @@ export function buildHeroCoins({
   sceneHeightPx,
   viewportWidthPx,
   coinsPerSide,
+  spillTopY,
 }: BuildHeroCoinsOptions): HeroCoinLayout[] {
   const rng = createRng(sessionSeed);
   const field = heroFieldMetrics(sceneWidthPx, sceneHeightPx, viewportWidthPx);
   const minEdgeGap = remToDesignPx(COIN_MIN_GAP_REM, sceneWidthPx, field.fieldWidth);
   const placed: MutableCoin[] = [];
   const specs = shuffledCoinSpecs(sessionSeed, coinSpecsForSideCount(coinsPerSide));
+  // Clamp the exclusion zone so a pathological measurement (giant fonts,
+  // tiny band) can never squeeze the coins out of existence.
+  const spillTop = clamp(
+    spillTopY ?? HERO_COIN_FIELD.minY,
+    HERO_COIN_FIELD.minY,
+    HERO_ASSET.height / 2 - 60,
+  );
 
   for (const { id, side, size: baseSize } of specs) {
     const size = Math.round(baseSize * COIN_SIZE_SCALE);
     const half = size / 2;
-    const { cx, cy } = randomCoinCenter(rng, side, half, minEdgeGap, field, spread, placed);
+    const bounds = sideBounds(side, half, field, spread);
+    const { cx, cy } = randomCoinCenter(rng, bounds, half, minEdgeGap, spillTop, placed);
     const { relX, relY } = relFromCenter(cx, cy, field, spread);
     const spreadX = clamp(relX * SPREAD_GAIN, -1, 1);
     const spreadY = clamp(relY * SPREAD_GAIN, -1, 1);
@@ -456,12 +549,14 @@ export function buildHeroCoins({
       cx,
       cy,
       half,
+      laneMinX: bounds.minX,
+      laneMaxX: bounds.maxX,
     });
   }
 
-  separateCoins(placed, minEdgeGap, field);
+  separateCoins(placed, minEdgeGap, field, spillTop);
 
-  return placed.map(({ cx, cy, half: _half, ...coin }) => ({
+  return placed.map(({ cx, cy, half: _half, laneMinX: _minX, laneMaxX: _maxX, ...coin }) => ({
     ...coin,
     x: cx - coin.size / 2,
     y: cy - coin.size / 2,
@@ -476,21 +571,40 @@ export type HeroCoinEntrance = {
   duration: number;
   /** Extra apex height of the arc, in world units. */
   arc: number;
+  /**
+   * How far above its slot the coin overshoots before settling straight
+   * down into it, world units — the descending half of the fountain arc.
+   */
+  settle: number;
   /** Tumble to unwind during flight (radians); Y is the dominant coin-flip axis. */
   spinX: number;
   spinY: number;
   spinZ: number;
   /** Scale at launch relative to the resting scale (reads as depth behind the phone). */
   fromScale: number;
+  /** Seconds before this coin reacts when gravity is switched on. */
+  exitDelay: number;
+  /** Downward acceleration for the gravity drop, world units/s². */
+  exitGravity: number;
+  /** Slow roll picked up while falling, radians/s (Z only — can't expose the back). */
+  exitDrift: number;
+  /**
+   * Face-down pitch the coin tips toward while falling, radians. Kept well
+   * below π/2 (plus YuCoin's resting tilt) so the reverse face — whose
+   * geometry is culled at rest — is never exposed.
+   */
+  exitPitch: number;
 };
 
 const ENTRANCE_LAUNCH_INTERVAL = 0.085;
-const ENTRANCE_BASE_DURATION = 0.95;
+// Slightly longer than the old straight-ish path — the fountain arc travels
+// up and over before settling, so it needs the extra beat to not feel rushed.
+const ENTRANCE_BASE_DURATION = 1.05;
 const ENTRANCE_DURATION_PER_UNIT = 0.05;
 
 /**
- * Fountain-entrance parameters for each coin, seeded so a session's replay
- * (e.g. React strict-mode remount) produces the identical burst.
+ * Fountain-entrance parameters for each coin, seeded from the layout seed so
+ * a single page load (including React strict-mode remount) replays identically.
  * Launch order is randomised independently of layout order so the spurts
  * alternate irregularly between sides, like a real fountain.
  */
@@ -498,6 +612,8 @@ export function buildHeroCoinEntrances(
   coins: HeroCoinLayout[],
   sessionSeed: number,
   fieldWidth: number,
+  /** World-space y the flight apex must stay below (sub-heading exclusion). */
+  apexCeilingWorld?: number,
 ): HeroCoinEntrance[] {
   const rng = createRng(sessionSeed ^ 0x5f3759df);
 
@@ -525,11 +641,24 @@ export function buildHeroCoinEntrances(
       // Higher arcs for coins travelling further sideways; every arc clears
       // the phone top so the burst always reads as "up and over".
       arc: clamp(0.9 + Math.abs(dx) * 0.16 + rng() * 0.6, 1.0, 2.4),
+      // Overshoot above the slot before dropping in; capped so the highest
+      // coins never poke past the frustum top — or into the sub-heading
+      // exclusion zone — mid-descent.
+      settle: Math.max(
+        0.3,
+        Math.min(0.55 + rng() * 0.55, Math.min(9.3, apexCeilingWorld ?? 9.3) - ty),
+      ),
       spinX: (rng() - 0.5) * 0.9,
       // 1.25–2.25 full flips, tumbling outward from the phone.
       spinY: outward * Math.PI * 2 * (1.25 + rng()),
       spinZ: (rng() - 0.5) * 0.5,
       fromScale: 0.5 + rng() * 0.15,
+      exitDelay: rng() * 0.07,
+      exitGravity: 62 + rng() * 18,
+      exitDrift: (rng() - 0.5) * 1.0,
+      // 0.9–1.25 rad (52–72°) face-down; with YuCoin's resting tilt on top
+      // the combined pitch still stays safely short of 90°.
+      exitPitch: 0.9 + rng() * 0.35,
     };
   });
 }
@@ -581,5 +710,16 @@ export function designCoinScale(size: number) {
 /** Default ortho frustum for the base artboard width (overridden at runtime on wide viewports). */
 export const ORTHO_FRUSTUM = orthoFrustumForField(HERO_ASSET.width);
 
-/** Scene height as a fraction of the visible phone band (for bottom-anchored layout). */
-export const HERO_SCENE_HEIGHT_RATIO = HERO_COIN_FIELD.height / HERO_ASSET.height;
+/**
+ * Canvas height as a fraction of the visible phone band. The base maps the landing
+ * field; it's scaled up by the frustum-height ratio so the added fall-room renders
+ * at the SAME px-per-world as before — coin size and landing positions are
+ * unchanged, we only add room below. HERO_COIN_SPILL_BOTTOM_RATIO is how far the
+ * canvas hangs below the band so the extra room sits underneath (not above).
+ */
+const BASE_SCENE_HEIGHT_RATIO = HERO_COIN_FIELD.height / HERO_ASSET.height;
+export const HERO_SCENE_HEIGHT_RATIO =
+  BASE_SCENE_HEIGHT_RATIO * (FRUSTUM_HEIGHT / FRUSTUM_HEIGHT_ARTBOARD);
+export const HERO_COIN_SPILL_BOTTOM_RATIO =
+  (HERO_COIN_SPILL_BOTTOM / DESIGN_UNIT) *
+  (BASE_SCENE_HEIGHT_RATIO / FRUSTUM_HEIGHT_ARTBOARD);

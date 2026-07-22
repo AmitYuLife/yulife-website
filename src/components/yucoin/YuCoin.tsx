@@ -3,7 +3,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getCoinAssets, COIN_RADIUS, FACE_Z, ENGRAVE_Z } from "./assets";
+import { getCoinAssets, COIN_RADIUS } from "./assets";
 
 // Visible meshes opt out of pointer raycasting; the invisible proxy disc
 // below is the only hit target, so mousemove never ray-tests the
@@ -182,38 +182,18 @@ export default function YuCoin({
           <circleGeometry args={[COIN_RADIUS * 1.05, 24]} />
         </mesh>
 
-        <mesh geometry={assets.body} material={assets.gold} raycast={NO_RAYCAST} />
+        {/* Body + face(s) share one material and are pre-baked to their final
+            position — one draw call instead of up to three. */}
         <mesh
-          geometry={assets.face}
+          geometry={backFace ? assets.goldBoth : assets.goldFrontOnly}
           material={assets.gold}
-          position={[0, 0, FACE_Z]}
           raycast={NO_RAYCAST}
         />
         <mesh
-          geometry={assets.engrave}
+          geometry={backFace ? assets.engraveBoth : assets.engraveFrontOnly}
           material={assets.goldEngrave}
-          position={[0, 0, ENGRAVE_Z]}
           raycast={NO_RAYCAST}
         />
-
-        {backFace && (
-          <>
-            <mesh
-              geometry={assets.face}
-              material={assets.gold}
-              position={[0, 0, -FACE_Z]}
-              rotation={[0, Math.PI, 0]}
-              raycast={NO_RAYCAST}
-            />
-            <mesh
-              geometry={assets.engrave}
-              material={assets.goldEngrave}
-              position={[0, 0, -ENGRAVE_Z]}
-              rotation={[0, Math.PI, 0]}
-              raycast={NO_RAYCAST}
-            />
-          </>
-        )}
       </group>
     </group>
   );

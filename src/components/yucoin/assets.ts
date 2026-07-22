@@ -3,7 +3,7 @@
  *
  * Everything here — geometries, materials, the grain texture — is built ONCE
  * per page and shared by every <YuCoin /> instance, so adding more coins to a
- * canvas costs only ~5 extra draw calls each, no extra memory or shader
+ * canvas costs only 2 extra draw calls each, no extra memory or shader
  * compiles. The singletons intentionally live for the lifetime of the app and
  * are never disposed.
  *
@@ -17,13 +17,14 @@ import { mergeGeometries, mergeVertices } from "three/examples/jsm/utils/BufferG
 // Coin cross-section: flat face running straight into an edge bevel, then a
 // cylindrical side — one continuous solid
 export const COIN_RADIUS = 1;
-export const FACE_Z = 0.12; // z of the flat face
+const FACE_Z = 0.12; // z of the flat face
 const FACE_RADIUS = 0.96; // where the edge bevel begins
 const EDGE_Z = 0.102; // where the bevel meets the cylindrical side
 const SEG = 96; // radial segments
 
-/** Where the embossed giraffe sits so its bevel is embedded in the face. */
-export const ENGRAVE_Z = FACE_Z + 0.014;
+// Where the embossed giraffe sits so its bevel is embedded in the face.
+// Baked into engraveFrontOnly/engraveBoth below — not needed by consumers.
+const ENGRAVE_Z = FACE_Z + 0.014;
 
 const SVG_SIZE = 868; // viewBox of the Figma export
 
@@ -109,9 +110,14 @@ function makeEngraveGeometry(): THREE.BufferGeometry {
 }
 
 export interface CoinAssets {
-  body: THREE.BufferGeometry;
-  face: THREE.BufferGeometry;
-  engrave: THREE.BufferGeometry;
+  /** Body + front face, pre-positioned and merged: ONE draw call. */
+  goldFrontOnly: THREE.BufferGeometry;
+  /** Body + front face + back face, pre-positioned and merged: ONE draw call. */
+  goldBoth: THREE.BufferGeometry;
+  /** Front giraffe emboss, pre-positioned: ONE draw call. */
+  engraveFrontOnly: THREE.BufferGeometry;
+  /** Front + back giraffe emboss, pre-positioned and merged: ONE draw call. */
+  engraveBoth: THREE.BufferGeometry;
   gold: THREE.MeshPhysicalMaterial;
   goldEngrave: THREE.MeshPhysicalMaterial;
 }
@@ -139,11 +145,43 @@ export function getCoinAssets(): CoinAssets {
     envMapIntensity: 1.5,
   });
 
+  // Body, front face, and back face all render with the SAME `gold`
+  // material — so they're baked to their final position/rotation and
+  // merged into one buffer per variant. Fewer draw calls, identical pixels:
+  // this is exactly the triangles that were already being drawn, just
+  // submitted together instead of separately. Draw calls per coin drop from
+  // 5 to 2 (backFace) or 3 to 2 (front-only).
+  const body = makeBodyGeometry();
+  // Slightly overlaps the bevel to avoid a hairline seam
+  const faceBase = new THREE.CircleGeometry(FACE_RADIUS + 0.004, 64);
+  const faceFront = faceBase.clone();
+  faceFront.translate(0, 0, FACE_Z);
+  const faceBack = faceBase.clone();
+  faceBack.rotateY(Math.PI);
+  faceBack.translate(0, 0, -FACE_Z);
+  faceBase.dispose();
+
+  const goldFrontOnly = mergeGeometries([body, faceFront])!;
+  const goldBoth = mergeGeometries([body, faceFront, faceBack])!;
+  body.dispose();
+  faceFront.dispose();
+  faceBack.dispose();
+
+  const engraveBase = makeEngraveGeometry();
+  const engraveFrontOnly = engraveBase.clone();
+  engraveFrontOnly.translate(0, 0, ENGRAVE_Z);
+  const engraveBack = engraveBase.clone();
+  engraveBack.rotateY(Math.PI);
+  engraveBack.translate(0, 0, -ENGRAVE_Z);
+  engraveBase.dispose();
+  const engraveBoth = mergeGeometries([engraveFrontOnly, engraveBack])!;
+  engraveBack.dispose();
+
   cached = {
-    body: makeBodyGeometry(),
-    // Slightly overlaps the bevel to avoid a hairline seam
-    face: new THREE.CircleGeometry(FACE_RADIUS + 0.004, 64),
-    engrave: makeEngraveGeometry(),
+    goldFrontOnly,
+    goldBoth,
+    engraveFrontOnly,
+    engraveBoth,
     gold,
     goldEngrave,
   };
