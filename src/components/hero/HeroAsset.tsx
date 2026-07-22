@@ -9,6 +9,7 @@ import {
   PHONE_ORIGIN,
   toPercent,
 } from "./heroAssetLayout";
+import { assetPath } from "@/lib/assetPath";
 
 const HeroCoinField = dynamic(() => import("./HeroCoinField"), {
   ssr: false,
@@ -152,7 +153,7 @@ export default function HeroAsset({ onEntranceComplete }: HeroAssetProps) {
         style={{ aspectRatio: `${HERO_ASSET.width} / ${HERO_ASSET.height}` }}
       >
         <img
-          src="/hero/iphone.png"
+          src={assetPath("/hero/iphone.png")}
           alt=""
           width={868}
           height={1802}

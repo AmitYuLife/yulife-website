@@ -3,6 +3,7 @@
 import { finalCta } from "@/data/home-content";
 import { Button } from "@/components/ui/Button";
 import { useReveal } from "./useReveal";
+import { assetPath } from "@/lib/assetPath";
 
 export default function FinalCta() {
   const scope = useReveal<HTMLElement>();
@@ -20,7 +21,7 @@ export default function FinalCta() {
       <div className="page-container section-y">
         <div className="flex flex-col items-center gap-24 text-center desktop:flex-row desktop:justify-center desktop:gap-48 desktop:text-left">
           <img
-            src="/home/rocket.png"
+            src={assetPath("/home/rocket.png")}
             alt=""
             aria-hidden="true"
             data-reveal

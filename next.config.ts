@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
   distDir,
   output: "export",
   trailingSlash: true,
+  env: {
+    NEXT_PUBLIC_BASE_PATH: isGithubPages ? base : "",
+  },
   ...(isGithubPages && {
     basePath: base,
     assetPrefix: `${base}/`,

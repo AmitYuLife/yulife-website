@@ -2,6 +2,7 @@
 
 import { socialProof } from "@/data/home-content";
 import { useReveal } from "./useReveal";
+import { assetPath } from "@/lib/assetPath";
 
 const testimonial = {
   brand: "OZONE.bg",
@@ -11,7 +12,11 @@ const testimonial = {
   tag: "HR Leader",
 };
 
-const AWARDS = ["/home/award-1.svg", "/home/award-2.svg", "/home/award-3.svg"];
+const AWARDS = [
+  assetPath("/home/award-1.svg"),
+  assetPath("/home/award-2.svg"),
+  assetPath("/home/award-3.svg"),
+];
 
 function ControlButton({ label, children }: { label: string; children: React.ReactNode }) {
   return (

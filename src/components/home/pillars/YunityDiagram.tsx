@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { yunity } from "@/data/home-content";
+import { assetPath } from "@/lib/assetPath";
 import SectionCard from "./SectionCard";
 
 // R3F canvas is browser-only; load it client-side without blocking the band.
@@ -29,7 +30,7 @@ export default function YunityDiagram() {
                 {yunity.eyebrow}
               </span>
               <img
-                src="/home/yunity-logo.png"
+                src={assetPath("/home/yunity-logo.png")}
                 alt="Yunity"
                 className="h-[calc(24px+0.5rem)] w-auto -translate-y-[0.2em]"
               />

@@ -6,6 +6,7 @@ import Link from "next/link";
 import gsap from "gsap";
 import { products, type ProductCardBackground } from "@/data/home-content";
 import { useReveal } from "./useReveal";
+import { assetPath } from "@/lib/assetPath";
 
 const SWITCH_MS = 300;
 const SWITCH_EASE = "cubic-bezier(0.33, 0, 0.2, 1)";
@@ -19,8 +20,8 @@ const CARD_CLASS =
   "relative flex h-[440px] w-[280px] shrink-0 flex-col items-start justify-start overflow-hidden rounded-md p-32 tablet:h-[520px] tablet:w-[380px] desktop:h-[656px] desktop:w-[592px] desktop:p-80";
 
 const CARRIER_LOGOS = {
-  bupa: { src: "/home/logo-bupa.svg", width: 153, height: 40 },
-  metlife: { src: "/home/logo-metlife.svg", width: 186, height: 40 },
+  bupa: { src: assetPath("/home/logo-bupa.svg"), width: 153, height: 40 },
+  metlife: { src: assetPath("/home/logo-metlife.svg"), width: 186, height: 40 },
 } as const;
 
 type ProductCard = (typeof products.cards)[number];

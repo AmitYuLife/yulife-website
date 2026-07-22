@@ -1,3 +1,5 @@
+import { assetPath } from "@/lib/assetPath";
+
 /** Filename stem under `/public/logos/marquee/` for each approved marquee brand. */
 export const MARQUEE_LOGO_SLUGS = {
   Novartis: "novartis",
@@ -25,5 +27,5 @@ export const MARQUEE_LOGO_SLUGS = {
 export type MarqueeBrandName = keyof typeof MARQUEE_LOGO_SLUGS;
 
 export function marqueeLogoSrc(slug: string): string {
-  return `/logos/marquee/${slug}.svg`;
+  return assetPath(`/logos/marquee/${slug}.svg`);
 }

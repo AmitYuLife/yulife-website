@@ -1,20 +1,21 @@
 import { hero } from "@/data/home-content";
+import { assetPath } from "@/lib/assetPath";
 
 const MARKS: Record<string, { src: string; alt: string; width: number; height: number }> = {
   Trustpilot: {
-    src: "/hero/trust-trustpilot.svg",
+    src: assetPath("/hero/trust-trustpilot.svg"),
     alt: "Trustpilot",
     width: 32,
     height: 32,
   },
   Capterra: {
-    src: "/hero/trust-capterra.png",
+    src: assetPath("/hero/trust-capterra.png"),
     alt: "Capterra",
     width: 33,
     height: 32,
   },
   "App Store": {
-    src: "/hero/trust-apple.png",
+    src: assetPath("/hero/trust-apple.png"),
     alt: "App Store",
     width: 32,
     height: 32,

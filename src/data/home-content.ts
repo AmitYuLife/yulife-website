@@ -1,3 +1,5 @@
+import { assetPath } from "@/lib/assetPath";
+
 export const hero = {
   h1: "Insurance that inspires life",
   subheading:
@@ -55,10 +57,10 @@ export const ecosystem = {
     },
   ],
   insurers: [
-    { name: "Aviva", src: "/home/logo-aviva.svg", width: 189, height: 34 },
-    { name: "MetLife", src: "/home/logo-metlife.svg", width: 186, height: 40 },
-    { name: "Bupa", src: "/home/logo-bupa.svg", width: 153, height: 40 },
-    { name: "Daiichi Life", src: "/home/logo-daiichi.svg", width: 219, height: 40 },
+    { name: "Aviva", src: assetPath("/home/logo-aviva.svg"), width: 189, height: 34 },
+    { name: "MetLife", src: assetPath("/home/logo-metlife.svg"), width: 186, height: 40 },
+    { name: "Bupa", src: assetPath("/home/logo-bupa.svg"), width: 153, height: 40 },
+    { name: "Daiichi Life", src: assetPath("/home/logo-daiichi.svg"), width: 219, height: 40 },
   ],
 } as const;
 
@@ -92,7 +94,7 @@ export const products = {
       carrier: "bupa",
       href: "/products/cash-plan",
       background: {
-        src: "/home/products/health-cash-plan-bg.webp",
+        src: assetPath("/home/products/health-cash-plan-bg.webp"),
         fit: "positioned",
         width: "369.65%",
         height: "107.16%",
@@ -108,7 +110,7 @@ export const products = {
       carrier: "metlife",
       href: "/products/life-insurance",
       background: {
-        src: "/home/products/life-insurance-bg.webp",
+        src: assetPath("/home/products/life-insurance-bg.webp"),
         fit: "cover",
       },
     },
@@ -120,7 +122,7 @@ export const products = {
       carrier: "bupa",
       href: "/products/health",
       background: {
-        src: "/home/products/health-insurance-bg.webp",
+        src: assetPath("/home/products/health-insurance-bg.webp"),
         fit: "cover",
       },
     },
@@ -132,7 +134,7 @@ export const products = {
       carrier: "bupa",
       href: "/products/dental-insurance",
       background: {
-        src: "/home/products/dental-insurance-bg.webp",
+        src: assetPath("/home/products/dental-insurance-bg.webp"),
         fit: "cover",
       },
     },
@@ -144,7 +146,7 @@ export const products = {
       carrier: "metlife",
       href: "/products/income-protection",
       background: {
-        src: "/home/products/income-protection-bg.webp",
+        src: assetPath("/home/products/income-protection-bg.webp"),
         fit: "positioned",
         width: "221.62%",
         height: "100%",
