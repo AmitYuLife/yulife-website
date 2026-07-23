@@ -14,6 +14,7 @@
 
 # misc
 .DS_Store
+/input/
 *.pem
 
 # editor / agent tooling (local or optional — not part of the app build)

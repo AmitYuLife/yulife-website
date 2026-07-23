@@ -10,7 +10,8 @@
     "clean": "rm -rf .next .next-dev out",
     "lint": "next lint",
     "gen:pages": "tsx scripts/generate-pages.mjs",
-    "gen:svg": "tsx scripts/generate-sitemap-svg.mjs"
+    "gen:svg": "tsx scripts/generate-sitemap-svg.mjs",
+    "optimize:platform-videos": "node scripts/optimize-platform-videos.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

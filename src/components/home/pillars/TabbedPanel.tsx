@@ -1,7 +1,11 @@
 "use client";
 
-import { pillars } from "@/data/home-content";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { pillars, type PillarVideo } from "@/data/home-content";
 import PillarBox from "./PillarBox";
+import PlatformHeadingMarquee from "./PlatformHeadingMarquee";
+import PlatformTabList from "./PlatformTabList";
+import { PLATFORM_SWITCH_MS, PLATFORM_SWITCH_EASE } from "./platform-switch";
 
 /** Accent per capability box / start-node, left → right. */
 export const PILLAR_COLORS = [
@@ -11,8 +15,113 @@ export const PILLAR_COLORS = [
   "var(--purple-600)",
 ] as const;
 
-/** Prevent is the tab fully designed in Figma; it opens by default. */
-const DEFAULT_TAB = pillars.findIndex((p) => p.id === "prevent");
+/** Engage opens by default on page load. */
+const DEFAULT_TAB = pillars.findIndex((p) => p.id === "engage");
+
+const PILLARS_WITH_VIDEO = pillars.filter(
+  (pillar): pillar is (typeof pillars)[number] & { video: PillarVideo } =>
+    "video" in pillar && !!pillar.video,
+);
+
+/** Match ProductShowcase card background transitions. */
+const SWITCH_MS = PLATFORM_SWITCH_MS;
+const SWITCH_EASE = PLATFORM_SWITCH_EASE;
+/** Floating cards — rise/fade like useReveal; enter is reversed exit with ease-in. */
+const FLOATING_REVEAL_MS = 550;
+const FLOATING_REVEAL_EASE_OUT = "cubic-bezier(0.22, 1, 0.36, 1)";
+const FLOATING_REVEAL_EASE_IN = "cubic-bezier(0.64, 0, 0.78, 0)";
+
+const PREVENT_INDEX = pillars.findIndex((p) => p.id === "prevent");
+
+function usePlatformTabSwitch(activeIndex: number) {
+  const prevActiveIndexRef = useRef(activeIndex);
+  const switchTimeoutRef = useRef<number>(undefined);
+
+  const [exitingIndex, setExitingIndex] = useState<number | null>(null);
+  const [isSwitching, setIsSwitching] = useState(false);
+  const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
+
+  useEffect(() => {
+    if (activeIndex === prevActiveIndexRef.current) return;
+
+    setExitingIndex(prevActiveIndexRef.current);
+    setSlideDirection(activeIndex > prevActiveIndexRef.current ? 1 : -1);
+    setIsSwitching(true);
+
+    window.clearTimeout(switchTimeoutRef.current);
+    switchTimeoutRef.current = window.setTimeout(() => {
+      setIsSwitching(false);
+      setExitingIndex(null);
+    }, SWITCH_MS);
+
+    prevActiveIndexRef.current = activeIndex;
+  }, [activeIndex]);
+
+  useEffect(() => () => window.clearTimeout(switchTimeoutRef.current), []);
+
+  const slideVariant: "Left" | "Right" = slideDirection > 0 ? "Right" : "Left";
+  const isPreventActive = activeIndex === PREVENT_INDEX;
+  const isPreventExiting = isSwitching && exitingIndex === PREVENT_INDEX;
+  const isPreventEntering = isSwitching && activeIndex === PREVENT_INDEX;
+  const showFloatingCards = isPreventActive || isPreventExiting;
+
+  const exitingPillar = exitingIndex != null ? pillars[exitingIndex] : undefined;
+  const exitingVideoId =
+    exitingPillar && "video" in exitingPillar && exitingPillar.video
+      ? exitingPillar.id
+      : null;
+
+  return {
+    isSwitching,
+    slideVariant,
+    showFloatingCards,
+    isPreventActive,
+    isPreventExiting,
+    isPreventEntering,
+    exitingVideoId,
+  };
+}
+
+function FloatingCardShell({
+  children,
+  className,
+  isEntering,
+  isExiting,
+}: {
+  children: ReactNode;
+  className: string;
+  isEntering: boolean;
+  isExiting: boolean;
+}) {
+  const [enterActive, setEnterActive] = useState(false);
+
+  useEffect(() => {
+    if (isExiting) {
+      setEnterActive(false);
+      return;
+    }
+    if (!isEntering) return;
+
+    setEnterActive(true);
+    const timer = window.setTimeout(() => setEnterActive(false), FLOATING_REVEAL_MS);
+    return () => window.clearTimeout(timer);
+  }, [isEntering, isExiting]);
+
+  const layerAnimation = isExiting
+    ? `platformFloatExit ${FLOATING_REVEAL_MS}ms ${FLOATING_REVEAL_EASE_OUT} both`
+    : enterActive
+      ? `platformFloatExit ${FLOATING_REVEAL_MS}ms ${FLOATING_REVEAL_EASE_IN} reverse both`
+      : undefined;
+
+  return (
+    <div
+      className={`platform-floating-layer ${className}`}
+      style={layerAnimation ? { animation: layerAnimation } : undefined}
+    >
+      {children}
+    </div>
+  );
+}
 
 function splitBullet(bullet: string) {
   const idx = bullet.indexOf(":");
@@ -86,6 +195,107 @@ function BreathingCard() {
   );
 }
 
+function PlatformVideoStack({
+  activeIndex,
+  isSwitching,
+  exitingVideoId,
+  slideVariant,
+}: {
+  activeIndex: number;
+  isSwitching: boolean;
+  exitingVideoId: string | null;
+  slideVariant: "Left" | "Right";
+}) {
+  const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+
+  const activeId = pillars[activeIndex]?.id ?? "";
+  const activeHasVideo = PILLARS_WITH_VIDEO.some((pillar) => pillar.id === activeId);
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    for (const { id } of PILLARS_WITH_VIDEO) {
+      const el = videoRefs.current.get(id);
+      if (!el) continue;
+
+      const isActive = id === activeId;
+      const isExiting = id === exitingVideoId && isSwitching;
+
+      if (isActive && !reducedMotion) {
+        el.play().catch(() => {});
+      } else if (!isExiting) {
+        el.pause();
+      }
+    }
+  }, [activeId, exitingVideoId, isSwitching]);
+
+  useEffect(() => {
+    if (!isSwitching || !exitingVideoId) return;
+
+    const el = videoRefs.current.get(exitingVideoId);
+    if (!el) return;
+
+    const timeout = window.setTimeout(() => el.pause(), SWITCH_MS);
+    return () => window.clearTimeout(timeout);
+  }, [exitingVideoId, isSwitching]);
+
+  if (PILLARS_WITH_VIDEO.length === 0 && !activeHasVideo) {
+    return <VideoPlaceholder built={false} />;
+  }
+
+  return (
+    <div className="relative h-full w-full overflow-hidden">
+      {PILLARS_WITH_VIDEO.map(({ id, video }) => {
+        const isActive = id === activeId;
+        const isExiting = id === exitingVideoId && isSwitching;
+        const isVisible = isActive || isExiting;
+
+        const layerAnimation = isExiting
+          ? `productBgExit${slideVariant} ${SWITCH_MS}ms ${SWITCH_EASE} both`
+          : isSwitching && isActive
+            ? `productBgEnter${slideVariant} ${SWITCH_MS}ms ${SWITCH_EASE} both`
+            : undefined;
+
+        return (
+          <div
+            key={id}
+            className="product-showcase-bg-layer absolute inset-0 overflow-hidden"
+            style={{
+              visibility: isVisible ? "visible" : "hidden",
+              zIndex: isActive ? 2 : isExiting ? 1 : 0,
+              animation: layerAnimation,
+            }}
+            aria-hidden={!isActive}
+          >
+            <video
+              ref={(el) => {
+                if (el) videoRefs.current.set(id, el);
+                else videoRefs.current.delete(id);
+              }}
+              className="absolute inset-0 block h-full w-full object-cover"
+              src={video.mp4}
+              width={1600}
+              height={900}
+              muted
+              loop
+              playsInline
+              preload="auto"
+              aria-hidden={!isActive}
+              aria-label={isActive ? "Platform demonstration video" : undefined}
+            />
+          </div>
+        );
+      })}
+
+      {!activeHasVideo && (
+        <div className="absolute inset-0 z-10">
+          <VideoPlaceholder built={false} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function VideoPlaceholder({ built }: { built: boolean }) {
   return (
     <div
@@ -130,54 +340,54 @@ export default function TabbedPanel({
   onActiveChange: (index: number) => void;
 }) {
   const activePillar = pillars[active];
-  // The Prevent tab carries the bespoke floating cards from the Figma design;
-  // every tab now renders its capability boxes from the pillars content.
-  const hasFloatingCards = activePillar.id === "prevent";
+  const tabSwitch = usePlatformTabSwitch(active);
   const boxes = activePillar.bullets.slice(0, 4).map(splitBullet);
   const desktopCols =
     boxes.length >= 4 ? "desktop:grid-cols-4" : "desktop:grid-cols-3";
 
   return (
     <div className="flex w-full max-w-[1216px] flex-col items-center gap-flow tablet:gap-group">
-      {/* Tabs */}
-      <div
-        role="tablist"
-        aria-label="Platform capabilities"
-        className="grid w-full grid-cols-2 overflow-hidden rounded-md border border-line-emphasis tablet:grid-cols-4"
-      >
-        {pillars.map((pillar, i) => {
-          const selected = i === active;
-          return (
-            <button
-              key={pillar.id}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              onClick={() => onActiveChange(i)}
-              className={`type-label relative px-24 py-16 text-center transition-colors tablet:border-l tablet:border-line-emphasis tablet:first:border-l-0 ${
-                selected ? "text-on-inverse" : "text-on-inverse-muted hover:text-on-inverse"
-              }`}
-            >
-              {pillar.eyebrow}
-            </button>
-          );
-        })}
-      </div>
+      <PlatformTabList active={active} onActiveChange={onActiveChange} />
 
       {/* Video / hero placeholder with floating cards */}
       <div className="relative w-full">
-        <div className="h-[320px] w-full overflow-hidden rounded-md border border-line-emphasis tablet:h-[440px] desktop:h-[548px]">
-          <VideoPlaceholder built />
+        <div
+          className="pointer-events-none absolute z-0 h-[320px] overflow-hidden tablet:h-[440px] desktop:h-[548px]"
+          style={{
+            left: "50%",
+            width: "100vw",
+            marginLeft: "-50vw",
+          }}
+          aria-hidden
+        >
+          <PlatformHeadingMarquee heading={activePillar.heading} />
         </div>
 
-        {hasFloatingCards && (
+        <div className="relative z-[2] h-[320px] w-full overflow-hidden rounded-md border border-line-emphasis tablet:h-[440px] desktop:h-[548px]">
+          <PlatformVideoStack
+            activeIndex={active}
+            isSwitching={tabSwitch.isSwitching}
+            exitingVideoId={tabSwitch.exitingVideoId}
+            slideVariant={tabSwitch.slideVariant}
+          />
+        </div>
+
+        {tabSwitch.showFloatingCards && (
           <>
-            <div className="absolute -left-8 bottom-24 hidden tablet:block desktop:-left-24">
+            <FloatingCardShell
+              className="absolute -left-8 bottom-24 z-10 hidden tablet:block desktop:-left-24"
+              isEntering={tabSwitch.isPreventEntering}
+              isExiting={tabSwitch.isPreventExiting}
+            >
               <MoodCard />
-            </div>
-            <div className="absolute -right-8 top-24 hidden tablet:block desktop:-right-24">
+            </FloatingCardShell>
+            <FloatingCardShell
+              className="absolute -right-8 top-24 z-10 hidden tablet:block desktop:-right-24"
+              isEntering={tabSwitch.isPreventEntering}
+              isExiting={tabSwitch.isPreventExiting}
+            >
               <BreathingCard />
-            </div>
+            </FloatingCardShell>
           </>
         )}
       </div>

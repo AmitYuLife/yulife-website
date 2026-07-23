@@ -561,7 +561,46 @@ section[aria-labelledby="block-7-label"] h2 {
   }
 }
 
+/* Platform Prevent tab floating cards — rise/fade like useReveal (y: 24 → 0). */
+.platform-floating-layer {
+  will-change: transform, opacity;
+}
+
+@keyframes platformFloatExit {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+}
+
+/* Platform tab hero — outlined display heading marquee behind the video. */
+.platform-tab-indicator {
+  background-color: var(--purple-700);
+  top: 0;
+  left: 0;
+}
+
+.platform-heading-marquee-text {
+  font-family: var(--display-hero-family);
+  font-weight: var(--display-hero-weight);
+  font-size: var(--display-hero-size);
+  line-height: var(--display-hero-line-height);
+  letter-spacing: var(--display-hero-letter-spacing);
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--text-on-inverse-muted);
+  padding-inline-end: 0.25em;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .platform-heading-marquee-track {
+    transform: none !important;
+  }
+
   .mega-menu-panel {
     transition: none !important;
   }
@@ -571,6 +610,10 @@ section[aria-labelledby="block-7-label"] h2 {
   }
 
   .product-showcase-bg-layer {
+    animation: none !important;
+  }
+
+  .platform-floating-layer {
     animation: none !important;
   }
 

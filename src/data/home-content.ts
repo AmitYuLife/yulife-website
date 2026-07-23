@@ -157,11 +157,21 @@ export const products = {
   ],
 } as const;
 
+/** Optional hero video per platform tab — add mp4 + poster via npm run optimize:platform-videos */
+export type PillarVideo = {
+  mp4: string;
+  poster: string;
+};
+
 export const pillars = [
   {
     id: "engage",
     eyebrow: "Engage",
     heading: "Daily Wellbeing Experience",
+    video: {
+      mp4: assetPath("/home/platform/engage.mp4"),
+      poster: assetPath("/home/platform/engage-poster.jpg"),
+    },
     bullets: [
       "Daily Health Challenges: Our gamified app transforms walking, meditation, and cycling into a rewarding daily quest.",
       "Seamless Connectivity: Integrates instantly with Garmin, Fitbit, Apple Health, and Google Fit to track every move.",
@@ -173,6 +183,10 @@ export const pillars = [
     id: "prevent",
     eyebrow: "Prevent",
     heading: "Proactive Health Support",
+    video: {
+      mp4: assetPath("/home/platform/prevent.mp4"),
+      poster: assetPath("/home/platform/prevent-poster.jpg"),
+    },
     bullets: [
       "Daily Reflections: Short, daily check-ins that sense shifts in stress and energy and trigger support when patterns change.",
       "24/7 Virtual GP: Unlimited video calls and private prescriptions available at your team's fingertips.",
@@ -184,6 +198,10 @@ export const pillars = [
     id: "protect",
     eyebrow: "Protect",
     heading: "Gold-Standard Insurance",
+    video: {
+      mp4: assetPath("/home/platform/protect.mp4"),
+      poster: assetPath("/home/platform/protect-poster.jpg"),
+    },
     bullets: [
       "Market-Leading Cover: Trusted policies integrated directly into the YuLife app.",
       "Global Partnerships: The institutional weight and clinical excellence of world-leading insurance brands.",
@@ -194,6 +212,10 @@ export const pillars = [
     id: "empower",
     eyebrow: "Empower",
     heading: "Actionable Data & Insights",
+    video: {
+      mp4: assetPath("/home/platform/empower.mp4"),
+      poster: assetPath("/home/platform/empower-poster.jpg"),
+    },
     bullets: [
       "Aggregated Wellbeing Data: Combine employee feedback with app activity for a clear, holistic view of workforce health.",
       "Predictive Insights: Spot rising burnout and absence risk earlier, so you can act before it costs you.",
