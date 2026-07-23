@@ -18,36 +18,27 @@ function capitalizeFirst(text: string) {
 export default function YunityDiagram() {
   return (
     <div className="flex flex-col items-center gap-[var(--layout-section-gap)]">
-      {/* Framed heading + copy — two columns (lockup + heading | body copy).
+      {/* Framed lockup, heading, and body — single column (Figma SectionCard).
           The card overlays the connecting roots: signal lines enter its top edge
           and re-emerge below to converge on the star. */}
       <SectionCard data-reveal>
-        <div className="flex flex-col gap-group tablet:flex-row tablet:items-end">
-          {/* Column 1 — lockup + heading */}
-          <div className="flex flex-1 flex-col items-start gap-block-gap">
-            <div className="flex items-center gap-inline">
-              <span className="type-eyebrow uppercase text-on-inverse">
-                {yunity.eyebrow}
-              </span>
-              <img
-                src={assetPath("/home/yunity-logo.png")}
-                alt="Yunity"
-                className="h-[calc(24px+0.5rem)] w-auto -translate-y-[0.2em]"
-              />
-            </div>
+        <div className="flex flex-col items-center justify-center gap-group">
+          <div className="flex w-full flex-col items-center gap-stack">
+            <img
+              src={assetPath("/home/yunity-logo.png")}
+              alt="Yunity"
+              className="h-64 w-[138px] shrink-0"
+            />
             <h2
               id="yunity-heading"
-              className="type-heading-h2 text-left text-on-inverse"
+              className="type-heading-h2 text-center text-on-inverse"
             >
               {yunity.heading}
             </h2>
           </div>
-
-          {/* Column 2 — body copy */}
-          <div className="flex flex-1 flex-col gap-block-gap">
-            <p className="type-body-lg text-on-inverse">{yunity.intro}</p>
-            <p className="type-body-lg text-on-inverse">{yunity.body}</p>
-          </div>
+          <p className="type-body-lg w-full text-center text-on-inverse">
+            {yunity.body}
+          </p>
         </div>
       </SectionCard>
 

@@ -15,7 +15,7 @@ export default function SectionCard({
   return (
     <div
       {...rest}
-      className={`relative z-10 w-full max-w-[1216px] rounded-md border border-line-emphasis bg-surface-inverse-raised p-32 tablet:p-40 desktop:p-80 ${className}`}
+      className={`relative z-10 flex w-full max-w-[1216px] flex-col items-center justify-center rounded-md border border-line-emphasis bg-surface-inverse-raised p-32 tablet:p-40 desktop:p-80 ${className}`}
     >
       {children}
     </div>
