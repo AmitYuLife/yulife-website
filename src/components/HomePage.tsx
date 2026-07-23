@@ -3,7 +3,6 @@ import EcosystemStats from "@/components/ecosystem/EcosystemStats";
 import ProductShowcase from "@/components/home/ProductShowcase";
 import PillarsSection from "@/components/home/pillars/PillarsSection";
 import TrustedSection from "@/components/home/TrustedSection";
-import FinalCta from "@/components/home/FinalCta";
 
 export default function HomePage() {
   return (
@@ -13,7 +12,6 @@ export default function HomePage() {
       <ProductShowcase />
       <PillarsSection />
       <TrustedSection />
-      <FinalCta />
     </>
   );
 }

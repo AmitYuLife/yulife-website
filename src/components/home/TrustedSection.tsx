@@ -1,6 +1,7 @@
 "use client";
 
 import { socialProof } from "@/data/home-content";
+import JoinMissionCard from "@/components/home/JoinMissionCard";
 import { useReveal } from "./useReveal";
 import { assetPath } from "@/lib/assetPath";
 
@@ -119,6 +120,10 @@ export default function TrustedSection() {
             </li>
           ))}
         </ul>
+
+        <div className="mt-48 flex justify-center tablet:mt-64">
+          <JoinMissionCard />
+        </div>
       </div>
     </section>
   );
