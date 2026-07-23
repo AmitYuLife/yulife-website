@@ -4,7 +4,6 @@ import ProductShowcase from "@/components/home/ProductShowcase";
 import PillarsSection from "@/components/home/pillars/PillarsSection";
 import TrustedSection from "@/components/home/TrustedSection";
 import FinalCta from "@/components/home/FinalCta";
-import Sources from "@/components/home/Sources";
 
 export default function HomePage() {
   return (
@@ -15,7 +14,6 @@ export default function HomePage() {
       <PillarsSection />
       <TrustedSection />
       <FinalCta />
-      <Sources />
     </>
   );
 }

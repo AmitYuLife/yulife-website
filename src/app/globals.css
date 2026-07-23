@@ -176,6 +176,14 @@
   }
 }
 
+.final-cta-rocket-drag {
+  cursor: grab;
+}
+
+.final-cta-rocket-drag:active {
+  cursor: grabbing;
+}
+
 .stub-block h2 {
   font-family: var(--heading-h2-family);
   font-weight: var(--heading-h2-weight);
