@@ -184,6 +184,47 @@
   cursor: grabbing;
 }
 
+@keyframes rocketSlingshotFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes rocketSlingshotFloatFlame {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.rocket-slingshot-float {
+  animation: rocketSlingshotFloat 1.9s ease-in-out infinite;
+}
+
+.rocket-slingshot-float-flame {
+  animation: rocketSlingshotFloatFlame 1.55s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+.rocket-slingshot-canvas[data-paused="true"] .rocket-slingshot-float,
+.rocket-slingshot-canvas[data-paused="true"] .rocket-slingshot-float-flame {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rocket-slingshot-float,
+  .rocket-slingshot-float-flame {
+    animation: none;
+  }
+}
+
 .stub-block h2 {
   font-family: var(--heading-h2-family);
   font-weight: var(--heading-h2-weight);

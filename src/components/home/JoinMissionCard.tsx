@@ -1,10 +1,21 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useRef } from "react";
 import { finalCta } from "@/data/home-content";
 import { Button } from "@/components/ui/Button";
 import SectionCard from "@/components/home/pillars/SectionCard";
-import RocketSlingshot from "@/components/home/RocketSlingshot";
+
+const RocketSlingshot = dynamic(() => import("@/components/home/RocketSlingshot"), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="relative w-full max-w-[488px] shrink-0"
+      style={{ aspectRatio: "488 / 456" }}
+      aria-hidden
+    />
+  ),
+});
 
 /** How much of the pointer range shifts the gradient (0–1). Lower = subtler. */
 const POINTER_INFLUENCE = 0.55;
@@ -35,14 +46,14 @@ export default function JoinMissionCard() {
       data-reveal
       data-rocket-bounds
       aria-labelledby="final-cta-heading"
-      className="overflow-hidden"
+      className="overflow-hidden justify-start desktop:justify-center"
       style={{ backgroundColor: "var(--surface-inverse)" }}
     >
-      <div className="flex w-full flex-col items-center gap-40 desktop:flex-row desktop:gap-80">
-        <div className="flex min-w-0 flex-1 flex-col items-start gap-40">
+      <div className="flex w-full flex-col items-center gap-split desktop:flex-row desktop:items-center">
+        <div className="relative flex w-full shrink-0 flex-col items-center gap-controls text-center desktop:items-start desktop:text-left desktop:z-10 desktop:min-w-0 desktop:flex-1">
           <h2
             id="final-cta-heading"
-            className="type-heading-h2"
+            className="type-heading-h2 desktop:w-[620px] xl:w-[700px]"
             style={{ color: "var(--neutral-white)" }}
           >
             Join the mission
@@ -64,12 +75,12 @@ export default function JoinMissionCard() {
             {finalCta.subheading}
           </p>
 
-          <Button href={finalCta.cta.href} size="lg" variant="solid" theme="onDark">
+          <Button href={finalCta.cta.href} size="lg" variant="solid" theme="onDark" className="w-full">
             {finalCta.cta.label}
           </Button>
         </div>
 
-        <div className="flex min-w-0 flex-1 justify-center">
+        <div className="relative z-20 flex w-full shrink-0 -translate-x-16 justify-center desktop:min-w-0 desktop:flex-1">
           <RocketSlingshot />
         </div>
       </div>
