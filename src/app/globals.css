@@ -579,7 +579,7 @@ section[aria-labelledby="block-7-label"] h2 {
 
 /* Platform tab hero — outlined display heading marquee behind the video. */
 .platform-tab-indicator {
-  background-color: var(--purple-700);
+  background-color: var(--surface-inverse-raised);
   top: 0;
   left: 0;
 }

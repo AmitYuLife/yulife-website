@@ -288,6 +288,43 @@ export const socialProof = {
   awards: ["Award A", "Award B", "Award C", "Award D"],
 } as const;
 
+/** Customer tabs for the Trusted section sidebar (order matches the design).
+ *  A tab with a `quote` shows the testimonial panel; without one it shows a
+ *  "Coming soon" placeholder. `logoSlug` points at /public/logos/marquee/<slug>.svg
+ *  — set to null to render the company name as text until the logo asset lands. */
+export type Testimonial = {
+  id: string;
+  company: string;
+  logoSlug: string | null;
+  quote?: string;
+  author?: string;
+};
+
+export const testimonials: readonly Testimonial[] = [
+  { id: "what3words", company: "what3words", logoSlug: "what3words" },
+  { id: "xma", company: "XMA", logoSlug: "xma" },
+  {
+    id: "ozone",
+    company: "OZONE.bg",
+    logoSlug: "ozone",
+    quote:
+      "The best part of YuLife is that everything is in the app, making it easier to keep it top of mind and check it daily. It's a clear improvement from before we had YuLife.",
+    author: "Bryan Scott, CMO",
+  },
+  { id: "bruntwood", company: "bruntwood", logoSlug: "bruntwood" },
+  {
+    id: "nicepak",
+    company: "NICE-PAK",
+    logoSlug: "nicepak",
+  },
+];
+
+/** OZONE.bg opens by default — the one tab with a published testimonial. */
+export const DEFAULT_TESTIMONIAL = Math.max(
+  0,
+  testimonials.findIndex((t) => t.quote),
+);
+
 export const finalCta = {
   heading: "Join the mission to inspire life",
   subheading:
