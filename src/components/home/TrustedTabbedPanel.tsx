@@ -6,6 +6,7 @@ import { useCarouselKeyboard, type CarouselDirection } from "@/hooks/useCarousel
 import { marqueeLogoSrc } from "@/data/marquee-logos";
 import AnimatedTabList from "./pillars/AnimatedTabList";
 import { PLATFORM_SWITCH_MS, PLATFORM_SWITCH_EASE } from "./pillars/platform-switch";
+import { domSrc } from "@/lib/domSrc";
 
 const TABLET_MEDIA = "(min-width: 768px)";
 
@@ -224,7 +225,7 @@ export default function TrustedTabbedPanel() {
   });
 
   return (
-    <div
+    <div {...domSrc("TrustedTabbedPanel")}
       ref={panelRef}
       className="flex w-full flex-col overflow-hidden rounded-md border border-line-emphasis tablet:flex-row"
     >

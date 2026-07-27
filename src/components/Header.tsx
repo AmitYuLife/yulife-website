@@ -19,6 +19,7 @@ import {
 import { MobileNav } from "./nav/MobileNav";
 import { NavMenuDrop } from "./nav/NavMenuDrop";
 import { NavMenuTop } from "./nav/NavMenuTop";
+import { domSrc } from "@/lib/domSrc";
 
 const CLOSE_DELAY = 80;
 const TOP_BAR_H = 72;
@@ -328,7 +329,7 @@ export default function Header() {
 
   return (
     <>
-      <header
+      <header {...domSrc("Header")}
         className="mega-header sticky top-0 z-50"
         aria-hidden={mobileOpen ? true : undefined}
       >

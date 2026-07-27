@@ -9,6 +9,7 @@
     "start": "next start",
     "clean": "rm -rf .next .next-dev out",
     "lint": "next lint",
+    "gen:map": "node scripts/generate-code-map.mjs",
     "gen:pages": "tsx scripts/generate-pages.mjs",
     "gen:svg": "tsx scripts/generate-sitemap-svg.mjs",
     "optimize:platform-videos": "node scripts/optimize-platform-videos.mjs",

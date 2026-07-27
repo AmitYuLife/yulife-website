@@ -5,6 +5,7 @@ import { useCallback, useRef } from "react";
 import { finalCta } from "@/data/home-content";
 import { Button } from "@/components/ui/Button";
 import { useReveal } from "./useReveal";
+import { domSrc } from "@/lib/domSrc";
 
 const RocketSlingshot = dynamic(() => import("@/components/home/RocketSlingshot"), {
   ssr: false,
@@ -44,7 +45,7 @@ export default function JoinMissionCard() {
   }, []);
 
   return (
-    <section
+    <section {...domSrc("JoinMissionCard")}
       ref={scope}
       data-rocket-bounds
       className="relative overflow-hidden border-t border-b border-line-emphasis"

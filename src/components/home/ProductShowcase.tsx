@@ -8,6 +8,7 @@ import { products, type ProductCardBackground } from "@/data/home-content";
 import { useCarouselKeyboard, type CarouselDirection } from "@/hooks/useCarouselKeyboard";
 import { useReveal } from "./useReveal";
 import { assetPath } from "@/lib/assetPath";
+import { domSrc } from "@/lib/domSrc";
 
 const SWITCH_MS = 300;
 const SWITCH_EASE = "cubic-bezier(0.33, 0, 0.2, 1)";
@@ -494,7 +495,7 @@ export default function ProductShowcase() {
   }, []);
 
   return (
-    <section
+    <section {...domSrc("ProductShowcase")}
       ref={scope}
       className="relative overflow-x-clip overflow-y-visible border-b border-line-emphasis bg-surface-inverse"
       aria-labelledby="protect-heading"

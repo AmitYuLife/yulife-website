@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import StatColumn from "@/components/stats/StatColumn";
 import type { StatsColumnsProps } from "@/components/stats/types";
+import { domSrc } from "@/lib/domSrc";
 
 export default function StatsColumns({
   stats,
@@ -11,7 +12,7 @@ export default function StatsColumns({
   className,
 }: StatsColumnsProps) {
   return (
-    <div className={cn("relative w-full max-w-[1216px]", className)}>
+    <div {...domSrc("StatsColumns")} className={cn("relative w-full max-w-[1216px]", className)}>
       {showHorizontalRule && (
         <div
           className="pointer-events-none absolute top-1/2 z-0 hidden h-px -translate-y-1/2 bg-line-emphasis tablet:block"

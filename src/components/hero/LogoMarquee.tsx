@@ -5,6 +5,7 @@ import Image from "next/image";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { hero } from "@/data/home-content";
+import { domSrc } from "@/lib/domSrc";
 import {
   MARQUEE_LOGO_SLUGS,
   marqueeLogoSrc,
@@ -179,7 +180,7 @@ function MarqueeRow({
 
 export default function LogoMarquee() {
   return (
-    <div className="hero-marquee w-full py-14 md:py-20">
+    <div {...domSrc("LogoMarquee")} className="hero-marquee w-full py-14 md:py-20">
       <div
         className="relative flex flex-col gap-flow"
         style={{

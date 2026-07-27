@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getNavGroupForPage, navGroups, type Page } from "@/data/sitemap";
+import { domSrc } from "@/lib/domSrc";
 
 const flagCopy = {
   "under-consideration":
@@ -18,7 +19,7 @@ export default function PageStub({ page, groupId }: PageStubProps) {
   const approved = page.copyStatus === "approved";
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-8">
+    <section {...domSrc("PageStub")} className="mx-auto max-w-5xl px-4 py-8">
       <nav className="mb-6 text-sm text-gray-500" aria-label="Breadcrumb">
         <Link href="/" className="hover:text-gray-800">
           Home

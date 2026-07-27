@@ -1,8 +1,9 @@
 import { sources } from "@/data/home-content";
+import { domSrc } from "@/lib/domSrc";
 
 export default function Sources() {
   return (
-    <section
+    <section {...domSrc("Sources")}
       id="sources"
       className="border-t border-line-emphasis"
       style={{

@@ -6,6 +6,7 @@ import PillarBox from "./PillarBox";
 import PlatformHeadingMarquee from "./PlatformHeadingMarquee";
 import PlatformTabList from "./PlatformTabList";
 import { PLATFORM_SWITCH_MS, PLATFORM_SWITCH_EASE } from "./platform-switch";
+import { domSrc } from "@/lib/domSrc";
 
 /** Accent per capability box / start-node, left → right. */
 export const PILLAR_COLORS = [
@@ -451,7 +452,7 @@ export default function TabbedPanel({
     boxes.length >= 4 ? "desktop:grid-cols-4" : "desktop:grid-cols-3";
 
   return (
-    <div className="flex w-full max-w-[1216px] flex-col items-center gap-flow tablet:gap-group">
+    <div {...domSrc("TabbedPanel")} className="flex w-full max-w-[1216px] flex-col items-center gap-flow tablet:gap-group">
       <PlatformTabList active={active} onActiveChange={onActiveChange} />
 
       {/* Video / hero placeholder with floating cards */}

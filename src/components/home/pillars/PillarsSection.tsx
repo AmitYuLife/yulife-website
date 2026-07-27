@@ -4,6 +4,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useReveal } from "@/components/home/useReveal";
 import TabbedPanel, { DEFAULT_ACTIVE_TAB, PILLAR_COLORS } from "./TabbedPanel";
 import YunityDiagram from "./YunityDiagram";
+import { domSrc } from "@/lib/domSrc";
 import ConnectingPaths, {
   type ColorPoint,
   type Point,
@@ -123,7 +124,7 @@ export default function PillarsSection() {
   }, [measure, active]);
 
   return (
-    <section ref={setRefs} className="relative isolate" aria-labelledby="platform-heading">
+    <section {...domSrc("PillarsSection")} ref={setRefs} className="relative isolate" aria-labelledby="platform-heading">
       {/* Live connecting diagram — above the band backgrounds, behind content. */}
       <ConnectingPaths
         width={geo.width}

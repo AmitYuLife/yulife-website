@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { domSrc } from "@/lib/domSrc";
 
 type SectionBlockProps = {
   block: string;
@@ -21,6 +22,7 @@ export default function SectionBlock({
 }: SectionBlockProps) {
   return (
     <section
+      {...domSrc(`block-${block}`, label)}
       className={cn(
         "border-b border-gray-200",
         band ? "bg-gray-50" : "bg-white",

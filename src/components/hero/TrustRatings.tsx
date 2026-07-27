@@ -1,5 +1,6 @@
 import { hero } from "@/data/home-content";
 import { assetPath } from "@/lib/assetPath";
+import { domSrc } from "@/lib/domSrc";
 
 const MARKS: Record<string, { src: string; alt: string; width: number; height: number }> = {
   Trustpilot: {
@@ -24,7 +25,7 @@ const MARKS: Record<string, { src: string; alt: string; width: number; height: n
 
 export default function TrustRatings() {
   return (
-    <div className="hero-ratings flex flex-wrap items-center justify-center gap-x-group gap-y-stack">
+    <div {...domSrc("TrustRatings")} className="hero-ratings flex flex-wrap items-center justify-center gap-x-group gap-y-stack">
       {hero.ratings.map((r) => {
         const mark = MARKS[r.platform];
         return (

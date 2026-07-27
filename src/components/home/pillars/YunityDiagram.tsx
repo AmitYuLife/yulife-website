@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { yunity } from "@/data/home-content";
 import { assetPath } from "@/lib/assetPath";
 import SectionCard from "./SectionCard";
+import { domSrc } from "@/lib/domSrc";
 
 // R3F canvas is browser-only; load it client-side without blocking the band.
 const YunityStar3D = dynamic(() => import("@/components/star/YunityStar3D"), {
@@ -17,7 +18,7 @@ function capitalizeFirst(text: string) {
 
 export default function YunityDiagram() {
   return (
-    <div className="flex flex-col items-center gap-[var(--layout-section-gap)]">
+    <div {...domSrc("YunityDiagram")} className="flex flex-col items-center gap-[var(--layout-section-gap)]">
       {/* Framed lockup, heading, and body — single column (Figma SectionCard).
           The card overlays the connecting roots: signal lines enter its top edge
           and re-emerge below to converge on the star. */}

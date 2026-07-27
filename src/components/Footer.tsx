@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { navGroups } from "@/data/sitemap";
+import { domSrc } from "@/lib/domSrc";
 
 export default function Footer() {
   return (
-    <footer className="mt-16 border-t border-gray-300 bg-gray-50">
+    <footer {...domSrc("Footer")} className="mt-16 border-t border-gray-300 bg-gray-50">
       <div className="page-container grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-5">
         {navGroups.map((group) => (
           <div key={group.id}>

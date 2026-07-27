@@ -4,6 +4,7 @@ import { socialProof } from "@/data/home-content";
 import TrustedTabbedPanel from "@/components/home/TrustedTabbedPanel";
 import { useReveal } from "./useReveal";
 import { assetPath } from "@/lib/assetPath";
+import { domSrc } from "@/lib/domSrc";
 
 const AWARDS = [
   assetPath("/home/award-1.svg"),
@@ -15,7 +16,7 @@ export default function TrustedSection() {
   const scope = useReveal<HTMLElement>();
 
   return (
-    <section
+    <section {...domSrc("TrustedSection")}
       ref={scope}
       className="relative overflow-hidden border-t border-line-emphasis"
       style={{

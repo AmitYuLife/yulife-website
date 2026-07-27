@@ -2,6 +2,7 @@
 
 import { useCallback, useRef } from "react";
 import { hero } from "@/data/home-content";
+import { domSrc } from "@/lib/domSrc";
 
 /** How much of the pointer range shifts the gradient (0–1). Lower = subtler. */
 const POINTER_INFLUENCE = 0.55;
@@ -41,7 +42,7 @@ export default function HeroHeadline() {
     );
 
   return (
-    <div className="hero-headline flex w-full flex-col items-center gap-flow text-center">
+    <div {...domSrc("HeroHeadline")} className="hero-headline flex w-full flex-col items-center gap-flow text-center">
       <h1
         className="type-display w-full"
         style={{ color: "var(--hero-ink)" }}

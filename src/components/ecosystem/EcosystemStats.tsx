@@ -3,13 +3,14 @@
 import { ecosystem } from "@/data/home-content";
 import { useReveal } from "@/components/home/useReveal";
 import { StatsColumns } from "@/components/stats";
+import { domSrc } from "@/lib/domSrc";
 
 export default function EcosystemStats() {
   const scope = useReveal<HTMLElement>();
   const [before, after] = ecosystem.heading.split("daily life");
 
   return (
-    <section
+    <section {...domSrc("EcosystemStats")}
       ref={scope}
       className="relative isolate overflow-hidden border-b border-line-emphasis bg-surface-inverse-raised"
       aria-labelledby="ecosystem-heading"

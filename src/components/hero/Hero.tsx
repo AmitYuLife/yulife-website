@@ -8,6 +8,7 @@ import HeroButtons from "./HeroButtons";
 import TrustRatings from "./TrustRatings";
 import HeroAsset from "./HeroAsset";
 import LogoMarquee from "./LogoMarquee";
+import { domSrc } from "@/lib/domSrc";
 
 gsap.registerPlugin(useGSAP);
 
@@ -128,7 +129,7 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
   );
 
   return (
-    <div
+    <div {...domSrc("Hero")}
       ref={sectionRef}
       className="hero-dark relative overflow-visible"
       style={{

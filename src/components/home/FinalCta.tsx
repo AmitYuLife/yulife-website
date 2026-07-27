@@ -5,6 +5,7 @@ import { finalCta } from "@/data/home-content";
 import { Button } from "@/components/ui/Button";
 import FinalCtaRocket from "@/components/home/FinalCtaRocket";
 import { useReveal } from "./useReveal";
+import { domSrc } from "@/lib/domSrc";
 
 /** How much of the pointer range shifts the gradient (0–1). Lower = subtler. */
 const POINTER_INFLUENCE = 0.55;
@@ -27,7 +28,7 @@ export default function FinalCta() {
   }, []);
 
   return (
-    <section
+    <section {...domSrc("FinalCta")}
       ref={scope}
       className="relative isolate overflow-hidden border-b border-line-emphasis"
       style={{
