@@ -31,8 +31,6 @@ const FLOATING_REVEAL_MS = 550;
 const FLOATING_REVEAL_EASE_OUT = "cubic-bezier(0.22, 1, 0.36, 1)";
 const FLOATING_REVEAL_EASE_IN = "cubic-bezier(0.64, 0, 0.78, 0)";
 
-const PREVENT_INDEX = pillars.findIndex((p) => p.id === "prevent");
-
 function usePlatformTabSwitch(activeIndex: number) {
   const prevActiveIndexRef = useRef(activeIndex);
   const switchTimeoutRef = useRef<number>(undefined);
@@ -60,10 +58,13 @@ function usePlatformTabSwitch(activeIndex: number) {
   useEffect(() => () => window.clearTimeout(switchTimeoutRef.current), []);
 
   const slideVariant: "Left" | "Right" = slideDirection > 0 ? "Right" : "Left";
-  const isPreventActive = activeIndex === PREVENT_INDEX;
-  const isPreventExiting = isSwitching && exitingIndex === PREVENT_INDEX;
-  const isPreventEntering = isSwitching && activeIndex === PREVENT_INDEX;
-  const showFloatingCards = isPreventActive || isPreventExiting;
+
+  const activePillarId = pillars[activeIndex]?.id;
+  const exitingPillarId = exitingIndex != null ? pillars[exitingIndex]?.id : undefined;
+  const activeFloatingCards = activePillarId ? FLOATING_CARDS[activePillarId] : undefined;
+  const exitingFloatingCards = exitingPillarId ? FLOATING_CARDS[exitingPillarId] : undefined;
+  const isFloatingEntering = isSwitching && !!activeFloatingCards;
+  const isFloatingExiting = isSwitching && !!exitingFloatingCards;
 
   const exitingPillar = exitingIndex != null ? pillars[exitingIndex] : undefined;
   const exitingVideoId =
@@ -74,10 +75,10 @@ function usePlatformTabSwitch(activeIndex: number) {
   return {
     isSwitching,
     slideVariant,
-    showFloatingCards,
-    isPreventActive,
-    isPreventExiting,
-    isPreventEntering,
+    activeFloatingCards,
+    exitingFloatingCards,
+    isFloatingEntering,
+    isFloatingExiting,
     exitingVideoId,
   };
 }
@@ -144,56 +145,160 @@ function boxBorderClass(index: number) {
   return classes.join(" ");
 }
 
-function MoodCard() {
-  const days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
-  const moods = ["😍", "😄", "😌", "🙂", "😄", "😌", "😄"];
+/** Hover tilt tuning — subtle, like the hero YuCoin's pointer response. */
+const TILT_MAX_DEG = 9;
+const SHADOW_BASE_PX = 8;
+const SHADOW_RANGE_PX = 6;
+
+/** Imperative CSS-var updates (no re-render) driving `.platform-floating-card-tilt`:
+ *  rotateX/Y for the tilt, a shifted drop-shadow so it reads as one lit object
+ *  rather than a tilt effect plus a static shadow, and a pointer-tracked sheen. */
+function useCardTiltHandlers() {
+  const reducedMotionRef = useRef(false);
+
+  useEffect(() => {
+    reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }, []);
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (reducedMotionRef.current) return;
+    const el = e.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+
+    el.style.setProperty("--tilt-x", `${(-py * TILT_MAX_DEG).toFixed(2)}deg`);
+    el.style.setProperty("--tilt-y", `${(px * TILT_MAX_DEG).toFixed(2)}deg`);
+    el.style.setProperty("--shadow-x", `${(SHADOW_BASE_PX - px * SHADOW_RANGE_PX).toFixed(2)}px`);
+    el.style.setProperty("--shadow-y", `${(SHADOW_BASE_PX - py * SHADOW_RANGE_PX).toFixed(2)}px`);
+    el.style.setProperty("--sheen-x", `${((px + 0.5) * 100).toFixed(1)}%`);
+    el.style.setProperty("--sheen-y", `${((py + 0.5) * 100).toFixed(1)}%`);
+    el.style.setProperty("--sheen-opacity", "1");
+  };
+
+  const handlePointerLeave = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    el.style.setProperty("--tilt-x", "0deg");
+    el.style.setProperty("--tilt-y", "0deg");
+    el.style.setProperty("--shadow-x", `${SHADOW_BASE_PX}px`);
+    el.style.setProperty("--shadow-y", `${SHADOW_BASE_PX}px`);
+    el.style.setProperty("--sheen-opacity", "0");
+  };
+
+  return { handlePointerMove, handlePointerLeave };
+}
+
+/** A floating card image: idle bob (own animation layer, phase-offset per
+ *  card like the hero coins) + hover tilt/lighting (pointer-driven layer). */
+function FloatingTiltCard({
+  src,
+  alt,
+  width,
+  height,
+  widthClassName,
+  radiusClassName,
+  bobDelay,
+  bobDuration,
+}: {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  widthClassName: string;
+  radiusClassName: string;
+  bobDelay: string;
+  bobDuration: string;
+}) {
+  const { handlePointerMove, handlePointerLeave } = useCardTiltHandlers();
+
   return (
     <div
-      className="w-[220px] rounded-lg border p-16 shadow-[8px_8px_0_0_rgba(0,0,0,0.12)]"
-      style={{ backgroundColor: "var(--neutral-white)", borderColor: "var(--neutral-300)" }}
+      className="platform-floating-card"
+      style={{ "--bob-delay": bobDelay, "--bob-duration": bobDuration } as React.CSSProperties}
     >
-      <div className="flex items-center justify-between">
-        <span className="text-[15px] font-bold" style={{ color: "#5a5a5c" }}>
-          Your Mood
-        </span>
-        <span className="text-[12px]" style={{ color: "#8a8a8c" }}>
-          View calendar →
-        </span>
-      </div>
-      <div className="mt-12 flex justify-between">
-        {days.map((d, i) => (
-          <div key={d} className="flex flex-col items-center gap-4">
-            <span className="text-[11px] font-semibold" style={{ color: "#9a9a9c" }}>
-              {d}
-            </span>
-            <span className="text-[16px] leading-none">{moods[i]}</span>
-          </div>
-        ))}
+      <div
+        className={`platform-floating-card-tilt overflow-hidden ${radiusClassName} ${widthClassName}`}
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- static export; drop-shadow filter needs the raw element */}
+        <img src={src} alt={alt} width={width} height={height} className="h-auto w-full" />
+        <div className="platform-floating-card-sheen" aria-hidden />
       </div>
     </div>
   );
 }
 
-function BreathingCard() {
-  return (
-    <div
-      className="w-[150px] overflow-hidden rounded-lg border shadow-[8px_8px_0_0_rgba(0,0,0,0.12)]"
-      style={{ backgroundColor: "var(--neutral-white)", borderColor: "var(--neutral-300)" }}
-    >
-      <div
-        className="flex h-[108px] items-center justify-center text-[40px]"
-        style={{ backgroundColor: "#018547" }}
-      >
-        🪷
-      </div>
-      <div className="px-12 py-14 text-center text-[15px] font-bold leading-tight" style={{ color: "#5a5a5c" }}>
-        Breathing
-        <br />
-        exercises
-      </div>
-    </div>
-  );
-}
+type FloatingCardConfig = {
+  key: string;
+  /** Absolute positioning classes — which corner the card floats in. */
+  cornerClassName: string;
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  widthClassName: string;
+  radiusClassName: string;
+  bobDelay: string;
+  bobDuration: string;
+};
+
+/** Floating cards per pillar id — only pillars with real design assets get
+ *  an entry; others render the video hero with no floating cards. */
+const FLOATING_CARDS: Record<string, FloatingCardConfig[]> = {
+  prevent: [
+    {
+      key: "mood",
+      cornerClassName: "absolute -left-8 bottom-24 z-10 hidden tablet:block desktop:-left-24",
+      src: "/home/platform/prevent-mood-card.png",
+      alt: "Your Mood tracker showing a week of mood check-ins",
+      width: 361,
+      height: 145,
+      widthClassName: "w-[220px] tablet:w-[280px] desktop:w-[361px]",
+      radiusClassName: "rounded-md",
+      bobDelay: "0s",
+      bobDuration: "4.6s",
+    },
+    {
+      key: "breathing",
+      cornerClassName: "absolute -right-8 top-24 z-10 hidden tablet:block desktop:-right-24",
+      src: "/home/platform/prevent-breathing-card.png",
+      alt: "Breathing exercises card",
+      width: 166,
+      height: 214,
+      widthClassName: "w-[120px] tablet:w-[150px] desktop:w-[166px]",
+      radiusClassName: "rounded-lg",
+      bobDelay: "0.9s",
+      bobDuration: "5.3s",
+    },
+  ],
+  empower: [
+    {
+      key: "nps",
+      cornerClassName: "absolute -left-8 top-24 z-10 hidden tablet:block desktop:-left-24",
+      src: "/home/platform/empower-nps-card.png",
+      alt: "Employee NPS score of 72, with a detractors, passives, and promoters breakdown",
+      width: 357,
+      height: 400,
+      widthClassName: "w-[215px] tablet:w-[275px] desktop:w-[357px]",
+      radiusClassName: "rounded-sm",
+      bobDelay: "0s",
+      bobDuration: "4.9s",
+    },
+    {
+      key: "burnout",
+      cornerClassName: "absolute -right-8 bottom-24 z-10 hidden tablet:block desktop:-right-24",
+      src: "/home/platform/empower-burnout-card.png",
+      alt: "Burnout risk distribution across high, neutral, and low risk",
+      width: 357,
+      height: 189,
+      widthClassName: "w-[215px] tablet:w-[275px] desktop:w-[357px]",
+      radiusClassName: "rounded-sm",
+      bobDelay: "1.1s",
+      bobDuration: "5.6s",
+    },
+  ],
+};
 
 function PlatformVideoStack({
   activeIndex,
@@ -372,24 +477,26 @@ export default function TabbedPanel({
           />
         </div>
 
-        {tabSwitch.showFloatingCards && (
-          <>
-            <FloatingCardShell
-              className="absolute -left-8 bottom-24 z-10 hidden tablet:block desktop:-left-24"
-              isEntering={tabSwitch.isPreventEntering}
-              isExiting={tabSwitch.isPreventExiting}
-            >
-              <MoodCard />
-            </FloatingCardShell>
-            <FloatingCardShell
-              className="absolute -right-8 top-24 z-10 hidden tablet:block desktop:-right-24"
-              isEntering={tabSwitch.isPreventEntering}
-              isExiting={tabSwitch.isPreventExiting}
-            >
-              <BreathingCard />
-            </FloatingCardShell>
-          </>
-        )}
+        {tabSwitch.exitingFloatingCards?.map(({ key, cornerClassName, ...card }) => (
+          <FloatingCardShell
+            key={`exit-${key}`}
+            className={cornerClassName}
+            isEntering={false}
+            isExiting={tabSwitch.isFloatingExiting}
+          >
+            <FloatingTiltCard {...card} />
+          </FloatingCardShell>
+        ))}
+        {tabSwitch.activeFloatingCards?.map(({ key, cornerClassName, ...card }) => (
+          <FloatingCardShell
+            key={`active-${key}`}
+            className={cornerClassName}
+            isEntering={tabSwitch.isFloatingEntering}
+            isExiting={false}
+          >
+            <FloatingTiltCard {...card} />
+          </FloatingCardShell>
+        ))}
       </div>
 
       {/* Capability boxes — pulled down half their height on desktop so they

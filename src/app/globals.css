@@ -654,6 +654,70 @@ section[aria-labelledby="block-7-label"] h2 {
   }
 }
 
+/* Platform Prevent tab floating cards — idle bob (like the hero YuCoin's
+   sinusoidal drift) plus a pointer-tracked hover tilt with a CSS lighting
+   sheen. The shadow offset is pulled by the same tilt so it reads as one
+   physical object catching the light, not two independent effects. */
+.platform-floating-card {
+  animation: platformCardBob var(--bob-duration, 4.6s) ease-in-out infinite;
+  animation-delay: var(--bob-delay, 0s);
+}
+
+@keyframes platformCardBob {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0) rotate(-1deg);
+  }
+}
+
+.platform-floating-card-tilt {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --shadow-x: 8px;
+  --shadow-y: 8px;
+  --sheen-x: 50%;
+  --sheen-y: 50%;
+  --sheen-opacity: 0;
+  position: relative;
+  transform: perspective(700px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) 0px rgba(0, 0, 0, 0.12));
+  will-change: transform;
+}
+
+.platform-floating-card-tilt img {
+  display: block;
+  border-radius: inherit;
+}
+
+.platform-floating-card-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--sheen-opacity);
+  transition: opacity 0.35s ease;
+  background: radial-gradient(
+    circle at var(--sheen-x) var(--sheen-y),
+    rgba(255, 255, 255, 0.6),
+    transparent 55%
+  );
+  mix-blend-mode: overlay;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .platform-floating-card {
+    animation: none;
+  }
+
+  .platform-floating-card-tilt {
+    transition: none;
+  }
+}
+
 /* Platform tab hero — outlined display heading marquee behind the video. */
 .platform-tab-indicator {
   background-color: var(--surface-inverse-raised);
