@@ -66,8 +66,6 @@ export default function Header() {
   const [portalReady, setPortalReady] = useState(false);
 
   const stackRef = useRef<HTMLDivElement>(null);
-  const topBarRef = useRef<HTMLDivElement>(null);
-  const dropRef = useRef<HTMLDivElement>(null);
   const panelContentRef = useRef<HTMLDivElement>(null);
   const incomingRef = useRef<HTMLDivElement>(null);
   const leaveTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -76,7 +74,6 @@ export default function Header() {
   const triggerFocusRef = useRef<HTMLElement | null>(null);
   const isOpenRef = useRef(false);
   const renderedMenuRef = useRef<NavMenu | null>(null);
-  const [pillBottom, setPillBottom] = useState(0);
   const [dropExpanded, setDropExpanded] = useState(false);
   const menuVisibleRef = useRef(false);
 
@@ -152,29 +149,6 @@ export default function Header() {
     };
   }, []);
 
-  const measureDropLayout = useCallback(() => {
-    const bar = topBarRef.current;
-    if (!bar) return;
-
-    const bottomEl =
-      menuVisibleRef.current && dropRef.current
-        ? dropRef.current
-        : topBarRef.current;
-    if (bottomEl) {
-      setPillBottom(bottomEl.getBoundingClientRect().bottom);
-    }
-  }, []);
-
-  useEffect(() => {
-    measureDropLayout();
-    window.addEventListener("resize", measureDropLayout);
-    window.addEventListener("scroll", measureDropLayout, { passive: true });
-    return () => {
-      window.removeEventListener("resize", measureDropLayout);
-      window.removeEventListener("scroll", measureDropLayout);
-    };
-  }, [measureDropLayout]);
-
   useEffect(() => {
     isOpenRef.current = isOpen;
   }, [isOpen]);
@@ -190,22 +164,6 @@ export default function Header() {
     });
     return () => cancelAnimationFrame(frame);
   }, [menuVisible, isOpen, activeMenu, dropExpanded]);
-
-  useEffect(() => {
-    if (!menuVisible) return;
-    measureDropLayout();
-  }, [menuVisible, activeId, measureDropLayout]);
-
-  useEffect(() => {
-    if (isOpen || menuVisible) {
-      measureDropLayout();
-      const id = window.setTimeout(
-        measureDropLayout,
-        isOpen ? OPEN_MS : CLOSE_MS,
-      );
-      return () => window.clearTimeout(id);
-    }
-  }, [isOpen, menuVisible, activeId, measureDropLayout]);
 
   const handleEnter = useCallback(
     (menuId: string) => {
@@ -339,7 +297,7 @@ export default function Header() {
             behind the top-bar pill and translates independently — the pill
             never changes shape or border-radius.
           */}
-          <div className="relative overflow-visible">
+          <div className="relative z-10 overflow-visible">
             <div className="h-[72px]" aria-hidden="true" />
 
             <div
@@ -352,7 +310,6 @@ export default function Header() {
                 Top bar — always paints above the dropdown (z-20 vs z-0).
               */}
               <div
-                ref={topBarRef}
                 className="relative z-20 h-[72px] rounded-md border border-line-subtle bg-surface-inverse shadow-[0_8px_20px_rgb(0_0_0/0.25)] [transform:translateZ(0)]"
               >
                 <div className="h-full overflow-hidden rounded-[inherit]">
@@ -378,7 +335,6 @@ export default function Header() {
                 fades in and slides down from a tucked position under the bar.
               */}
               <div
-                ref={dropRef}
                 id={PANEL_ID}
                 data-expanded={dropExpanded ? "true" : "false"}
                 className={`absolute inset-x-0 top-0 z-0 overflow-visible pt-[72px] ${isCompactNav ? "hidden" : "block"}`}
@@ -453,14 +409,18 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Scrim — desktop only, below the visible menu stack */}
+          {/*
+            Scrim — desktop only. Covers the whole viewport and paints behind
+            the menu stack (z-0 vs the stack's z-10), so the blur is seamless:
+            no edge where it starts, and the opaque pill/panel hide the part of
+            it that sits underneath them.
+          */}
           <div
-            className={`fixed inset-x-0 bottom-0 z-40 bg-black/[0.04] backdrop-blur-[2px] ${isCompactNav ? "hidden" : "block"}`}
+            className={`fixed inset-0 z-0 bg-black/[0.04] backdrop-blur-[2px] ${isCompactNav ? "hidden" : "block"}`}
             style={{
-              top: pillBottom > 0 ? pillBottom : undefined,
-              opacity: isOpen && pillBottom > 0 ? 1 : 0,
-              pointerEvents: isOpen && pillBottom > 0 ? "auto" : "none",
-              visibility: menuVisible && pillBottom > 0 ? "visible" : "hidden",
+              opacity: isOpen ? 1 : 0,
+              pointerEvents: isOpen ? "auto" : "none",
+              visibility: menuVisible ? "visible" : "hidden",
               transition: `opacity ${motionMs}ms ${motionEase}`,
             }}
             onClick={() => closeMenu()}
