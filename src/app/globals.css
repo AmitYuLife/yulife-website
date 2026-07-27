@@ -436,23 +436,55 @@ section[aria-labelledby="block-7-label"] h2 {
 }
 
 /* Product showcase — animated gradient stroke on the active card
-   (Figma SliderItem active: green → blue → yellow → purple). The wrapper paints
+   (Figma SliderItem active: green → blue → yellow → purple). The ring paints
    the brand accent gradient as a conic gradient and reveals it as a 1px frame
-   via its padding; the inner card sits on top and covers the rest. The frame
-   spins by animating the registered --ring-angle custom property. Drawing the
+   via its padding; the inner card sits on top and covers the rest. Drawing the
    gradient on this wrapper (rather than a ::before on the card) avoids the
-   card's own overflow:hidden — needed to clip the photo — from clipping it. */
+   card's own overflow:hidden — needed to clip the photo — from clipping it.
+   A separate parent element handles the "draw in" reveal: masking with a
+   second conic-gradient on the SAME element as the ring band would need a
+   3-layer mask-composite (band ∩ reveal), but mask-composite is keyed per
+   mask layer, not per boundary — with only 2 operators for 3 layers the UA
+   cycles the list and silently shifts which operator lands on which layer.
+   Nesting two single-mask elements sidesteps that entirely: the ring always
+   paints a full band, and the parent's conic mask clips it back to whatever
+   angle has been "drawn" so far. */
 @property --ring-angle {
   syntax: "<angle>";
   inherits: false;
   initial-value: 0deg;
 }
 
+@property --ring-draw {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.product-showcase-ring-draw {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-md);
+  --ring-draw: 0;
+  -webkit-mask-image: conic-gradient(
+    from 225deg,
+    #fff calc(var(--ring-draw) * 360deg),
+    transparent calc(var(--ring-draw) * 360deg)
+  );
+  mask-image: conic-gradient(
+    from 225deg,
+    #fff calc(var(--ring-draw) * 360deg),
+    transparent calc(var(--ring-draw) * 360deg)
+  );
+  pointer-events: none;
+  animation: productRingDraw 0.5s cubic-bezier(0.33, 0, 0.2, 1) forwards;
+}
+
 .product-showcase-ring {
   position: absolute;
   inset: 0;
   padding: 1px;
-  border-radius: var(--radius-md);
+  border-radius: inherit;
   background: conic-gradient(
     from var(--ring-angle),
     var(--green-600),
@@ -461,7 +493,6 @@ section[aria-labelledby="block-7-label"] h2 {
     var(--purple-600),
     var(--green-600)
   );
-  /* Reveal only the 1px padding band as the stroke; punch out the interior. */
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -470,8 +501,13 @@ section[aria-labelledby="block-7-label"] h2 {
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   mask-composite: exclude;
-  pointer-events: none;
-  animation: productRingSpin 5s linear infinite;
+  animation: productRingSpin 5s linear 0.5s infinite;
+}
+
+@keyframes productRingDraw {
+  to {
+    --ring-draw: 1;
+  }
 }
 
 @keyframes productRingSpin {
@@ -655,6 +691,11 @@ section[aria-labelledby="block-7-label"] h2 {
   }
 
   .platform-floating-layer {
+    animation: none !important;
+  }
+
+  .product-showcase-ring-draw {
+    --ring-draw: 1;
     animation: none !important;
   }
 

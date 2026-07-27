@@ -2,9 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { testimonials, DEFAULT_TESTIMONIAL, type Testimonial } from "@/data/home-content";
+import { useCarouselKeyboard } from "@/hooks/useCarouselKeyboard";
 import { marqueeLogoSrc } from "@/data/marquee-logos";
 import AnimatedTabList from "./pillars/AnimatedTabList";
 import { PLATFORM_SWITCH_MS, PLATFORM_SWITCH_EASE } from "./pillars/platform-switch";
+
+const TABLET_MEDIA = "(min-width: 768px)";
 
 /** Same branded fill as the platform video placeholder — stands in until real
  *  testimonial media (photo/video) is supplied. */
@@ -154,6 +157,7 @@ function MobileTabStrip({
 }
 
 export default function TrustedTabbedPanel() {
+  const panelRef = useRef<HTMLDivElement>(null);
   const count = testimonials.length;
   const [active, setActive] = useState(DEFAULT_TESTIMONIAL);
   const [exitingIndex, setExitingIndex] = useState<number | null>(null);
@@ -195,8 +199,19 @@ export default function TrustedTabbedPanel() {
     [active, count, runSwitch],
   );
 
+  useCarouselKeyboard({
+    ref: panelRef,
+    orientation: () =>
+      window.matchMedia(TABLET_MEDIA).matches ? "vertical" : "horizontal",
+    onPrev: () => step(-1),
+    onNext: () => step(1),
+  });
+
   return (
-    <div className="flex w-full flex-col overflow-hidden rounded-md border border-line-emphasis tablet:flex-row">
+    <div
+      ref={panelRef}
+      className="flex w-full flex-col overflow-hidden rounded-md border border-line-emphasis tablet:flex-row"
+    >
       {/* Desktop / tablet: vertical sidebar with the sliding indicator. */}
       <AnimatedTabList
         items={testimonials.map((testimonial) => ({

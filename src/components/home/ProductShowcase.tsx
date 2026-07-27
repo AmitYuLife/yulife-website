@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
 import { products, type ProductCardBackground } from "@/data/home-content";
+import { useCarouselKeyboard } from "@/hooks/useCarouselKeyboard";
 import { useReveal } from "./useReveal";
 import { assetPath } from "@/lib/assetPath";
 
@@ -204,7 +205,9 @@ function ProductCard({
             clipped by the card's overflow:hidden and doesn't change layout on
             activation (no hover shift). */}
         {isActive && (
-          <span className="product-showcase-ring" aria-hidden="true" />
+          <span className="product-showcase-ring-draw" aria-hidden="true">
+            <span className="product-showcase-ring" />
+          </span>
         )}
       </div>
     </div>
@@ -394,6 +397,13 @@ export default function ProductShowcase() {
     },
     [goToIndex, lastCardIndex, slotIndex],
   );
+
+  useCarouselKeyboard({
+    ref: scope,
+    orientation: "horizontal",
+    onPrev: () => scrollByStep(-1),
+    onNext: () => scrollByStep(1),
+  });
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     // Ignore secondary buttons; let real clicks through until movement begins.
