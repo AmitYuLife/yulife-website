@@ -10,27 +10,41 @@ export const hero = {
     { platform: "Capterra", score: "4.8" },
     { platform: "App Store", score: "4.9" },
   ],
-  marquee: [
-    { name: "Novartis", approved: true },
-    { name: "Fujitsu", approved: true },
-    { name: "Sodexo", approved: true },
-    { name: "Paramount", approved: true },
-    { name: "Havas", approved: true },
-    { name: "Qinetiq", approved: true },
-    { name: "Mintel", approved: true },
-    { name: "Bruntwood", approved: true },
-    { name: "Kiko Milano", approved: true },
-    { name: "Old Mutual", approved: true },
-    { name: "Aviva", approved: true },
-    { name: "Dishoom", approved: true },
-    { name: "XMA", approved: true },
-    { name: "what3words", approved: true },
-    { name: "ManyPets", approved: true },
-    { name: "Curve", approved: true },
-    { name: "Paymentology", approved: true },
-    { name: "Moneyhub", approved: true },
-    { name: "Oddbox", approved: true },
-    { name: "CreateFuture (xDesign)", approved: true },
+  /** Two-row logo marquee. Order within each row matches the approved Figma layout. */
+  marqueeRows: [
+    [
+      "Fujitsu",
+      "Sodexo",
+      "Paramount",
+      "Havas",
+      "Qinetiq",
+      "Mintel",
+      "Bruntwood",
+      "Kiko Milano",
+      "Tesco",
+      "Breathe",
+      "Nicepak",
+      "Wolf & Badger",
+      "Dakota Hotels",
+      "Distology",
+      "Financial Times",
+    ],
+    [
+      "Dishoom",
+      "XMA",
+      "what3words",
+      "ManyPets",
+      "Curve",
+      "Paymentology",
+      "Moneyhub",
+      "Rightmove",
+      "Brother Marcus",
+      "Castore",
+      "Wolseley",
+      "Chilly's",
+      "Thinkmoney",
+      "Orange Business",
+    ],
   ],
 } as const;
 
@@ -294,9 +308,27 @@ export type Testimonial = {
   author?: string;
 };
 
+// FAKE PLACEHOLDER QUOTES — none of these have been said by anyone at these
+// companies. They're stand-ins for layout/design review only. Every quote
+// and author below must be replaced with a real, approved testimonial before
+// this ships to production.
 export const testimonials: readonly Testimonial[] = [
-  { id: "what3words", company: "what3words", logoSlug: "what3words" },
-  { id: "xma", company: "XMA", logoSlug: "xma" },
+  {
+    id: "what3words",
+    company: "what3words",
+    logoSlug: "what3words",
+    quote:
+      "Our team is spread across time zones, so a benefit that fits into someone's day rather than adding to it made all the difference. YuLife just works, wherever people are.",
+    author: "Priya Malhotra, Head of People",
+  },
+  {
+    id: "xma",
+    company: "XMA",
+    logoSlug: "xma",
+    quote:
+      "We wanted a benefit our people would actually use, not one that sat unopened in an inbox. YuLife's given us real visibility into how the team's doing, not just another line on the benefits list.",
+    author: "Callum Reid, People Director",
+  },
   {
     id: "ozone",
     company: "OZONE.bg",
@@ -305,11 +337,21 @@ export const testimonials: readonly Testimonial[] = [
       "The best part of YuLife is that everything is in the app, making it easier to keep it top of mind and check it daily. It's a clear improvement from before we had YuLife.",
     author: "Bryan Scott, CMO",
   },
-  { id: "bruntwood", company: "bruntwood", logoSlug: "bruntwood" },
+  {
+    id: "bruntwood",
+    company: "bruntwood",
+    logoSlug: "bruntwood",
+    quote:
+      "Bruntwood is all about creating places where people can do their best work, so our own benefits needed to live up to that. YuLife's made it easy to show our people we mean it.",
+    author: "Naomi Clarke, HR Business Partner",
+  },
   {
     id: "nicepak",
     company: "NICE-PAK",
     logoSlug: "nicepak",
+    quote:
+      "A lot of our team are on the factory floor, not sat at a desk, so a benefit that reaches everyone equally was non-negotiable. YuLife's the first one that's actually landed with the whole workforce.",
+    author: "Danielle Ogundipe, HR Manager",
   },
 ];
 

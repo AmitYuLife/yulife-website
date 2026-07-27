@@ -2,7 +2,6 @@ import { assetPath } from "@/lib/assetPath";
 
 /** Filename stem under `/public/logos/marquee/` for each approved marquee brand. */
 export const MARQUEE_LOGO_SLUGS = {
-  Novartis: "novartis",
   Fujitsu: "fujitsu",
   Sodexo: "sodexo",
   Paramount: "paramount",
@@ -11,8 +10,13 @@ export const MARQUEE_LOGO_SLUGS = {
   Mintel: "mintel",
   Bruntwood: "bruntwood",
   "Kiko Milano": "kiko-milano",
-  "Old Mutual": "old-mutual",
-  Aviva: "aviva",
+  Tesco: "tesco",
+  Breathe: "breathe",
+  Nicepak: "nicepak",
+  "Wolf & Badger": "wolf-and-badger",
+  "Dakota Hotels": "dakota-hotels",
+  Distology: "distology",
+  "Financial Times": "financial-times",
   Dishoom: "dishoom",
   XMA: "xma",
   what3words: "what3words",
@@ -20,8 +24,13 @@ export const MARQUEE_LOGO_SLUGS = {
   Curve: "curve",
   Paymentology: "paymentology",
   Moneyhub: "moneyhub",
-  Oddbox: "oddbox",
-  "CreateFuture (xDesign)": "create-future",
+  Rightmove: "rightmove",
+  "Brother Marcus": "brother-marcus",
+  Castore: "castore",
+  Wolseley: "wolseley",
+  "Chilly's": "chillys",
+  Thinkmoney: "thinkmoney",
+  "Orange Business": "orange-business",
 } as const satisfies Record<string, string>;
 
 export type MarqueeBrandName = keyof typeof MARQUEE_LOGO_SLUGS;

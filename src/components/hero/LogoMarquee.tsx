@@ -19,20 +19,18 @@ const LOGO_SLOT_MAX_PX = 132;
 /** Scroll speed — keeps loop duration proportional to track width. */
 const PIXELS_PER_SECOND = 24;
 
-const approvedBrands = hero.marquee
-  .filter((b) => b.approved)
-  .map((brand) => ({
-    ...brand,
-    logoSlug: MARQUEE_LOGO_SLUGS[brand.name as MarqueeBrandName],
-  }))
-  .filter((brand): brand is typeof brand & { logoSlug: string } =>
-    Boolean(brand.logoSlug),
-  );
+const ROWS = hero.marqueeRows.map((row) =>
+  row
+    .map((name) => ({
+      name,
+      logoSlug: MARQUEE_LOGO_SLUGS[name as MarqueeBrandName],
+    }))
+    .filter((brand): brand is typeof brand & { logoSlug: string } =>
+      Boolean(brand.logoSlug),
+    ),
+);
 
-const mid = Math.ceil(approvedBrands.length / 2);
-const ROWS = [approvedBrands.slice(0, mid), approvedBrands.slice(mid)] as const;
-
-type Brand = (typeof approvedBrands)[number];
+type Brand = (typeof ROWS)[number][number];
 
 function LogoSet({
   brands,
