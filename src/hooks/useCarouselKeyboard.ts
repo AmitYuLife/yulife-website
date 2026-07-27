@@ -3,6 +3,7 @@
 import { useEffect, useRef, type RefObject } from "react";
 
 export type CarouselOrientation = "horizontal" | "vertical";
+export type CarouselDirection = "prev" | "next";
 
 type OrientationInput = CarouselOrientation | (() => CarouselOrientation);
 
@@ -12,12 +13,17 @@ type CarouselRegistration = {
   getOrientation: () => CarouselOrientation;
   onPrev: () => void;
   onNext: () => void;
+  onDirectionActiveChange?: (direction: CarouselDirection | null) => void;
 };
 
 const carousels = new Map<symbol, CarouselRegistration>();
 let listenerAttached = false;
+/** The carousel + key currently driving a held-down arrow press, so keyup/blur can clear its hover-equivalent state. */
+let heldCarouselId: symbol | null = null;
+let heldKey: string | null = null;
 
 const INTERSECTION_THRESHOLDS = Array.from({ length: 21 }, (_, i) => i / 20);
+const ARROW_KEYS = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]);
 
 function resolveOrientation(orientation: OrientationInput): CarouselOrientation {
   return typeof orientation === "function" ? orientation() : orientation;
@@ -41,73 +47,100 @@ function pickActiveCarousel(): CarouselRegistration | null {
   return best;
 }
 
+function directionForKey(
+  orientation: CarouselOrientation,
+  key: string,
+): CarouselDirection | null {
+  if (orientation === "horizontal") {
+    if (key === "ArrowLeft") return "prev";
+    if (key === "ArrowRight") return "next";
+    return null;
+  }
+  if (key === "ArrowUp") return "prev";
+  if (key === "ArrowDown") return "next";
+  return null;
+}
+
+function clearHeld() {
+  if (heldCarouselId == null) return;
+  carousels.get(heldCarouselId)?.onDirectionActiveChange?.(null);
+  heldCarouselId = null;
+  heldKey = null;
+}
+
 function handleKeyDown(event: KeyboardEvent) {
   if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
   if (isEditableTarget(event.target)) return;
+  if (!ARROW_KEYS.has(event.key)) return;
 
   const active = pickActiveCarousel();
   if (!active) return;
 
-  const orientation = active.getOrientation();
-  let handled = false;
+  const direction = directionForKey(active.getOrientation(), event.key);
+  if (!direction) return;
 
-  if (orientation === "horizontal") {
-    if (event.key === "ArrowLeft") {
-      active.onPrev();
-      handled = true;
-    } else if (event.key === "ArrowRight") {
-      active.onNext();
-      handled = true;
-    }
-  } else if (event.key === "ArrowUp") {
-    active.onPrev();
-    handled = true;
-  } else if (event.key === "ArrowDown") {
-    active.onNext();
-    handled = true;
-  }
+  event.preventDefault();
+  if (direction === "prev") active.onPrev();
+  else active.onNext();
 
-  if (handled) event.preventDefault();
+  active.onDirectionActiveChange?.(direction);
+  heldCarouselId = active.id;
+  heldKey = event.key;
+}
+
+function handleKeyUp(event: KeyboardEvent) {
+  if (event.key !== heldKey) return;
+  clearHeld();
 }
 
 function attachListener() {
   if (listenerAttached) return;
   window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+  window.addEventListener("blur", clearHeld);
   listenerAttached = true;
 }
 
 function detachListenerIfIdle() {
   if (carousels.size > 0 || !listenerAttached) return;
   window.removeEventListener("keydown", handleKeyDown);
+  window.removeEventListener("keyup", handleKeyUp);
+  window.removeEventListener("blur", clearHeld);
   listenerAttached = false;
 }
 
 /**
  * Enables arrow-key navigation for a carousel while it is visible in the
  * viewport. When multiple carousels overlap in view, the most visible one
- * receives keyboard input.
+ * receives keyboard input. `onDirectionActiveChange` fires "prev"/"next" for
+ * as long as the matching arrow key is held, then `null` on release — mirrors
+ * a mouse hover so the corresponding control button can show its hover state.
  */
 export function useCarouselKeyboard({
   ref,
   orientation,
   onPrev,
   onNext,
+  onDirectionActiveChange,
   enabled = true,
 }: {
   ref: RefObject<Element | null>;
   orientation: OrientationInput;
   onPrev: () => void;
   onNext: () => void;
+  onDirectionActiveChange?: (direction: CarouselDirection | null) => void;
   enabled?: boolean;
 }) {
   const idRef = useRef(Symbol("carousel"));
   const orientationRef = useRef(orientation);
   const onPrevRef = useRef(onPrev);
   const onNextRef = useRef(onNext);
+  const onDirectionActiveChangeRef = useRef(onDirectionActiveChange);
 
   orientationRef.current = orientation;
   onPrevRef.current = onPrev;
   onNextRef.current = onNext;
+  onDirectionActiveChangeRef.current = onDirectionActiveChange;
 
   useEffect(() => {
     if (!enabled) return;
@@ -122,6 +155,7 @@ export function useCarouselKeyboard({
       getOrientation: () => resolveOrientation(orientationRef.current),
       onPrev: () => onPrevRef.current(),
       onNext: () => onNextRef.current(),
+      onDirectionActiveChange: (direction) => onDirectionActiveChangeRef.current?.(direction),
     };
 
     carousels.set(id, registration);
@@ -138,6 +172,10 @@ export function useCarouselKeyboard({
     return () => {
       observer.disconnect();
       carousels.delete(id);
+      if (heldCarouselId === id) {
+        heldCarouselId = null;
+        heldKey = null;
+      }
       detachListenerIfIdle();
     };
   }, [enabled, ref]);

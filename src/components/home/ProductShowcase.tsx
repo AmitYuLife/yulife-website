@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
 import { products, type ProductCardBackground } from "@/data/home-content";
-import { useCarouselKeyboard } from "@/hooks/useCarouselKeyboard";
+import { useCarouselKeyboard, type CarouselDirection } from "@/hooks/useCarouselKeyboard";
 import { useReveal } from "./useReveal";
 import { assetPath } from "@/lib/assetPath";
 
@@ -30,11 +30,13 @@ type ProductCard = (typeof products.cards)[number];
 function ControlButton({
   label,
   disabled,
+  active,
   onClick,
   children,
 }: {
   label: string;
   disabled?: boolean;
+  active?: boolean;
   onClick: () => void;
   children: React.ReactNode;
 }) {
@@ -44,7 +46,7 @@ function ControlButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="grid size-32 place-items-center rounded-xl border border-line-inverse bg-line-inverse transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35"
+      className={`grid size-32 place-items-center rounded-xl border border-line-inverse bg-line-inverse transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35 ${active ? "opacity-90" : ""}`}
     >
       {children}
     </button>
@@ -225,6 +227,7 @@ export default function ProductShowcase() {
   const [slotIndex, setSlotIndex] = useState(0);
   const [isSwitching, setIsSwitching] = useState(false);
   const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
+  const [keyboardDirection, setKeyboardDirection] = useState<CarouselDirection | null>(null);
 
   const slideVariant = slideDirection > 0 ? "Right" : "Left";
   const lastCardIndex = products.cards.length - 1;
@@ -403,6 +406,7 @@ export default function ProductShowcase() {
     orientation: "horizontal",
     onPrev: () => scrollByStep(-1),
     onNext: () => scrollByStep(1),
+    onDirectionActiveChange: setKeyboardDirection,
   });
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -560,6 +564,7 @@ export default function ProductShowcase() {
           <ControlButton
             label="Previous product"
             onClick={() => scrollByStep(-1)}
+            active={keyboardDirection === "prev"}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path
@@ -575,6 +580,7 @@ export default function ProductShowcase() {
           <ControlButton
             label="Next product"
             onClick={() => scrollByStep(1)}
+            active={keyboardDirection === "next"}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path

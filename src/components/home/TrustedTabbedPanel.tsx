@@ -2,17 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { testimonials, DEFAULT_TESTIMONIAL, type Testimonial } from "@/data/home-content";
-import { useCarouselKeyboard } from "@/hooks/useCarouselKeyboard";
+import { useCarouselKeyboard, type CarouselDirection } from "@/hooks/useCarouselKeyboard";
 import { marqueeLogoSrc } from "@/data/marquee-logos";
 import AnimatedTabList from "./pillars/AnimatedTabList";
 import { PLATFORM_SWITCH_MS, PLATFORM_SWITCH_EASE } from "./pillars/platform-switch";
 
 const TABLET_MEDIA = "(min-width: 768px)";
-
-/** Same branded fill as the platform video placeholder — stands in until real
- *  testimonial media (photo/video) is supplied. */
-const PANEL_GRADIENT =
-  "radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--purple-600) 26%, transparent), transparent 62%), linear-gradient(160deg, var(--purple-800), var(--purple-900))";
 
 /** Horizontal hairline dividers between the stacked desktop sidebar rows. */
 function sidebarBorderClass(index: number) {
@@ -38,38 +33,55 @@ function TabContent({ testimonial }: { testimonial: Testimonial }) {
   );
 }
 
+/** Preview-only: case study video behind each tab, with a darkening scrim
+ *  (mirrors the old PANEL_GRADIENT's tone) so quote/author text stays legible.
+ *  Tabs without their own encoded clip yet fall back to the XMA video. */
+const VIDEO_SCRIM =
+  "radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--purple-600) 30%, transparent), transparent 55%), linear-gradient(180deg, color-mix(in srgb, var(--purple-900) 8%, transparent) 0%, color-mix(in srgb, var(--purple-900) 88%, transparent) 100%)";
+
+const DEFAULT_VIDEO_ID = "xma";
+const CASESTUDY_VIDEO_IDS = new Set(["xma", "what3words", "ozone", "bruntwood", "nicepak"]);
+
 function TestimonialPanel({ testimonial }: { testimonial: Testimonial }) {
-  if (!testimonial.quote) {
-    return (
-      <div
-        className="grid h-full w-full place-items-center"
-        style={{ backgroundImage: PANEL_GRADIENT }}
-      >
-        <span
-          className="type-body-lg"
-          style={{ color: "color-mix(in srgb, var(--neutral-white) 72%, transparent)" }}
-        >
-          Coming soon
-        </span>
-      </div>
-    );
-  }
+  const videoId = CASESTUDY_VIDEO_IDS.has(testimonial.id) ? testimonial.id : DEFAULT_VIDEO_ID;
 
   return (
-    <div
-      className="flex h-full w-full flex-col justify-end p-24 pr-64 tablet:p-40 tablet:pr-80"
-      style={{ backgroundImage: PANEL_GRADIENT }}
-    >
-      <blockquote className="type-body-lg max-w-[640px] font-semibold text-on-inverse">
-        &ldquo;{testimonial.quote}&rdquo;
-      </blockquote>
-      {testimonial.author && (
-        <div className="mt-24">
+    <div className="relative h-full w-full overflow-hidden">
+      <video
+        key={videoId}
+        className="absolute inset-0 block h-full w-full object-cover"
+        src={`/home/casestudies/${videoId}.mp4`}
+        poster={`/home/casestudies/${videoId}-poster.jpg`}
+        autoPlay
+        muted
+        loop
+        playsInline
+      />
+      <div className="absolute inset-0" style={{ backgroundImage: VIDEO_SCRIM }} />
+
+      {testimonial.quote ? (
+        <div className="relative flex h-full w-full flex-col justify-end p-24 pr-64 tablet:p-40 tablet:pr-80">
+          <blockquote className="type-body-lg max-w-[640px] font-semibold text-on-inverse">
+            &ldquo;{testimonial.quote}&rdquo;
+          </blockquote>
+          {testimonial.author && (
+            <div className="mt-24">
+              <span
+                className="type-label inline-flex rounded-full px-16 py-8 font-semibold"
+                style={{ backgroundColor: "var(--neutral-white)", color: "var(--text-emphasis)" }}
+              >
+                {testimonial.author}
+              </span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="relative grid h-full w-full place-items-center">
           <span
-            className="type-label inline-flex rounded-full px-16 py-8 font-semibold"
-            style={{ backgroundColor: "var(--neutral-white)", color: "var(--text-emphasis)" }}
+            className="type-body-lg"
+            style={{ color: "color-mix(in srgb, var(--neutral-white) 72%, transparent)" }}
           >
-            {testimonial.author}
+            Coming soon
           </span>
         </div>
       )}
@@ -80,10 +92,12 @@ function TestimonialPanel({ testimonial }: { testimonial: Testimonial }) {
 function ControlButton({
   label,
   onClick,
+  active,
   children,
 }: {
   label: string;
   onClick: () => void;
+  active?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -91,7 +105,7 @@ function ControlButton({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="grid size-32 cursor-pointer place-items-center rounded-full transition-opacity hover:opacity-90"
+      className={`grid size-32 cursor-pointer place-items-center rounded-full transition-opacity hover:opacity-90 ${active ? "opacity-90" : ""}`}
       style={{ backgroundColor: "color-mix(in srgb, var(--neutral-white) 40%, transparent)" }}
     >
       {children}
@@ -163,6 +177,7 @@ export default function TrustedTabbedPanel() {
   const [exitingIndex, setExitingIndex] = useState<number | null>(null);
   const [isSwitching, setIsSwitching] = useState(false);
   const [direction, setDirection] = useState<1 | -1>(1);
+  const [keyboardDirection, setKeyboardDirection] = useState<CarouselDirection | null>(null);
   const switchTimeoutRef = useRef<number>(undefined);
 
   const slideVariant: "Left" | "Right" = direction > 0 ? "Right" : "Left";
@@ -205,6 +220,7 @@ export default function TrustedTabbedPanel() {
       window.matchMedia(TABLET_MEDIA).matches ? "vertical" : "horizontal",
     onPrev: () => step(-1),
     onNext: () => step(1),
+    onDirectionActiveChange: setKeyboardDirection,
   });
 
   return (
@@ -258,15 +274,23 @@ export default function TrustedTabbedPanel() {
 
         {/* Arrows: left/right on mobile (horizontal strip), up/down on desktop
             (vertical sidebar). Kept at the panel's bottom-right in both. */}
-        <div className="absolute bottom-24 right-24 z-20 flex gap-8 tablet:bottom-32 tablet:right-32 tablet:flex-col">
-          <ControlButton label="Previous testimonial" onClick={() => step(-1)}>
+        <div className="absolute bottom-24 right-24 z-20 flex gap-stack tablet:bottom-32 tablet:right-32 tablet:flex-col">
+          <ControlButton
+            label="Previous testimonial"
+            onClick={() => step(-1)}
+            active={keyboardDirection === "prev"}
+          >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               {/* left on mobile, up on desktop */}
               <path className="tablet:hidden" d="M10 3 5 8l5 5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               <path className="hidden tablet:inline" d="M3 10l5-5 5 5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </ControlButton>
-          <ControlButton label="Next testimonial" onClick={() => step(1)}>
+          <ControlButton
+            label="Next testimonial"
+            onClick={() => step(1)}
+            active={keyboardDirection === "next"}
+          >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               {/* right on mobile, down on desktop */}
               <path className="tablet:hidden" d="M6 3l5 5-5 5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />

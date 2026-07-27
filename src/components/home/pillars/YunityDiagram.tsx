@@ -22,7 +22,7 @@ export default function YunityDiagram() {
           The card overlays the connecting roots: signal lines enter its top edge
           and re-emerge below to converge on the star. */}
       <SectionCard data-reveal>
-        <div className="flex flex-col items-center justify-center gap-group">
+        <div className="flex flex-col items-center justify-center gap-flow">
           <div className="flex w-full flex-col items-center gap-stack">
             <img
               src={assetPath("/home/yunity-logo.png")}

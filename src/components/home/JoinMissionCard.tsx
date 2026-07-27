@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useRef } from "react";
 import { finalCta } from "@/data/home-content";
 import { Button } from "@/components/ui/Button";
-import SectionCard from "@/components/home/pillars/SectionCard";
+import { useReveal } from "./useReveal";
 
 const RocketSlingshot = dynamic(() => import("@/components/home/RocketSlingshot"), {
   ssr: false,
@@ -21,11 +21,13 @@ const RocketSlingshot = dynamic(() => import("@/components/home/RocketSlingshot"
 const POINTER_INFLUENCE = 0.55;
 
 /**
- * The join-the-mission CTA as a SectionCard (Figma node 2097:1657): copy and
- * button on the left, the slingshot rocket canvas on the right. The card
- * clips the rocket's launch, so `overflow-hidden` here is load-bearing.
+ * The join-the-mission CTA as its own full-bleed section (Figma node
+ * 2128:1735): copy and button on the left, the slingshot rocket canvas on
+ * the right. `data-rocket-bounds` sits on the section itself, so the flame
+ * can be dragged across the whole section, not just the rocket's own column.
  */
 export default function JoinMissionCard() {
+  const scope = useReveal<HTMLElement>();
   const accentRef = useRef<HTMLElement>(null);
 
   const onPointerMove = useCallback((event: React.PointerEvent<HTMLElement>) => {
@@ -42,17 +44,18 @@ export default function JoinMissionCard() {
   }, []);
 
   return (
-    <SectionCard
-      data-reveal
+    <section
+      ref={scope}
       data-rocket-bounds
-      aria-labelledby="final-cta-heading"
-      className="overflow-hidden justify-start desktop:justify-center"
+      className="relative overflow-hidden border-t border-b border-line-emphasis"
       style={{ backgroundColor: "var(--surface-inverse)" }}
+      aria-labelledby="final-cta-heading"
     >
-      <div className="flex w-full flex-col items-center gap-split desktop:flex-row desktop:items-center">
+      <div className="page-container section-y flex flex-col items-center gap-split desktop:flex-row desktop:items-start">
         <div className="relative flex w-full shrink-0 flex-col items-center gap-controls text-center desktop:items-start desktop:text-left desktop:z-10 desktop:min-w-0 desktop:flex-1">
           <h2
             id="final-cta-heading"
+            data-reveal
             className="type-heading-h2 desktop:w-[620px] xl:w-[700px]"
             style={{ color: "var(--neutral-white)" }}
           >
@@ -69,21 +72,24 @@ export default function JoinMissionCard() {
           </h2>
 
           <p
+            data-reveal
             className="type-body-lg max-w-[592px]"
             style={{ color: "var(--text-on-inverse)" }}
           >
             {finalCta.subheading}
           </p>
 
-          <Button href={finalCta.cta.href} size="lg" variant="solid" theme="onDark" className="w-full">
-            {finalCta.cta.label}
-          </Button>
+          <div data-reveal>
+            <Button href={finalCta.cta.href} size="lg" variant="solid" theme="onDark">
+              {finalCta.cta.label}
+            </Button>
+          </div>
         </div>
 
-        <div className="relative z-20 flex w-full shrink-0 -translate-x-16 justify-center desktop:min-w-0 desktop:flex-1">
+        <div data-reveal className="relative z-20 flex w-full shrink-0 -translate-x-16 justify-center desktop:min-w-0 desktop:flex-1">
           <RocketSlingshot />
         </div>
       </div>
-    </SectionCard>
+    </section>
   );
 }
