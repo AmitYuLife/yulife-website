@@ -18,10 +18,9 @@ export default function TrustedSection() {
   return (
     <section
       ref={scope}
-      className="relative overflow-hidden border-t"
+      className="relative overflow-hidden border-t border-line-emphasis"
       style={{
         backgroundColor: "var(--purple-800)",
-        borderColor: "color-mix(in srgb, var(--purple-700) 45%, transparent)",
       }}
       aria-labelledby="trusted-heading"
     >

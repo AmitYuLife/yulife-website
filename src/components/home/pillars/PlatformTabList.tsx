@@ -27,23 +27,34 @@ export default function PlatformTabList({
   onActiveChange: (index: number) => void;
 }) {
   return (
-    <AnimatedTabList
-      items={pillars.map((pillar) => ({
-        key: pillar.id,
-        content: pillar.eyebrow,
-        ariaLabel: pillar.eyebrow,
-      }))}
-      active={active}
-      onActiveChange={onActiveChange}
-      ariaLabel="Platform capabilities"
-      orientation="horizontal"
-      className="grid w-full grid-cols-2 rounded-md border border-line-emphasis bg-surface-inverse tablet:grid-cols-4"
-      tabClassName="type-label h-14 px-24 text-center"
-      tabClassNameFor={(index, selected) =>
-        `${tabBorderClass(index)} ${
-          selected ? "text-on-inverse" : "text-on-inverse-muted hover:text-on-inverse"
-        }`
-      }
-    />
+    <div className="relative w-full">
+      <div
+        className="pointer-events-none absolute top-14 z-0 h-px bg-line-emphasis tablet:top-[calc(1px+1.75rem-0.5px)]"
+        style={{
+          left: "50%",
+          width: "100vw",
+          marginLeft: "-50vw",
+        }}
+        aria-hidden="true"
+      />
+      <AnimatedTabList
+        items={pillars.map((pillar) => ({
+          key: pillar.id,
+          content: pillar.eyebrow,
+          ariaLabel: pillar.eyebrow,
+        }))}
+        active={active}
+        onActiveChange={onActiveChange}
+        ariaLabel="Platform capabilities"
+        orientation="horizontal"
+        className="relative z-10 grid w-full grid-cols-2 rounded-md border border-line-emphasis bg-surface-inverse tablet:grid-cols-4"
+        tabClassName="type-label h-14 px-24 text-center"
+        tabClassNameFor={(index, selected) =>
+          `${tabBorderClass(index)} ${
+            selected ? "text-on-inverse" : "text-on-inverse-muted hover:text-on-inverse"
+          }`
+        }
+      />
+    </div>
   );
 }

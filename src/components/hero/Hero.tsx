@@ -164,9 +164,8 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
       </section>
 
       <section
-        className="relative z-10 -mt-20 border-t border-b tablet:-mt-28 desktop:-mt-40"
+        className="relative z-10 -mt-20 border-t border-b border-line-emphasis tablet:-mt-28 desktop:-mt-40"
         style={{
-          borderColor: "var(--hero-divider)",
           backgroundColor: "var(--hero-canvas)",
         }}
       >

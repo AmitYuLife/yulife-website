@@ -6,135 +6,40 @@ import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 
 /* ------------------------------------------------------------------ */
-/* Geometry — the carved-circle Yunity star                            */
+/* Geometry — the faceted octahedron diamond                           */
 /* ------------------------------------------------------------------ */
 
-// The brand construction: tips reach distance 1 along the axes, each concave
-// flank is an arc of a large circle carved out along the 45° diagonal, and
-// each tip is capped with a small circle tangent to its two carve circles.
-const WAIST = 0.52; // radius at the 45° waist (depth of the carve)
-const TIP_R = 0.05; // radius of the rounded tip caps
-const SMOOTH = 4.5; // join softness: lower = broader fillets, higher = tighter
-
 /**
- * Radial silhouette r(θ) of the carved star. Solves the carve-circle centre
- * distance D so the carve arc is exactly tangent to the tip cap — the
- * silhouette is then two circle families meeting smoothly, precisely the
- * "circle subtracted from the diamond" construction in the brand asset.
- */
-function makeStarProfile() {
-  const a = 1 - TIP_R; // tip-cap centre distance along the axis
-  const k = TIP_R - WAIST;
-  // Tangency |C_carve − C_tip| = R + TIP_R with R = D − WAIST is linear in D:
-  const D = (a * a - k * k) / (Math.SQRT2 * a + 2 * k);
-  const R = D - WAIST;
-
-  // Angle at which the tip cap hands over to the carve arc (the tangent point).
-  const cx = D / Math.SQRT2 - a;
-  const cy = D / Math.SQRT2;
-  const dist = Math.hypot(cx, cy);
-  const tx = a + (TIP_R * cx) / dist;
-  const ty = (TIP_R * cy) / dist;
-  const thetaT = Math.atan2(ty, tx);
-
-  const QUARTER = Math.PI / 2;
-  const EIGHTH = Math.PI / 4;
-
-  return (theta: number) => {
-    // Fold into [0, 45°] using the star's 8-fold symmetry.
-    let phi = Math.abs(theta) % QUARTER;
-    if (phi > EIGHTH) phi = QUARTER - phi;
-
-    if (phi <= thetaT) {
-      // Tip cap: far intersection with the small circle centred at (a, 0).
-      const s = a * Math.sin(phi);
-      return a * Math.cos(phi) + Math.sqrt(Math.max(0, TIP_R * TIP_R - s * s));
-    }
-    // Carve arc: near intersection with the big circle on the 45° diagonal.
-    const c = D * Math.cos(EIGHTH - phi);
-    return c - Math.sqrt(Math.max(0, c * c - (D * D - R * R)));
-  };
-}
-
-/**
- * The 3D diamond star: six points (±x, ±y, ±z — the centre extruded front and
- * back), built as a smooth-blended intersection of three orthogonal star
- * prisms. Looking down any axis, the silhouette is the carved star — the shape
- * reads the same size front-facing or side-facing — but every join is filleted
- * into an organic, facet-free surface.
+ * A cut-gem take on the star: six tips at ±1 on each axis (the same 6-point
+ * diamond layout as the smooth build), but as a literal octahedron — eight
+ * flat triangular facets meeting at hard edges, no curves anywhere.
  *
- * Radially: the largest r along direction u before r·u exits one of the three
- * prisms is min over the prisms, each prism limiting only its two coordinates.
+ * The mesh is deliberately non-indexed: each facet gets its own three
+ * vertices, so computeVertexNormals yields one flat normal per face instead
+ * of smoothing across edges. The gradient shader is unchanged — its
+ * normal-driven lookup offset, fresnel, and speculars all quantise per facet,
+ * which is exactly what makes it read as a faceted diamond.
  */
-function buildStarGeometry(azimuthSegs = 896, polarSegs = 448) {
-  const starR = makeStarProfile();
-
-  // Max r along direction u such that (r·a, r·b) stays inside the 2D star.
-  const planeLimit = (a: number, b: number) => {
-    const h = Math.hypot(a, b);
-    if (h < 1e-9) return Infinity; // direction parallel to this prism's axis
-    return starR(Math.atan2(b, a)) / h;
-  };
-
-  // Smooth minimum of the three prism limits (inverse p-norm). A hard min
-  // creates crease facets where the limiting prism switches; this blends the
-  // joins into continuous fillets — no visible facets anywhere. Infinite
-  // limits are capped so they contribute nothing rather than poisoning the sum.
-  const radius = (ux: number, uy: number, uz: number) => {
-    const l1 = Math.min(planeLimit(ux, uy), 2);
-    const l2 = Math.min(planeLimit(uy, uz), 2);
-    const l3 = Math.min(planeLimit(ux, uz), 2);
-    return Math.pow(
-      Math.pow(l1, -SMOOTH) + Math.pow(l2, -SMOOTH) + Math.pow(l3, -SMOOTH),
-      -1 / SMOOTH,
-    );
-  };
-
-  const NT = azimuthSegs;
-  const NP = polarSegs;
+function buildStarGeometry() {
   const positions: number[] = [];
-  const indices: number[] = [];
 
-  // Poles on ±z (the extruded centre points).
-  positions.push(0, 0, radius(0, 0, 1));
-  for (let i = 1; i < NP; i++) {
-    const phi = (i / NP) * Math.PI;
-    const sp = Math.sin(phi);
-    const cp = Math.cos(phi);
-    for (let j = 0; j < NT; j++) {
-      const theta = (j / NT) * Math.PI * 2;
-      const ux = sp * Math.cos(theta);
-      const uy = sp * Math.sin(theta);
-      const uz = cp;
-      const r = radius(ux, uy, uz);
-      positions.push(r * ux, r * uy, r * uz);
-    }
-  }
-  positions.push(0, 0, -radius(0, 0, -1));
-
-  const top = 0;
-  const bottom = positions.length / 3 - 1;
-  const row = (i: number) => 1 + (i - 1) * NT; // first vertex of polar row i
-
-  for (let j = 0; j < NT; j++) {
-    const j1 = (j + 1) % NT;
-    indices.push(top, row(1) + j, row(1) + j1);
-    indices.push(bottom, row(NP - 1) + j1, row(NP - 1) + j);
-  }
-  for (let i = 1; i < NP - 1; i++) {
-    const rA = row(i);
-    const rB = row(i + 1);
-    for (let j = 0; j < NT; j++) {
-      const j1 = (j + 1) % NT;
-      indices.push(rA + j, rB + j, rA + j1);
-      indices.push(rA + j1, rB + j, rB + j1);
+  // One facet per octant. Winding parity: the triangle (sx·x̂, sy·ŷ, sz·ẑ)
+  // faces outward when sx·sy·sz is positive; otherwise swap two vertices.
+  for (const sx of [1, -1]) {
+    for (const sy of [1, -1]) {
+      for (const sz of [1, -1]) {
+        const a = [sx, 0, 0];
+        const b = [0, sy, 0];
+        const c = [0, 0, sz];
+        if (sx * sy * sz > 0) positions.push(...a, ...b, ...c);
+        else positions.push(...a, ...c, ...b);
+      }
     }
   }
 
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
+  geo.computeVertexNormals(); // non-indexed → flat per-facet normals
   return geo;
 }
 
@@ -334,8 +239,8 @@ function YunityStar({ spin }: { spin: React.MutableRefObject<SpinState> }) {
 }
 
 /**
- * The Yunity star: the carved-circle silhouette inflated into translucent
- * iridescent glass, hovering on black with a soft bloom aura.
+ * The Yunity star, faceted-diamond experiment: a hard-edged octahedron in the
+ * same translucent iridescent glass, hovering on black with a soft bloom aura.
  * Drag anywhere to rotate; release to let it coast.
  */
 export default function StarLab() {
@@ -350,7 +255,13 @@ export default function StarLab() {
     <div
       className="fixed inset-0 z-[100] cursor-grab touch-none bg-black active:cursor-grabbing"
       onPointerDown={(e) => {
-        e.currentTarget.setPointerCapture(e.pointerId);
+        // Capture keeps the drag alive outside the element; it can throw for
+        // inactive pointers (synthetic events, races) — never abort the drag.
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {
+          /* uncaptured drag still works while the pointer stays over us */
+        }
         spin.current.dragging = true;
         spin.current.vel.x = 0;
         spin.current.vel.y = 0;
@@ -371,7 +282,11 @@ export default function StarLab() {
       <Canvas
         camera={{ position: [0, 0, 4.2], fov: 35, near: 0.1, far: 100 }}
         dpr={[1, 2]}
-        gl={{ antialias: true, powerPreference: "high-performance" }}
+        // EffectComposer below renders the scene into its own 8x-multisampled
+        // target (its default `multisampling`), then blits the result to this
+        // canvas — the canvas's own hardware AA never touches real content,
+        // so leaving it on just allocates a wasted multisampled framebuffer.
+        gl={{ antialias: false, powerPreference: "high-performance" }}
         onCreated={({ gl }) => {
           gl.setClearColor("#000000", 1);
           gl.toneMapping = THREE.NoToneMapping;

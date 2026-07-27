@@ -56,12 +56,6 @@ export const ecosystem = {
       footnote: 2,
     },
   ],
-  insurers: [
-    { name: "Aviva", src: assetPath("/home/logo-aviva.svg"), width: 189, height: 34 },
-    { name: "MetLife", src: assetPath("/home/logo-metlife.svg"), width: 186, height: 40 },
-    { name: "Bupa", src: assetPath("/home/logo-bupa.svg"), width: 153, height: 40 },
-    { name: "Daiichi Life", src: assetPath("/home/logo-daiichi.svg"), width: 219, height: 40 },
-  ],
 } as const;
 
 /** Per-card background — Figma Carousel (2047:1567) SliderItem specs. */

@@ -134,7 +134,7 @@
   --hero-sage: var(--green-600);
   --hero-coral: var(--blue-600);
   --hero-pink: var(--purple-600);
-  --hero-divider: var(--border-inverse);
+  --hero-divider: var(--border-emphasis);
 
   /* Floating pill: 16px top inset + 72px NavMenuTop bar */
   --header-h: 88px;

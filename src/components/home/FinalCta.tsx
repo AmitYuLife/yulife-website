@@ -29,10 +29,9 @@ export default function FinalCta() {
   return (
     <section
       ref={scope}
-      className="relative isolate overflow-hidden border-b"
+      className="relative isolate overflow-hidden border-b border-line-emphasis"
       style={{
         backgroundColor: "var(--purple-900)",
-        borderColor: "color-mix(in srgb, var(--purple-700) 45%, transparent)",
       }}
       aria-labelledby="final-cta-heading"
     >

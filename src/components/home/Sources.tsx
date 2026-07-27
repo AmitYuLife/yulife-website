@@ -4,10 +4,9 @@ export default function Sources() {
   return (
     <section
       id="sources"
-      className="border-t"
+      className="border-t border-line-emphasis"
       style={{
         backgroundColor: "var(--purple-900)",
-        borderColor: "color-mix(in srgb, var(--purple-700) 40%, transparent)",
       }}
       aria-labelledby="sources-heading"
     >

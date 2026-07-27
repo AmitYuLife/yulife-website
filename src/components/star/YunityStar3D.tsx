@@ -6,15 +6,17 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 /* ------------------------------------------------------------------ */
-/* Geometry — the smooth six-point diamond star (from the star lab)    */
+/* Geometry — faceted octahedron diamond (3D); smooth star profile (2D  */
+/* glow silhouette only — the halo behind the canvas, not the mesh)    */
 /* ------------------------------------------------------------------ */
 
-// Brand construction: tips reach distance 1 along the axes, each concave flank
-// is an arc of a large circle carved out along the 45° diagonal, and each tip
-// is capped with a small circle tangent to its two carve circles.
+// Brand construction for the 2D glow silhouette: tips reach distance 1 along
+// the axes, each concave flank is an arc of a large circle carved out along
+// the 45° diagonal, and each tip is capped with a small circle tangent to its
+// two carve circles. (The 3D mesh below is a plain octahedron; this profile
+// no longer drives it — only the star-shaped halo still uses it.)
 const WAIST = 0.52; // radius at the 45° waist (depth of the carve)
 const TIP_R = 0.05; // radius of the rounded tip caps
-const SMOOTH = 4.5; // join softness: lower = broader fillets, higher = tighter
 
 function makeStarProfile() {
   const a = 1 - TIP_R;
@@ -62,73 +64,39 @@ function buildStarPathD(steps = 96) {
 const GLOW_PATH_D = buildStarPathD();
 
 /**
- * Six points (±x, ±y, ±z), built as a smooth-blended intersection of three
- * orthogonal star prisms — the silhouette is the carved star from any axis,
- * every join filleted, facet-free. Lower resolution than the lab build: the
- * surface is smooth, so 384×192 is indistinguishable at a 400px viewport.
+ * A cut-gem take on the star: six tips at ±1 on each axis (the same 6-point
+ * diamond layout the smooth build used), but as a literal octahedron — eight
+ * flat triangular facets meeting at hard edges, no curves anywhere. Ported
+ * from the star-lab experiment; the gradient shader below is unchanged, so
+ * its normal-driven lookup offset, fresnel, and speculars all quantise per
+ * facet, which is what makes it read as cut glass rather than a painted flat.
+ *
+ * The mesh is deliberately non-indexed: each facet gets its own three
+ * vertices, so computeVertexNormals yields one flat normal per face instead
+ * of smoothing across edges. Only 8 triangles total, so — unlike the smooth
+ * build — there's no benefit to giving the front/back shells different
+ * resolutions; both meshes below share this one geometry.
  */
-function buildStarGeometry(azimuthSegs = 384, polarSegs = 192) {
-  const starR = makeStarProfile();
-
-  const planeLimit = (a: number, b: number) => {
-    const h = Math.hypot(a, b);
-    if (h < 1e-9) return Infinity;
-    return starR(Math.atan2(b, a)) / h;
-  };
-
-  const radius = (ux: number, uy: number, uz: number) => {
-    const l1 = Math.min(planeLimit(ux, uy), 2);
-    const l2 = Math.min(planeLimit(uy, uz), 2);
-    const l3 = Math.min(planeLimit(ux, uz), 2);
-    return Math.pow(
-      Math.pow(l1, -SMOOTH) + Math.pow(l2, -SMOOTH) + Math.pow(l3, -SMOOTH),
-      -1 / SMOOTH,
-    );
-  };
-
-  const NT = azimuthSegs;
-  const NP = polarSegs;
+function buildStarGeometry() {
   const positions: number[] = [];
-  const indices: number[] = [];
 
-  positions.push(0, 0, radius(0, 0, 1));
-  for (let i = 1; i < NP; i++) {
-    const phi = (i / NP) * Math.PI;
-    const sp = Math.sin(phi);
-    const cp = Math.cos(phi);
-    for (let j = 0; j < NT; j++) {
-      const theta = (j / NT) * Math.PI * 2;
-      const ux = sp * Math.cos(theta);
-      const uy = sp * Math.sin(theta);
-      const r = radius(ux, uy, cp);
-      positions.push(r * ux, r * uy, r * cp);
-    }
-  }
-  positions.push(0, 0, -radius(0, 0, -1));
-
-  const top = 0;
-  const bottom = positions.length / 3 - 1;
-  const row = (i: number) => 1 + (i - 1) * NT;
-
-  for (let j = 0; j < NT; j++) {
-    const j1 = (j + 1) % NT;
-    indices.push(top, row(1) + j, row(1) + j1);
-    indices.push(bottom, row(NP - 1) + j1, row(NP - 1) + j);
-  }
-  for (let i = 1; i < NP - 1; i++) {
-    const rA = row(i);
-    const rB = row(i + 1);
-    for (let j = 0; j < NT; j++) {
-      const j1 = (j + 1) % NT;
-      indices.push(rA + j, rB + j, rA + j1);
-      indices.push(rA + j1, rB + j, rB + j1);
+  // One facet per octant. Winding parity: the triangle (sx·x̂, sy·ŷ, sz·ẑ)
+  // faces outward when sx·sy·sz is positive; otherwise swap two vertices.
+  for (const sx of [1, -1]) {
+    for (const sy of [1, -1]) {
+      for (const sz of [1, -1]) {
+        const a = [sx, 0, 0];
+        const b = [0, sy, 0];
+        const c = [0, 0, sz];
+        if (sx * sy * sz > 0) positions.push(...a, ...b, ...c);
+        else positions.push(...a, ...c, ...b);
+      }
     }
   }
 
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
+  geo.computeVertexNormals(); // non-indexed → flat per-facet normals
   return geo;
 }
 
@@ -253,20 +221,10 @@ function StarScene({
   const group = useRef<THREE.Group>(null);
   const spinner = useRef<THREE.Group>(null);
 
-  // The front shell carries the tight specular highlights (pow 320 — a small,
-  // sharp glint), which needs enough vertex density that interpolated normals
-  // don't make it swim or facet as the star turns. The back shell is
-  // deliberately flat/unlit (see the fragment shader below) and only ever
-  // reads as a soft colour fill, so it can be far coarser for free.
-  const frontGeometry = useMemo(() => buildStarGeometry(192, 96), []);
-  const backGeometry = useMemo(() => buildStarGeometry(64, 32), []);
-  useEffect(
-    () => () => {
-      frontGeometry.dispose();
-      backGeometry.dispose();
-    },
-    [frontGeometry, backGeometry],
-  );
+  // Just 8 flat facets — both shells share the one geometry (no resolution
+  // split needed the way the old smooth build's front/back shells had).
+  const geometry = useMemo(() => buildStarGeometry(), []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
 
   const backUniforms = useMemo(
     () => ({ uTime: { value: 0 }, uBack: { value: 1 } }),
@@ -321,7 +279,7 @@ function StarScene({
           depth visible through the turn instead of ever reading perfectly
           flat. */}
       <group ref={spinner}>
-        <mesh geometry={backGeometry} renderOrder={0}>
+        <mesh geometry={geometry} renderOrder={0}>
           <shaderMaterial
             vertexShader={VERTEX}
             fragmentShader={FRAGMENT}
@@ -331,7 +289,7 @@ function StarScene({
             depthWrite={false}
           />
         </mesh>
-        <mesh geometry={frontGeometry} renderOrder={1}>
+        <mesh geometry={geometry} renderOrder={1}>
           <shaderMaterial
             vertexShader={VERTEX}
             fragmentShader={FRAGMENT}
