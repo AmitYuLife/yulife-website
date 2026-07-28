@@ -95,6 +95,18 @@ export const products = {
   cards: [
     {
       titleEmphasis: "Health",
+      titleRest: " Insurance",
+      description:
+        "Private medical cover with fast-track access to specialists and hospitals.",
+      carrier: "bupa",
+      href: "/products/health",
+      background: {
+        src: assetPath("/home/products/health-insurance-bg.webp"),
+        fit: "cover",
+      },
+    },
+    {
+      titleEmphasis: "Health",
       titleRest: "Cash Plan",
       titleBreakBeforeRest: true,
       description:
@@ -111,42 +123,6 @@ export const products = {
       },
     },
     {
-      titleEmphasis: "Life",
-      titleRest: "Insurance",
-      titleBreakBeforeRest: true,
-      description: "A tax-efficient lump sum payment for families if a loved one dies.",
-      carrier: "metlife",
-      href: "/products/life-insurance",
-      background: {
-        src: assetPath("/home/products/life-insurance-bg.webp"),
-        fit: "cover",
-      },
-    },
-    {
-      titleEmphasis: "Health",
-      titleRest: " insurance",
-      description:
-        "Private medical cover with fast-track access to specialists and hospitals.",
-      carrier: "bupa",
-      href: "/products/health",
-      background: {
-        src: assetPath("/home/products/health-insurance-bg.webp"),
-        fit: "cover",
-      },
-    },
-    {
-      titleEmphasis: "Dental",
-      titleRest: "Insurance",
-      titleBreakBeforeRest: true,
-      description: "High-visibility benefit employees use.",
-      carrier: "bupa",
-      href: "/products/dental-insurance",
-      background: {
-        src: assetPath("/home/products/dental-insurance-bg.webp"),
-        fit: "cover",
-      },
-    },
-    {
       titleEmphasis: "Income",
       titleRest: " Protection",
       description:
@@ -160,6 +136,30 @@ export const products = {
         height: "100%",
         left: "-93.88%",
         top: "0.07%",
+      },
+    },
+    {
+      titleEmphasis: "Life",
+      titleRest: "Insurance",
+      titleBreakBeforeRest: true,
+      description: "A tax-efficient lump sum payment for families if a loved one dies.",
+      carrier: "metlife",
+      href: "/products/life-insurance",
+      background: {
+        src: assetPath("/home/products/life-insurance-bg.webp"),
+        fit: "cover",
+      },
+    },
+    {
+      titleEmphasis: "Dental",
+      titleRest: "Insurance",
+      titleBreakBeforeRest: true,
+      description: "High-visibility benefit employees use.",
+      carrier: "bupa",
+      href: "/products/dental-insurance",
+      background: {
+        src: assetPath("/home/products/dental-insurance-bg.webp"),
+        fit: "cover",
       },
     },
   ],
