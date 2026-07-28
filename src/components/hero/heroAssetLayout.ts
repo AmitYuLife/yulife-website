@@ -569,13 +569,41 @@ export type HeroCoinEntrance = {
   delay: number;
   /** Flight time from phone centre to resting position, in seconds. */
   duration: number;
-  /** Extra apex height of the arc, in world units. */
+  /**
+   * Height of the parabolic bump added on top of the straight origin→slot
+   * line, world units. The flight is `dy·s + 4·arc·s(1−s)` — a true projectile
+   * parabola — so the apex always clears BOTH endpoints and every coin is
+   * thrown up before it curves back down into its slot.
+   */
   arc: number;
   /**
-   * How far above its slot the coin overshoots before settling straight
-   * down into it, world units — the descending half of the fountain arc.
+   * Lateral offset of this coin's launch point from the phone centre, world
+   * units. Still well inside the phone silhouette, so the coin stays hidden
+   * until it crests — but the jet leaves from a spread of points rather than
+   * every coin erupting from the same pixel.
    */
-  settle: number;
+  launchOffsetX: number;
+  /**
+   * How far up the phone body this coin launches from, world units above the
+   * phone's centre. Staggered so the jet leaves from a column of points down the
+   * mockup's side — the further a coin travels, the higher it starts — which is
+   * what makes the arcs read as nested spray lines instead of one uniform jet.
+   */
+  launchOffsetY: number;
+  /**
+   * Exponent on this coin's horizontal progress. Below ~1.2 it fans out early
+   * (a shallow launch), above it stays vertical longer. Per-coin so trajectories
+   * diverge instead of the whole cohort travelling as one clump.
+   */
+  spread: number;
+  /**
+   * Depth lane held during flight, world units, eased back to the layout plane
+   * before landing. The camera is orthographic, so z costs nothing visually —
+   * it only decides draw order. Without it every coin is coplanar at z=0 and
+   * overlapping coins intersect geometrically, which reads as clipping; with it
+   * they cleanly pass in front of and behind each other.
+   */
+  flightZ: number;
   /** Tumble to unwind during flight (radians); Y is the dominant coin-flip axis. */
   spinX: number;
   spinY: number;
@@ -596,11 +624,91 @@ export type HeroCoinEntrance = {
   exitPitch: number;
 };
 
-const ENTRANCE_LAUNCH_INTERVAL = 0.085;
-// Slightly longer than the old straight-ish path — the fountain arc travels
-// up and over before settling, so it needs the extra beat to not feel rushed.
-const ENTRANCE_BASE_DURATION = 1.05;
-const ENTRANCE_DURATION_PER_UNIT = 0.05;
+// Tight stagger: the coins read as one burst rather than a queue, and it's the
+// cheapest way to shorten the whole sequence without making any single coin whippy.
+const ENTRANCE_LAUNCH_INTERVAL = 0.045;
+const ENTRANCE_LAUNCH_JITTER = 0.04;
+// The arc travels up and over before settling, so the flight needs a beat more
+// than the straight-line distance alone suggests — taller arcs get more of it.
+const ENTRANCE_BASE_DURATION = 0.7;
+const ENTRANCE_DURATION_PER_UNIT = 0.032;
+const ENTRANCE_DURATION_PER_ARC = 0.055;
+const ENTRANCE_DURATION_JITTER = 0.16;
+
+/**
+ * Gap between flight depth lanes, world units. Must exceed the widest coin's
+ * DIAMETER, not its thickness: the tumble takes coins edge-on, where their
+ * z-extent is the full diameter. One lane per coin at this spacing makes
+ * geometric intersection impossible while they're bunched near the launch.
+ *
+ * Free to spend: the camera is orthographic (z never changes screen position or
+ * size) and the rig is ambient + directional + environment map (no point lights,
+ * so z never changes shading either). The frustum spans z −90…9.9, and the
+ * widest fan here is ±8.4.
+ */
+const FLIGHT_Z_SPACING =
+  (Math.max(...COIN_SIZE_POOL) * COIN_SIZE_SCALE) / DESIGN_UNIT + 0.13;
+/** Path fraction at which lanes start easing back to the layout plane (z=0). */
+export const FLIGHT_Z_MERGE_START = 0.75;
+/**
+ * Launch points fan across the phone rather than stacking at its centre, ordered
+ * by how far a coin has to travel: the one headed furthest out leaves from
+ * nearest the edge, so trajectories on a side splay apart instead of crossing.
+ */
+const LAUNCH_OFFSET_MIN = 0.15;
+const LAUNCH_OFFSET_JITTER = 0.18;
+/**
+ * Launches also climb the phone's side, from its centre up toward its top edge —
+ * again ordered by reach. Paired with the reach-scaled apex below, this is what
+ * turns the jet into nested spray lines: the short-reach coins slip out low from
+ * the phone's sides on shallow arcs, the far ones leave high and sweep up over it.
+ */
+const LAUNCH_RISE_TOP_MARGIN = 0.75;
+const LAUNCH_RISE_JITTER = 0.35;
+/**
+ * Kept clear of the phone's edge so the outermost coins are still behind the
+ * mockup at launch and emerge around its top corners rather than sliding out of
+ * its sides. Just over the widest resting radius (0.54 world — half of the 1.075
+ * widest diameter), since coins reach full size during the hidden climb.
+ */
+const LAUNCH_EDGE_MARGIN = 0.6;
+/** Fallback half-width when the phone hasn't been measured yet. */
+const PHONE_HALF_WIDTH_WORLD = HERO_ASSET.phone.width / 2 / DESIGN_UNIT;
+/**
+ * Per-coin horizontal-progress exponent. Below 1 the horizontal LEADS the flight:
+ * the coin is carried out past the phone early and crests late, which is what
+ * makes the arc a long outward sweep rather than a tall narrow jet.
+ */
+const SPREAD_EXPONENT_MIN = 0.55;
+const SPREAD_EXPONENT_JITTER = 0.3;
+
+/** World y of the phone mockup's top edge. */
+const PHONE_TOP_WORLD = (ARTBOARD_CENTER_Y - HERO_ASSET.phone.y) / DESIGN_UNIT;
+/** Hard ceiling for a flight apex: keeps the whole arc inside the canvas. */
+const FLIGHT_APEX_CEILING = FRUSTUM_TOP - 0.6;
+/**
+ * Apex rise above the higher of launch point / slot, world units. Scaled by reach
+ * rather than forced over the phone's top edge: the short-reach coins get low,
+ * shallow sweeps out of the phone's sides and the far ones tall ones that carry
+ * over its top. That spread across the cohort IS the nesting — a single clearance
+ * floor applied to every coin collapses them into one uniform band instead.
+ */
+const APEX_RISE_MIN = 0.4;
+const APEX_RISE_PER_REACH = 1.8;
+const APEX_RISE_JITTER = 0.45;
+
+/**
+ * Bump height for a parabolic flight whose apex sits `rise` above the higher of
+ * its two endpoints.
+ *
+ * With y(s) = dy·s + 4h·s(1−s) the apex is at s = ½ + dy/(8h) and sits
+ * dy/2 + h + dy²/(16h) above the launch point. Solving that for h against a
+ * target rise collapses — for either sign of dy — to the expression below.
+ */
+function arcBumpForRise(dy: number, rise: number) {
+  const drop = Math.abs(dy);
+  return (2 * rise + drop + 2 * Math.sqrt(rise * (rise + drop))) / 4;
+}
 
 /**
  * Fountain-entrance parameters for each coin, seeded from the layout seed so
@@ -612,42 +720,133 @@ export function buildHeroCoinEntrances(
   coins: HeroCoinLayout[],
   sessionSeed: number,
   fieldWidth: number,
-  /** World-space y the flight apex must stay below (sub-heading exclusion). */
-  apexCeilingWorld?: number,
+  /**
+   * Live geometry for the launch, measured from the DOM (HeroCoinField). The CSS
+   * phone layer and the WebGL canvas are sized independently, so the design
+   * constants below are only fallbacks for when nothing has been measured yet.
+   */
+  launch?: {
+    /** Launch point in world space — the phone's centre. */
+    origin?: [number, number];
+    /** World y of the phone's top edge; every apex has to clear it to be seen. */
+    phoneTopY?: number;
+    /** Half the phone's width; bounds how far launch points fan across its top. */
+    phoneHalfWidth?: number;
+    /** World y the flight apex must stay below (sub-heading / on-screen limit). */
+    apexCeiling?: number;
+  },
 ): HeroCoinEntrance[] {
   const rng = createRng(sessionSeed ^ 0x5f3759df);
 
-  const launchOrder = coins.map((_, i) => i);
-  for (let i = launchOrder.length - 1; i > 0; i--) {
+  // Depth lanes get their own shuffle so the front-to-back mix stays incidental
+  // — keying them to launch order below would put every far coin in front.
+  const laneOrder = coins.map((_, i) => i);
+  for (let i = laneOrder.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
-    [launchOrder[i], launchOrder[j]] = [launchOrder[j], launchOrder[i]];
+    [laneOrder[i], laneOrder[j]] = [laneOrder[j], laneOrder[i]];
   }
-  const launchSlot = new Array<number>(coins.length);
-  launchOrder.forEach((coinIndex, slot) => {
-    launchSlot[coinIndex] = slot;
+  const laneSlot = new Array<number>(coins.length);
+  laneOrder.forEach((coinIndex, slot) => {
+    laneSlot[coinIndex] = slot;
   });
+
+  const [originX, originY] = launch?.origin ?? PHONE_CENTER_WORLD;
+  const phoneTopY = launch?.phoneTopY ?? PHONE_TOP_WORLD;
+  // The sub-heading / on-screen limit applies to the flight too, but never above
+  // the canvas ceiling. On the first fountain the copy is still collapsed, so
+  // the viewport top is what bites; on a gravity-toggle replay the copy is laid
+  // out and the sub-heading boundary keeps the arcs out from behind the text.
+  const apexCeiling = Math.min(FLIGHT_APEX_CEILING, launch?.apexCeiling ?? FLIGHT_APEX_CEILING);
+
+  const laneCentre = (coins.length - 1) / 2;
+
+  // Rank each coin against the others on its side by how far out it's headed.
+  // Rank 0 leaves from nearest the phone's centre, the last from nearest its
+  // corner, so a side's trajectories splay outward instead of crossing.
+  const targetX = coins.map((coin) => designToWorld(coin.x, coin.y, coin.size, fieldWidth)[0]);
+  const reachRank = new Map<number, { rank: number; of: number }>();
+  for (const side of ["left", "right"] as const) {
+    const onSide = coins
+      .map((coin, i) => i)
+      .filter((i) => coins[i].side === side)
+      .sort((a, b) => Math.abs(targetX[a] - originX) - Math.abs(targetX[b] - originX));
+    onSide.forEach((i, rank) => reachRank.set(i, { rank, of: onSide.length }));
+  }
+
+  // Launch furthest-reaching first. Those coins leave from high on the phone's
+  // side and clear its silhouette almost at once (~0.01s, against ~0.7s for the
+  // short, low ones), so the burst breaks cover the instant the phone jolts
+  // instead of waiting on whichever coin a shuffle happened to pick. It also
+  // reads right: the biggest arcs are the ones the knock threw hardest. Left and
+  // right interleave on their own, since the two sides' reaches differ.
+  const launchSlot = new Array<number>(coins.length);
+  coins
+    .map((coin, i) => i)
+    .sort((a, b) => Math.abs(targetX[b] - originX) - Math.abs(targetX[a] - originX))
+    .forEach((coinIndex, slot) => {
+      launchSlot[coinIndex] = slot;
+    });
+
+  const halfWidth = launch?.phoneHalfWidth ?? PHONE_HALF_WIDTH_WORLD;
+  // Never let the margin invert the range on a very narrow phone.
+  const maxOffset = Math.max(LAUNCH_OFFSET_MIN, halfWidth - LAUNCH_EDGE_MARGIN);
 
   return coins.map((coin, i) => {
     const [tx, ty] = designToWorld(coin.x, coin.y, coin.size, fieldWidth);
-    const dx = tx - PHONE_CENTER_WORLD[0];
-    const dy = ty - PHONE_CENTER_WORLD[1];
+    const { rank, of } = reachRank.get(i) ?? { rank: 0, of: 1 };
+    const spreadT = of > 1 ? rank / (of - 1) : 0.5;
+    const launchOffsetX =
+      Math.sign(tx - originX) *
+      Math.min(
+        maxOffset,
+        LAUNCH_OFFSET_MIN +
+          spreadT * (maxOffset - LAUNCH_OFFSET_MIN) +
+          (rng() - 0.5) * LAUNCH_OFFSET_JITTER,
+      );
+    // Climb the phone's side with reach, so the jet leaves from a column of
+    // points rather than all at the centre line. Capped short of the top edge so
+    // the coin is still behind the mockup when it sets off — and never above the
+    // apex ceiling, or a coin would launch higher than it's allowed to peak and
+    // the rise below would clamp into a mid-flight hump on a falling path
+    // instead of an arc.
+    const maxRise = Math.max(
+      0,
+      Math.min(
+        phoneTopY - originY - LAUNCH_RISE_TOP_MARGIN,
+        apexCeiling - originY - APEX_RISE_MIN,
+      ),
+    );
+    const launchOffsetY = Math.min(
+      maxRise,
+      Math.max(0, spreadT * maxRise + (rng() - 0.5) * LAUNCH_RISE_JITTER),
+    );
+    const launchY = originY + launchOffsetY;
+
+    const dx = tx - (originX + launchOffsetX);
+    const dy = ty - launchY;
     const dist = Math.hypot(dx, dy);
     const outward = coin.side === "left" ? 1 : -1;
 
+    // Rise scales with reach instead of being forced over the phone's top edge.
+    // Short-reach coins slip out low from the sides on shallow arcs; far ones
+    // sweep high over the top. The ceiling still caps the tallest.
+    const rise =
+      APEX_RISE_MIN + spreadT * APEX_RISE_PER_REACH + rng() * APEX_RISE_JITTER;
+    const apexY = Math.min(apexCeiling, Math.max(launchY, ty) + rise);
+    const arc = arcBumpForRise(dy, Math.max(0.25, apexY - Math.max(launchY, ty)));
+
     return {
-      delay: launchSlot[i] * ENTRANCE_LAUNCH_INTERVAL + rng() * 0.06,
+      delay: launchSlot[i] * ENTRANCE_LAUNCH_INTERVAL + rng() * ENTRANCE_LAUNCH_JITTER,
       duration:
-        ENTRANCE_BASE_DURATION + dist * ENTRANCE_DURATION_PER_UNIT + rng() * 0.25,
-      // Higher arcs for coins travelling further sideways; every arc clears
-      // the phone top so the burst always reads as "up and over".
-      arc: clamp(0.9 + Math.abs(dx) * 0.16 + rng() * 0.6, 1.0, 2.4),
-      // Overshoot above the slot before dropping in; capped so the highest
-      // coins never poke past the frustum top — or into the sub-heading
-      // exclusion zone — mid-descent.
-      settle: Math.max(
-        0.3,
-        Math.min(0.55 + rng() * 0.55, Math.min(9.3, apexCeilingWorld ?? 9.3) - ty),
-      ),
+        ENTRANCE_BASE_DURATION +
+        dist * ENTRANCE_DURATION_PER_UNIT +
+        arc * ENTRANCE_DURATION_PER_ARC +
+        rng() * ENTRANCE_DURATION_JITTER,
+      arc,
+      launchOffsetX,
+      launchOffsetY,
+      spread: SPREAD_EXPONENT_MIN + rng() * SPREAD_EXPONENT_JITTER,
+      flightZ: (laneSlot[i] - laneCentre) * FLIGHT_Z_SPACING,
       spinX: (rng() - 0.5) * 0.9,
       // 1.25–2.25 full flips, tumbling outward from the phone.
       spinY: outward * Math.PI * 2 * (1.25 + rng()),

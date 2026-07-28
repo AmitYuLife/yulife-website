@@ -3,11 +3,15 @@
 import { useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { HERO_COIN_EXIT_Y } from "./heroAssetLayout";
+import { FLIGHT_Z_MERGE_START, HERO_COIN_EXIT_Y } from "./heroAssetLayout";
 import type { HeroCoinEntrance as EntranceParams } from "./heroAssetLayout";
 
 export type HeroCoinEntranceProps = {
-  /** World-space launch point (phone centre) — coins sit here, hidden behind the phone. */
+  /**
+   * World-space phone centre. Each coin's actual launch point is this plus its
+   * own `launchOffsetX/Y`, which fan the jet across and up the mockup's body —
+   * still behind it, so nothing is visible until it clears the edge.
+   */
   origin: [number, number, number];
   /** World-space resting position (the coin's scattered layout slot). */
   target: [number, number, number];
@@ -30,13 +34,39 @@ export type HeroCoinEntranceProps = {
   children: ReactNode;
 };
 
-// Between quad and cubic: still bursts out fast, but the tail keeps enough
-// speed that the settle-down into the slot doesn't crawl.
-const easeOutFountain = (t: number) => 1 - Math.pow(1 - t, 2.2);
+/** Fraction of the flight spent on the ballistic launch, before the catch. */
+const CATCH_START = 0.55;
 
 /**
- * Fountain entrance for one hero coin: launches from behind the phone mockup,
- * follows a gravity-style arc to its layout slot while tumbling in 3D, and
+ * Linear through the launch and apex — the arc is a real parabola, so gravity's
+ * own slow-down sets the pace there — then a cubic Hermite "catch" over the last
+ * stretch. The catch enters at exactly the linear speed and arrives at exactly
+ * zero, so the coin decelerates into its slot instead of stopping dead.
+ *
+ * A power ease (the obvious `1-(1-t)^n`) can't do this: its velocity collapses
+ * only in the final instants, so the coin is still travelling ~300px/s at 98% of
+ * the flight and then snaps. This lands at ~0px/s with less than half the peak
+ * deceleration, and keeps the apex near the middle of the flight rather than
+ * blowing past it in the first third.
+ */
+const easeFlight = (t: number) => {
+  if (t < CATCH_START) return t;
+  const span = 1 - CATCH_START;
+  const u = (t - CATCH_START) / span;
+  // G(u) = -u³ + u² + u: G(0)=0, G'(0)=1, G(1)=1, G'(1)=0.
+  return CATCH_START + span * (u * (1 + u * (1 - u)));
+};
+/**
+ * Horizontal progress runs AHEAD of the flight (entrance.spread is below 1), so
+ * the coin is carried out past the phone early and crests late — a long outward
+ * sweep rather than a tall narrow jet. Per-coin, so trajectories diverge instead
+ * of the cohort travelling as one clump.
+ */
+const easeSpread = (s: number, exponent: number) => Math.pow(s, exponent);
+
+/**
+ * Fountain entrance for one hero coin: thrown up from behind the phone mockup,
+ * follows a ballistic arc to its layout slot while tumbling in 3D, and
  * hands off to YuCoin's idle bob/pointer logic the moment it lands. When
  * `exit` flips on, the coin free-falls out of the band instead.
  *
@@ -94,14 +124,26 @@ export default function HeroCoinEntrance({
     if (!g) return;
     g.visible = true;
     if (play) {
-      g.position.set(origin[0], origin[1], origin[2]);
+      g.position.set(
+        origin[0] + entrance.launchOffsetX,
+        origin[1] + entrance.launchOffsetY,
+        origin[2],
+      );
       g.scale.setScalar(entrance.fromScale);
     } else {
       g.position.set(target[0], target[1], target[2]);
       g.scale.setScalar(1);
     }
     tumbler.current?.rotation.set(0, 0, 0);
-  }, [runId, play, origin, target, entrance.fromScale]);
+  }, [
+    runId,
+    play,
+    origin,
+    target,
+    entrance.fromScale,
+    entrance.launchOffsetX,
+    entrance.launchOffsetY,
+  ]);
 
   // Scalar deps: the origin/target ARRAYS get a fresh identity every parent
   // render, and re-running this on unrelated renders (like the gravity
@@ -122,10 +164,24 @@ export default function HeroCoinEntrance({
       g.scale.setScalar(1);
       tumbler.current?.rotation.set(0, 0, 0);
     } else {
-      g.position.set(originX, originY, originZ);
+      g.position.set(
+        originX + entrance.launchOffsetX,
+        originY + entrance.launchOffsetY,
+        originZ,
+      );
       g.scale.setScalar(entrance.fromScale);
     }
-  }, [originX, originY, originZ, targetX, targetY, targetZ, entrance.fromScale]);
+  }, [
+    originX,
+    originY,
+    originZ,
+    targetX,
+    targetY,
+    targetZ,
+    entrance.fromScale,
+    entrance.launchOffsetX,
+    entrance.launchOffsetY,
+  ]);
 
   useFrame((_, delta) => {
     const g = mover.current;
@@ -191,37 +247,40 @@ export default function HeroCoinEntrance({
       return;
     }
 
-    // Ease-out timing gives the fountain burst: the coin erupts from behind
-    // the phone at speed and decelerates into its slot.
-    const q = easeOutFountain(p);
+    const s = easeFlight(p);
     const [tx, ty, tz] = targetRef.current;
 
-    // Cubic bezier fountain arc. C1 sits almost directly above the origin,
-    // so the coin launches near-vertically out of the phone; C2 sits directly
-    // above the slot, so the landing tangent is straight down — every coin
-    // rises past its resting height and drops into place like a droplet.
-    const c1x = originX + (tx - originX) * 0.15;
-    const c1y = originY + entrance.arc;
-    const c2x = tx;
-    const c2y = ty + entrance.settle;
-    const u = 1 - q;
-    const uu = u * u;
-    const qq = q * q;
-    g.position.x = u * uu * originX + 3 * uu * q * c1x + 3 * u * qq * c2x + q * qq * tx;
-    g.position.y = u * uu * originY + 3 * uu * q * c1y + 3 * u * qq * c2y + q * qq * ty;
-    g.position.z = tz;
+    // Projectile arc: straight origin→slot travel plus a parabolic bump whose
+    // height (entrance.arc, derived in heroAssetLayout from the clearance each
+    // coin needs) puts the apex above BOTH ends. So the coin is always thrown
+    // up out of the phone first and always curves back down into its slot,
+    // whether that slot sits above or below the launch point.
+    const launchX = originX + entrance.launchOffsetX;
+    const launchY = originY + entrance.launchOffsetY;
+    g.position.x = launchX + (tx - launchX) * easeSpread(s, entrance.spread);
+    g.position.y = launchY + (ty - launchY) * s + entrance.arc * 4 * s * (1 - s);
+    // Hold this coin's depth lane while the jet is bunched, then merge back to
+    // the layout plane once the coins have fanned out to their own airspace.
+    // Lanes shrink proportionally, so the front-to-back order never swaps
+    // mid-merge — and by z=0 the slots' own spacing keeps them clear.
+    const laneHold =
+      1 - Math.min(1, Math.max(0, (s - FLIGHT_Z_MERGE_START) / (1 - FLIGHT_Z_MERGE_START)));
+    g.position.z = tz + entrance.flightZ * laneHold;
 
-    // Tumble unwinds with the same easing: several fast flips as it emerges,
+    // Tumble unwinds with the flight: several fast flips as it emerges,
     // slowing until the face settles into the brand pose exactly on landing.
-    const unwind = 1 - q;
+    const unwind = 1 - s;
     r.rotation.set(
       entrance.spinX * unwind,
       entrance.spinY * unwind,
       entrance.spinZ * unwind,
     );
 
+    // Full size early in the hidden climb. The growth is only a depth cue for
+    // emerging from behind the mockup — and the outermost coins in the fan can
+    // crest near its corners quite early, so it has to be done before then.
     g.scale.setScalar(
-      entrance.fromScale + (1 - entrance.fromScale) * Math.min(1, q * 1.6),
+      entrance.fromScale + (1 - entrance.fromScale) * Math.min(1, s * 5),
     );
   });
 

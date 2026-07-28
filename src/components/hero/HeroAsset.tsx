@@ -31,6 +31,11 @@ const COIN_FOLLOW_EASE = 0.12;
 const MOBILE_DROP_DELAY_MS = 550;
 
 interface HeroAssetProps {
+  /**
+   * Launches the fountain. Hero.tsx flips this on the phone's jolt, so the coins
+   * are knocked loose by it rather than drifting out on their own schedule.
+   */
+  coinsArmed?: boolean;
   /** Bubbled up from the coin field when the first fountain finishes landing. */
   onEntranceComplete?: () => void;
 }
@@ -42,7 +47,7 @@ interface HeroAssetProps {
  * Easter egg: clicking the phone switches gravity on — the coins drop out of
  * the band — and clicking again fountains them back out from behind it.
  */
-export default function HeroAsset({ onEntranceComplete }: HeroAssetProps) {
+export default function HeroAsset({ coinsArmed, onEntranceComplete }: HeroAssetProps) {
   const [coinsShown, setCoinsShown] = useState(true);
   const lastToggleRef = useRef(0);
   const coinScrollRef = useRef<HTMLDivElement>(null);
@@ -140,6 +145,7 @@ export default function HeroAsset({ onEntranceComplete }: HeroAssetProps) {
         >
           <div className="hero-coin-field pointer-events-auto absolute inset-0 touch-none">
             <HeroCoinField
+              armed={coinsArmed}
               coinsShown={coinsShown}
               onEntranceComplete={handleEntranceComplete}
             />
