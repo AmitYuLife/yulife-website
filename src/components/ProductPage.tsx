@@ -2,7 +2,9 @@ import SectionBlock from "@/components/section/SectionBlock";
 import ProductHero from "@/components/product/ProductHero";
 import ProductLogoBar from "@/components/product/ProductLogoBar";
 import CarrierQuoteSection from "@/components/product/CarrierQuoteSection";
-import EverydayValueSection from "@/components/product/EverydayValueSection";
+import EverydayValueSection, {
+  type CarrierLogo,
+} from "@/components/product/EverydayValueSection";
 import ClinicalExcellenceSection from "@/components/product/ClinicalExcellenceSection";
 import {
   ClosingCtaBand,
@@ -24,6 +26,13 @@ export default function ProductPage({ data }: { data: ProductPageData }) {
   const valueSections = data.valueSections?.filter(
     (section) => !replacedNumbers.has(section.number),
   );
+
+  // Carrier logo shown at the foot of the everyday-value quote block. Keyed by
+  // the page's carrier; carriers without a logo asset simply render without one.
+  const carrierLogos: Record<string, CarrierLogo> = {
+    Bupa: { src: "/logos/carriers/bupa.svg", alt: "Bupa" },
+  };
+  const carrierLogo = carrierLogos[data.carrier];
 
   return (
     <>
@@ -56,7 +65,11 @@ export default function ProductPage({ data }: { data: ProductPageData }) {
       {/* Block 3 — Everyday value (bespoke, scroll-driven engagement section).
           Carries the carrier quote as its closing QuoteBlock. */}
       {data.everydayValue && (
-        <EverydayValueSection data={data.everydayValue} quote={data.carrierQuote} />
+        <EverydayValueSection
+          data={data.everydayValue}
+          quote={data.carrierQuote}
+          carrierLogo={carrierLogo}
+        />
       )}
 
       {/* Block 4 — Clinical excellence (bespoke illustrated benefit grid) */}

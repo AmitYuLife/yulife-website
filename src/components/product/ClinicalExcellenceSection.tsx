@@ -5,7 +5,7 @@ import type { ClinicalExcellenceSection as ClinicalExcellenceData } from "@/data
 /**
  * Clinical-benefits section for the Health product page (Figma node 2357:1512).
  *
- * A raised dark-purple panel (surface-inverse-raised, a step lighter than the
+ * A dark-purple panel (surface-inverse, a step darker than the raised
  * everyday-value section above it): a serif headline over a supporting
  * paragraph, then a grid of illustrated benefit callouts — a 120px spot
  * illustration, a bold title and a paragraph each. Three across on desktop,
@@ -22,7 +22,7 @@ export default function ClinicalExcellenceSection({
   return (
     <section
       {...domSrc("ClinicalExcellenceSection")}
-      className="border-b border-line-emphasis bg-surface-inverse-raised"
+      className="border-b border-line-emphasis bg-surface-inverse"
     >
       <div className="page-container-wide section-y-lg flex flex-col gap-section-gap">
         {/* Header — eyebrow / serif H2 / supporting paragraph */}
