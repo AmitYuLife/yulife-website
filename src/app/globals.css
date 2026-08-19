@@ -27,24 +27,22 @@
 
 /* Legacy class aliases → design-system typography roles */
 @layer components {
-  /* Fluid container: grows smoothly with the viewport (no fixed jump at each
-     breakpoint) and caps at the design's 1216px content width. This keeps
-     content filling the viewport at laptop widths (1024–1279) instead of
-     snapping to the narrow 688px tablet container. */
-  .page-container {
-    width: 100%;
-    max-width: 1216px;
-    margin-inline: auto;
-    padding-inline: clamp(1.25rem, 6vw, 5rem);
-  }
-
-  /* Same gutters as page content; only the max width is slightly wider
-     so the floating pill doesn't share a hard edge with sections below. */
+  /* Site content grid. The design lays every section on a 1216px usable
+     column inside fluid side margins that grow to --layout-section-x (352px)
+     at 1920. The 1216px is the *usable* width, not the outer box: the box is
+     1216 + two gutters, so content — rather than the padding box — spans 1216
+     and its inset lands on the design's 352px margin. `.page-container-wide`
+     is kept as an alias (existing call sites still resolve here), and the nav
+     pill shares the same grid so it aligns edge-to-edge with the sections
+     rather than floating on a narrower band. */
+  .page-container,
+  .page-container-wide,
   .nav-container {
+    --container-gutter: clamp(1.25rem, 6vw, 5rem);
     width: 100%;
-    max-width: 1248px;
+    max-width: calc(1216px + 2 * var(--container-gutter));
     margin-inline: auto;
-    padding-inline: clamp(1.25rem, 6vw, 5rem);
+    padding-inline: var(--container-gutter);
   }
 
   .type-display {

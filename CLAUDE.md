@@ -80,6 +80,13 @@ route handlers, no `next/image` optimisation. Reference `/public` assets through
 for exactly this reason; sharing `.next` leaves the dev server serving HTML pointing
 at 404'd CSS chunks.
 
+**Always inspect Figma through the MCP connector.** When working from any Figma
+design or Figma URL, pull the design through the figma-dev MCP tools
+(`get_design_context`, `get_screenshot`, `get_metadata`, `get_variable_defs`)
+before writing code. Never describe a design from memory or fall back to
+`WebFetch`, and never generate UI code without first inspecting the design through
+the connector.
+
 ## Commands
 
 ```bash

@@ -178,7 +178,11 @@ function MarqueeRow({
   );
 }
 
-export default function LogoMarquee() {
+/**
+ * `rowCount` trims how many rows render. The homepage keeps both (top row
+ * scrolls left, second scrolls right); product pages reuse just the top row.
+ */
+export default function LogoMarquee({ rowCount = 2 }: { rowCount?: 1 | 2 } = {}) {
   return (
     <div {...domSrc("LogoMarquee")} className="hero-marquee w-full py-14 md:py-20">
       <div
@@ -191,7 +195,7 @@ export default function LogoMarquee() {
         }}
       >
         <MarqueeRow brands={ROWS[0]} direction={1} rowKey="row1" />
-        <MarqueeRow brands={ROWS[1]} direction={-1} rowKey="row2" />
+        {rowCount > 1 && <MarqueeRow brands={ROWS[1]} direction={-1} rowKey="row2" />}
       </div>
     </div>
   );

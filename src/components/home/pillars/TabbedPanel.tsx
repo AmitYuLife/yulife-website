@@ -147,9 +147,9 @@ function boxBorderClass(index: number) {
 }
 
 /** Hover tilt tuning — subtle, like the hero YuCoin's pointer response. */
-const TILT_MAX_DEG = 9;
+const TILT_MAX_DEG = 13;
 const SHADOW_BASE_PX = 8;
-const SHADOW_RANGE_PX = 6;
+const SHADOW_RANGE_PX = 8;
 
 /** Imperative CSS-var updates (no re-render) driving `.platform-floating-card-tilt`:
  *  rotateX/Y for the tilt, a shifted drop-shadow so it reads as one lit object
@@ -251,24 +251,28 @@ const FLOATING_CARDS: Record<string, FloatingCardConfig[]> = {
     {
       key: "mood",
       cornerClassName: "absolute -left-8 bottom-24 z-10 hidden tablet:block desktop:-left-24",
-      src: "/home/platform/prevent-mood-card.png",
+      src: "/home/platform/moodmonitor-card.webp",
       alt: "Your Mood tracker showing a week of mood check-ins",
-      width: 361,
-      height: 145,
+      width: 368,
+      height: 147,
       widthClassName: "w-[220px] tablet:w-[280px] desktop:w-[361px]",
-      radiusClassName: "rounded-md",
+      // Matches the ~12.7px corner radius baked into the asset itself — the
+      // theme's rounded-md (16px) clipped into the card's own border.
+      radiusClassName: "rounded-[12px]",
       bobDelay: "0s",
       bobDuration: "4.6s",
     },
     {
-      key: "breathing",
+      key: "challengeselect",
       cornerClassName: "absolute -right-8 top-24 z-10 hidden tablet:block desktop:-right-24",
-      src: "/home/platform/prevent-breathing-card.png",
-      alt: "Breathing exercises card",
+      src: "/home/platform/challengeselect-card.webp",
+      alt: "Challenge select card showing a 10-minute Meditation challenge worth 120 YuCoin",
       width: 166,
       height: 214,
       widthClassName: "w-[120px] tablet:w-[150px] desktop:w-[166px]",
-      radiusClassName: "rounded-lg",
+      // Matches the ~12.7px corner radius baked into the asset itself — the
+      // theme's rounded-lg (24px) clipped into the card's own border.
+      radiusClassName: "rounded-[12px]",
       bobDelay: "0.9s",
       bobDuration: "5.3s",
     },

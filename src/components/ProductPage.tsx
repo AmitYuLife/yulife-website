@@ -1,51 +1,44 @@
 import SectionBlock from "@/components/section/SectionBlock";
+import ProductHero from "@/components/product/ProductHero";
+import ProductLogoBar from "@/components/product/ProductLogoBar";
+import CarrierQuoteSection from "@/components/product/CarrierQuoteSection";
+import EverydayValueSection from "@/components/product/EverydayValueSection";
+import ClinicalExcellenceSection from "@/components/product/ClinicalExcellenceSection";
 import {
-  CarrierQuote,
   ClosingCtaBand,
   Eyebrow,
   FaqAccordion,
   ImagePlaceholder,
-  LogoPlaceholder,
-  PrimaryButton,
-  SecondaryButton,
-  SocialProofBar,
   StatTiles,
 } from "@/components/section/shared";
 import type { ProductPageData } from "@/data/pages/types";
 
 export default function ProductPage({ data }: { data: ProductPageData }) {
   const heroCtas = data.hero.ctas ?? [data.primaryCta];
+  // Bespoke sections replace their grey-box value-section equivalents (same
+  // content, richer treatment), so drop those from the scaffold list:
+  // everydayValue → value section 1, clinicalExcellence → value section 2.
+  const replacedNumbers = new Set<number>();
+  if (data.everydayValue) replacedNumbers.add(1);
+  if (data.clinicalExcellence) replacedNumbers.add(2);
+  const valueSections = data.valueSections?.filter(
+    (section) => !replacedNumbers.has(section.number),
+  );
 
   return (
     <>
       {/* Block 1 — Hero */}
-      <SectionBlock block="1" label="Hero">
-        <div className="mx-auto max-w-3xl text-center">
-          {data.hero.eyebrow && <Eyebrow>{data.hero.eyebrow}</Eyebrow>}
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
-            {data.hero.h1}
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-base text-gray-600">{data.hero.body}</p>
-          {data.hero.partnerLockup && (
-            <div className="mt-6 flex justify-center">
-              <LogoPlaceholder name={data.hero.partnerLockup} />
-            </div>
-          )}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            {heroCtas.map((cta, i) =>
-              i === 0 ? (
-                <PrimaryButton key={cta.label} cta={cta} />
-              ) : (
-                <SecondaryButton key={cta.label} cta={cta} />
-              )
-            )}
-          </div>
-          {data.ratings && <SocialProofBar ratings={data.ratings} />}
-        </div>
-        <p className="mt-4 text-center text-xs text-gray-400">
-          Underwritten by {data.carrier}
-        </p>
-      </SectionBlock>
+      <ProductHero
+        eyebrow={data.hero.eyebrow}
+        h1={data.hero.h1}
+        body={data.hero.body}
+        ctas={heroCtas}
+        carrier={data.carrier}
+        ratings={data.ratings}
+      />
+
+      {/* Logo bar — dark single-row marquee directly under the hero */}
+      <ProductLogoBar />
 
       {/* Block 2 — Social proof chips OR carrier quote */}
       {data.statChips && (
@@ -54,10 +47,21 @@ export default function ProductPage({ data }: { data: ProductPageData }) {
         </SectionBlock>
       )}
 
-      {data.carrierQuote && (
-        <SectionBlock block="2" label="Carrier quote (lockup)" band={!data.statChips}>
-          <CarrierQuote quote={data.carrierQuote} />
-        </SectionBlock>
+      {/* Standalone carrier quote — only when it hasn't moved into the
+          everyday-value section (which renders it as its QuoteBlock instead) */}
+      {data.carrierQuote && !data.everydayValue && (
+        <CarrierQuoteSection quote={data.carrierQuote} />
+      )}
+
+      {/* Block 3 — Everyday value (bespoke, scroll-driven engagement section).
+          Carries the carrier quote as its closing QuoteBlock. */}
+      {data.everydayValue && (
+        <EverydayValueSection data={data.everydayValue} quote={data.carrierQuote} />
+      )}
+
+      {/* Block 4 — Clinical excellence (bespoke illustrated benefit grid) */}
+      {data.clinicalExcellence && (
+        <ClinicalExcellenceSection data={data.clinicalExcellence} />
       )}
 
       {/* Cash plan: explainer */}
@@ -73,7 +77,7 @@ export default function ProductPage({ data }: { data: ProductPageData }) {
       )}
 
       {/* Numbered value sections */}
-      {data.valueSections?.map((section, i) => (
+      {valueSections?.map((section, i) => (
         <SectionBlock
           key={section.number}
           block={String(section.number + 2)}

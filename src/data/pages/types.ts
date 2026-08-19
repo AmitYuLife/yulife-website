@@ -22,6 +22,8 @@ export type Quote = {
   text: string;
   author: string;
   role: string;
+  /** Optional headshot for the person quoted; path under /public. */
+  avatar?: string;
 };
 
 export type Testimonial = Quote;
@@ -55,6 +57,53 @@ export type ContentSection = {
   quote?: Quote;
 };
 
+/** One highlight in the scroll-driven "everyday value" section. */
+export type EverydayValueBlock = {
+  title: string;
+  body: string;
+  /** Spot illustration shown in the card while this block is active; path under /public. */
+  image: string;
+  alt: string;
+};
+
+/**
+ * Bespoke engagement section (Health product page). The blocks are stepped
+ * through on scroll: the active one is highlighted and its illustration
+ * crossfades into the card. See EverydayValueSection.
+ */
+export type EverydayValueSection = {
+  eyebrow: string;
+  heading: string;
+  /** Bold lead line above the supporting paragraph. */
+  lead: string;
+  body: string;
+  blocks: EverydayValueBlock[];
+};
+
+/** One clinical-benefit callout: a spot illustration, a title and a paragraph. */
+export type ClinicalExcellenceCard = {
+  /** Spot illustration path under /public. */
+  icon: string;
+  alt: string;
+  title: string;
+  /** May contain unicode superscripts (¹²³*) tying into the section footnote. */
+  body: string;
+};
+
+/**
+ * Bespoke clinical-benefits section (Health product page, Figma 2357:1512).
+ * A raised dark-purple panel with a serif headline and a grid of illustrated
+ * benefit callouts. Replaces the "Bupa clinical excellence" grey-box value
+ * section, the same way `everydayValue` replaces its grey-box equivalent.
+ */
+export type ClinicalExcellenceSection = {
+  eyebrow: string;
+  heading: string;
+  body: string;
+  cards: ClinicalExcellenceCard[];
+  footnote?: string;
+};
+
 export type ProductPageData = {
   pageTitle: string;
   carrier: string;
@@ -71,6 +120,8 @@ export type ProductPageData = {
   ratings?: Rating[];
   statChips?: Stat[];
   carrierQuote?: Quote;
+  everydayValue?: EverydayValueSection;
+  clinicalExcellence?: ClinicalExcellenceSection;
   valueSections?: NumberedSection[];
   explainer?: { heading: string; body: string };
   coverage?: {

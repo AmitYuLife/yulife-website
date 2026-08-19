@@ -1,9 +1,9 @@
 import type { ProductPageData } from "./types";
 
 const defaultRatings = [
-  { platform: "Trustpilot", score: "4.9 ★" },
-  { platform: "Capterra", score: "4.8 ★" },
-  { platform: "App Store", score: "4.9 ★" },
+  { platform: "Trustpilot", score: "4.9" },
+  { platform: "Capterra", score: "4.8" },
+  { platform: "App Store", score: "4.9" },
 ];
 
 const defaultCta = { label: "Speak to our team", href: "/contact" };
@@ -111,15 +111,93 @@ export const groupHealthInsurance: ProductPageData = {
   primaryCta: defaultCta,
   flags: ["Engagement stat differs from GIP page (93% vs 80%)"],
   hero: {
-    h1: "Group health insurance that inspires life",
-    body: "A game-changing approach to business health insurance. YuLife and Bupa combine daily engagement that rewards healthy living with fast access to clinical care when your people need it most. Underwritten by Bupa.",
+    h1: "Group Health Insurance that inspires life",
+    body: "A game-changing approach to business health insurance. YuLife and Bupa combine daily engagement that rewards healthy living with fast access to clinical care when your people need it most.",
     ctas: [defaultCta],
   },
   ratings: defaultRatings,
   carrierQuote: {
-    text: "Looking after the health and wellbeing of employees is fundamental to building a thriving and successful business. This partnership will help more people to take charge of their everyday health and wellbeing, while also offering reassurance that high-quality healthcare is there when it's needed.",
+    text: "This partnership will help more people to take charge of their everyday health and wellbeing, while also offering reassurance that high-quality healthcare is there when it's needed.",
     author: "Richard Norris",
-    role: "GM for business & specialist products, Bupa UK Insurance",
+    role: "General Manager for Business & Specialist Products",
+    avatar: "/people/richard-norris.jpg",
+  },
+  everydayValue: {
+    eyebrow: "For everyone",
+    heading: "Health insurance your people will value every day",
+    lead: "Most group health insurance is invisible until something goes wrong.",
+    body: "YuLife and Bupa change that by unifying private medical, dental, mental health and daily rewards into a single benefit your people will love and use every day.",
+    blocks: [
+      {
+        title: "Continuous engagement",
+        body: "1 in 2 members use the app daily for walking, meditation or cycling.⁴",
+        image: "/products/everyday/video-call.png",
+        alt: "",
+      },
+      {
+        title: "Tangible rewards",
+        body: "Employees earn YuCoin for healthy actions and spend it at Amazon, Nike and Tesco, or donate to causes like Earthy, Charity: Water and Clean the Ocean.",
+        image: "/products/everyday/thought-bubble.png",
+        alt: "",
+      },
+      {
+        title: "Seamless connectivity",
+        body: "Every wearable sync, every step tracked, every mindful minute counted, automatic and easy.",
+        image: "/products/everyday/tooth.png",
+        alt: "",
+      },
+      {
+        title: "Exclusive health rewards",
+        body: "Through continued engagement, employees unlock over £700 of value in their first year, including Boots vouchers, a free health assessment and a Garmin smartwatch.³",
+        image: "/products/everyday/medikit.png",
+        alt: "",
+      },
+    ],
+  },
+  clinicalExcellence: {
+    eyebrow: "Bupa clinical excellence",
+    heading: "See a specialist sooner. Save weeks of worrying.",
+    body: "When your people need care, every day of delay is a day of worry, reduced performance, or risk of a condition worsening. With Bupa's Connected Care, the right specialist is accessible directly — at the moment it matters.",
+    cards: [
+      {
+        icon: "/products/everyday/video-call.png",
+        alt: "",
+        title: "Direct access",
+        body: "Employees can contact Bupa directly about cancer, mental health or muscle, bone and joint problems without needing to see a GP first. Bupa will provide support, advice and a referral for consultations, tests or treatment where needed.¹",
+      },
+      {
+        icon: "/products/clinical/test-tube.svg",
+        alt: "",
+        title: "Cancer care",
+        body: "Specialist cancer centres offer a same-day all-clear or referral for treatment or further tests. All eligible treatment costs are covered in full, for as long as your employee has Bupa health cover.²",
+      },
+      {
+        icon: "/products/everyday/thought-bubble.png",
+        alt: "",
+        title: "Mental health cover",
+        body: "Bupa covers more mental health conditions than any other leading insurer.³ Mental health is included as standard, with access to specialists directly through the My Bupa app.",
+      },
+      {
+        icon: "/products/clinical/dumbbell.svg",
+        alt: "",
+        title: "MSK support",
+        body: "Employees can access muscle, bone and joint specialists directly, without a GP referral, and get the right treatment sooner.",
+      },
+      {
+        icon: "/products/everyday/medikit.png",
+        alt: "",
+        title: "24/7 virtual GP",
+        body: "Digital GP appointments and private prescriptions through the My Bupa app, available day or night including weekends and bank holidays.*",
+      },
+      {
+        icon: "/products/everyday/tooth.png",
+        alt: "",
+        title: "Dental cover",
+        body: "Routine examinations, scale and polish, fillings and emergency dental treatment covered through Bupa Dental. Full cover at Bupa Dental Care practices, with cash back at any recognised dentist.",
+      },
+    ],
+    footnote:
+      "Footnotes ¹²³* regarding cover limits, network use and Defaqto comparison — see source/legal.",
   },
   valueSections: [
     {
