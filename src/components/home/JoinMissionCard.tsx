@@ -49,10 +49,10 @@ export default function JoinMissionCard() {
       ref={scope}
       data-rocket-bounds
       className="relative overflow-hidden border-t border-b border-line-emphasis"
-      style={{ backgroundColor: "var(--surface-inverse)" }}
+      style={{ backgroundColor: "var(--surface-inverse-raised)" }}
       aria-labelledby="final-cta-heading"
     >
-      <div className="page-container section-y flex flex-col items-center gap-split desktop:flex-row desktop:items-start">
+      <div className="page-container section-y flex flex-col items-center gap-split desktop:flex-row desktop:items-center">
         <div className="relative flex w-full shrink-0 flex-col items-center gap-controls text-center desktop:items-start desktop:text-left desktop:z-10 desktop:min-w-0 desktop:flex-1">
           <h2
             id="final-cta-heading"

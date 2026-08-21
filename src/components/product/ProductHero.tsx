@@ -1,8 +1,16 @@
+"use client";
+
+import { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { Button } from "@/components/ui/Button";
 import { TRUST_MARKS } from "@/components/hero/TrustRatings";
+import HeroImage from "@/components/product/HeroImage";
 import { assetPath } from "@/lib/assetPath";
 import { domSrc } from "@/lib/domSrc";
 import type { Cta, Rating } from "@/data/pages/types";
+
+gsap.registerPlugin(useGSAP);
 
 const CARRIER_LOGOS: Record<string, { src: string; width: number; height: number; alt: string }> =
   {
@@ -26,10 +34,10 @@ const PHONE_HEIGHT = 768;
 function Headline({ h1 }: { h1: string }) {
   const breakAt = h1.indexOf(" that ");
   if (breakAt === -1) {
-    return <h1 className="type-heading-h2" style={{ color: "var(--hero-ink)" }}>{h1}</h1>;
+    return <h1 className="hero-enter type-heading-h2" style={{ color: "var(--hero-ink)" }}>{h1}</h1>;
   }
   return (
-    <h1 className="type-heading-h2" style={{ color: "var(--hero-ink)" }}>
+    <h1 className="hero-enter type-heading-h2" style={{ color: "var(--hero-ink)" }}>
       {h1.slice(0, breakAt + 6)}
       <em className="italic">{h1.slice(breakAt + 6)}</em>
     </h1>
@@ -56,7 +64,7 @@ function CarrierLockup({ carrier }: { carrier: string }) {
 
 function TrustRow({ ratings }: { ratings: Rating[] }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-flow gap-y-stack">
+    <div className="hero-enter flex flex-wrap items-center gap-x-flow gap-y-stack">
       {ratings.map((r) => {
         const mark = TRUST_MARKS[r.platform];
         return (
@@ -104,9 +112,39 @@ export default function ProductHero({
   carrier: string;
   ratings?: Rating[];
 }) {
+  const scope = useRef<HTMLDivElement>(null);
+
+  // The copy block glides in on arrival — heading, body and the rows below it
+  // lift + fade in DOM order, reusing the site's reveal vocabulary (y: 24 → 0,
+  // power3.out, 0.08 stagger; see useReveal). Remounting on each product route
+  // replays it, so product → product navigation reads as a continuous enter.
+  useGSAP(
+    () => {
+      const items = gsap.utils.toArray<HTMLElement>(
+        scope.current?.querySelectorAll(".hero-enter") ?? [],
+      );
+      if (!items.length) return;
+
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.from(items, {
+          y: 24,
+          opacity: 0,
+          duration: 0.55,
+          ease: "power3.out",
+          stagger: 0.08,
+          clearProps: "transform,opacity",
+        });
+      });
+      // reduce: no branch — the copy renders in its final, visible state.
+    },
+    { scope },
+  );
+
   return (
     <div
       {...domSrc("ProductHero")}
+      ref={scope}
       className="hero-dark relative overflow-hidden border-b border-line-emphasis"
       style={{
         backgroundColor: "var(--hero-canvas)",
@@ -139,9 +177,11 @@ export default function ProductHero({
           for left-aligned hero copy — wider than the centred-hero measure.
         */}
         <div className="flex w-full flex-col items-start gap-flow pt-40 text-left desktop:max-w-[620px]">
-          {eyebrow && <p className="type-eyebrow uppercase text-accent-purple">{eyebrow}</p>}
+          {eyebrow && (
+            <p className="hero-enter type-eyebrow uppercase text-accent-purple">{eyebrow}</p>
+          )}
           <Headline h1={h1} />
-          <p className="type-body-lg" style={{ color: "var(--hero-ink)" }}>
+          <p className="hero-enter type-body-lg" style={{ color: "var(--hero-ink)" }}>
             {body}
           </p>
           {/*
@@ -155,7 +195,7 @@ export default function ProductHero({
             labels never wrap mid-word.
           */}
           <div
-            className={`flex flex-wrap items-center gap-flow${
+            className={`hero-enter flex flex-wrap items-center gap-flow${
               ctas.length === 1 ? " desktop:flex-nowrap" : ""
             }`}
           >
@@ -199,7 +239,7 @@ export default function ProductHero({
           up with the content-box top (both at the design's 160px).
         */}
         <div className="w-full max-w-[436px] shrink-0 desktop:absolute desktop:right-[var(--container-gutter)] desktop:top-[var(--layout-section-y)] desktop:w-[436px]">
-          <img
+          <HeroImage
             src={PHONE_MOCKUP}
             alt=""
             width={PHONE_WIDTH}

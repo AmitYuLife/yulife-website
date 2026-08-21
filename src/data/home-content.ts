@@ -54,7 +54,7 @@ export const ecosystem = {
   stats: [
     {
       value: "80%",
-      label: "employee\nadoption",
+      label: "employee adoption",
       note: "Engaged YuLife users have significantly fewer claims, supporting more sustainable premiums over time.",
     },
     {

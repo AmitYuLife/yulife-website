@@ -7,6 +7,8 @@ export const authoredRoutes = [
   "/products/income-protection",
   "/products/health",
   "/products/cash-plan",
+  "/products/life-insurance",
+  "/products/dental-insurance",
   "/solutions/rewards",
   "/solutions/mental-health-eap",
   "/solutions/virtual-gp",

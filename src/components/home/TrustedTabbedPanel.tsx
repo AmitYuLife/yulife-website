@@ -140,7 +140,7 @@ function MobileTabStrip({
   }, [active]);
 
   return (
-    <div className="border-t border-line-emphasis bg-surface-inverse tablet:hidden">
+    <div className="border-t border-line-emphasis bg-surface-inverse-raised tablet:hidden">
       <div
         ref={scrollerRef}
         role="tablist"
@@ -160,7 +160,7 @@ function MobileTabStrip({
               onClick={() => onSelect(index)}
               className={`flex h-14 w-[40%] shrink-0 cursor-pointer items-center justify-center overflow-hidden px-8 transition-colors ${
                 index > 0 ? "border-l border-line-emphasis" : ""
-              } ${selected ? "bg-surface-inverse-raised" : ""}`}
+              } ${selected ? "bg-surface-inverse" : ""}`}
             >
               <TabContent testimonial={testimonial} />
             </button>
@@ -240,7 +240,7 @@ export default function TrustedTabbedPanel() {
         onActiveChange={selectTab}
         ariaLabel="Customer testimonials"
         orientation="vertical"
-        className="hidden bg-surface-inverse tablet:flex tablet:w-[220px] tablet:shrink-0 tablet:flex-col tablet:border-r tablet:border-line-emphasis"
+        className="hidden bg-surface-inverse-raised tablet:flex tablet:w-[220px] tablet:shrink-0 tablet:flex-col tablet:border-r tablet:border-line-emphasis"
         tabClassName="flex-1 overflow-hidden px-24"
         tabClassNameFor={(index) => sidebarBorderClass(index)}
       />

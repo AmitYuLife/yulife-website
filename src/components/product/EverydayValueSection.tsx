@@ -94,7 +94,7 @@ function QuoteBlock({
   return (
     <figure
       data-ev-quote
-      className="relative flex w-full flex-col gap-flow rounded-[var(--radius-md)] border border-line-emphasis p-[var(--gap-group)]"
+      className="relative flex w-full flex-col gap-flow rounded-[var(--radius-md)] border border-line-emphasis bg-surface-inverse-raised p-[var(--gap-group)]"
     >
       {/* Gradient border trace — desktop-only flourish, kept invisible until the
           rail's head arrives (opacity driven by GSAP). preserveAspectRatio is
@@ -103,7 +103,7 @@ function QuoteBlock({
         data-ev-quote-svg
         aria-hidden
         preserveAspectRatio="none"
-        className="pointer-events-none absolute inset-0 hidden size-full overflow-visible desktop:block"
+        className="pointer-events-none absolute -inset-px hidden overflow-visible desktop:block"
       >
         <defs>
           <linearGradient id="ev-quote-gradient" x1="0" y1="0" x2="1" y2="1">
@@ -117,7 +117,7 @@ function QuoteBlock({
           data-ev-quote-path
           fill="none"
           stroke="url(#ev-quote-gradient)"
-          strokeWidth={1}
+          strokeWidth={1.5}
           strokeLinecap="round"
           pathLength={100}
           strokeDasharray="22 78"
@@ -275,8 +275,8 @@ export default function EverydayValueSection({
         const path = el.querySelector<SVGPathElement>("[data-ev-quote-path]");
 
         const railTriggers: ScrollTrigger[] = [];
-        let lapTl: gsap.core.Timeline | null = null;
         let headTravel = 0;
+        let ro: ResizeObserver | null = null;
 
         // Height the rail + comet geometry from live measurements, and re-run on
         // every ScrollTrigger refresh so it survives resizes and font swaps.
@@ -289,12 +289,16 @@ export default function EverydayValueSection({
           if (svg && path) {
             const w = quoteEl.offsetWidth;
             const h = quoteEl.offsetHeight;
-            const inset = 1;
+            // The SVG covers the border box (−inset-px), so viewBox units are
+            // border-box pixels. Sit the stroke on the 1px CSS border's
+            // centreline: inset half its width and pull the radius in to match.
+            const inset = 0.5;
             const cssRadius = parseFloat(
               getComputedStyle(quoteEl).borderTopLeftRadius,
             );
+            const baseR = Number.isFinite(cssRadius) ? cssRadius : 16;
             const r = Math.min(
-              Number.isFinite(cssRadius) ? cssRadius : 16,
+              baseR - inset,
               (w - 2 * inset) / 2,
               (h - 2 * inset) / 2,
             );
@@ -308,41 +312,67 @@ export default function EverydayValueSection({
         if (railWrap && rail && head && quoteEl) {
           measure();
           ScrollTrigger.addEventListener("refresh", measure);
+          // Keep the border geometry pinned to the block's real box — content
+          // reflow or a container-width change would otherwise leave the viewBox
+          // stale and stretch the whole path.
+          ro = new ResizeObserver(() => measure());
+          ro.observe(quoteEl);
 
-          // Travelling gradient comet — scrubbed down the rail so its leading
-          // edge lands at the junction as the quote block enters.
+          const headH = head.offsetHeight;
+
+          // Travelling gradient comet, pinned to the viewport centre so it stays
+          // level with the active block (also centred) as it rides down the
+          // rail. Clamped to the rail, so once the quote block's top reaches the
+          // centre the comet holds at the junction (rail bottom = block top) and
+          // appears to feed into the block, which is opaque and hides it there.
           railTriggers.push(
             ScrollTrigger.create({
               trigger: railWrap,
-              start: "top 60%",
-              endTrigger: quoteEl,
-              end: "top 62%",
-              scrub: true,
-              onUpdate: (self) =>
-                gsap.set(head, { y: self.progress * headTravel }),
+              start: "top bottom",
+              end: "bottom top",
+              onUpdate: () => {
+                const railTopVp = railWrap.getBoundingClientRect().top + RAIL_TOP;
+                const target = window.innerHeight / 2 - headH / 2 - railTopVp;
+                // Allow one comet-height of overshoot past the junction so the
+                // head keeps tracking the centre down behind the (opaque) block
+                // and disappears into it, rather than stalling at the top edge.
+                gsap.set(head, {
+                  y: Math.min(Math.max(target, 0), headTravel + headH),
+                });
+              },
             }),
           );
 
-          // One clockwise lap of the border, then fade. Time-based (not scrubbed)
-          // so a fast fling always completes a clean loop instead of freezing
-          // partway round.
+          // Border trace: one clockwise lap, scrubbed by scroll (not time-based),
+          // so it stays in step with the comet and reverses cleanly on the way
+          // back up. It picks up at the junction (path starts there) and holds
+          // at the end of a single lap. dashoffset −100 == 0 (pathLength 100), so
+          // "held" rests the comet back at the junction.
           if (!reduce && path) {
             gsap.set(path, { opacity: 0, strokeDashoffset: 0 });
-            lapTl = gsap
-              .timeline({ paused: true })
-              .to(path, { opacity: 1, duration: 0.12, ease: "power1.out" }, 0)
-              .to(
-                path,
-                { strokeDashoffset: -100, duration: 0.9, ease: "power2.inOut" },
-                0,
-              )
-              .to(path, { opacity: 0, duration: 0.28, ease: "power1.in" }, 0.74);
-
             railTriggers.push(
               ScrollTrigger.create({
                 trigger: quoteEl,
-                start: "top 62%",
-                onEnter: () => lapTl?.restart(),
+                start: "top center",
+                end: "bottom center",
+                scrub: true,
+                onUpdate: (self) => {
+                  const p = self.progress;
+                  // The comet's LEADING edge starts at the junction (origin, top
+                  // centre) and sweeps one clockwise lap back to it — offset
+                  // DASH−100p keeps the leading edge at 100·p, so it emerges from
+                  // the origin rather than appearing pre-extended to the top
+                  // right. DASH must match the strokeDasharray comet length (22).
+                  // Fades in leaving the origin and out returning to it, so it
+                  // dissolves back in rather than parking or starting a 2nd lap.
+                  const DASH = 22;
+                  const fadeIn = Math.min(1, p / 0.08);
+                  const fadeOut = Math.min(1, (1 - p) / 0.15);
+                  gsap.set(path, {
+                    strokeDashoffset: DASH - 100 * p,
+                    opacity: Math.max(0, Math.min(fadeIn, fadeOut)),
+                  });
+                },
               }),
             );
           }
@@ -351,7 +381,7 @@ export default function EverydayValueSection({
         return () => {
           triggers.forEach((t) => t.kill());
           railTriggers.forEach((t) => t.kill());
-          lapTl?.kill();
+          ro?.disconnect();
           ScrollTrigger.removeEventListener("refresh", measure);
         };
       });
@@ -364,7 +394,7 @@ export default function EverydayValueSection({
   return (
     <section
       {...domSrc("EverydayValueSection")}
-      className="section-y border-b border-line-emphasis bg-surface-inverse-raised"
+      className="section-y border-b border-line-emphasis bg-surface-inverse"
     >
       <div ref={root} className="page-container-wide flex flex-col gap-section-gap">
         {/* Header — display headline (left) + supporting copy (bottom-aligned

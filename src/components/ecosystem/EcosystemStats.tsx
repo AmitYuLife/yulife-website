@@ -12,10 +12,10 @@ export default function EcosystemStats() {
   return (
     <section {...domSrc("EcosystemStats")}
       ref={scope}
-      className="relative isolate overflow-hidden border-b border-line-emphasis bg-surface-inverse-raised"
+      className="relative isolate overflow-hidden border-b border-line-emphasis bg-surface-inverse"
       aria-labelledby="ecosystem-heading"
     >
-      <div className="page-container section-y flex flex-col items-center gap-[var(--layout-section-gap-xl)]">
+      <div className="page-container section-y flex flex-col items-center gap-80">
         <div
           data-reveal
           className="mx-auto flex w-full max-w-[1216px] flex-col items-center gap-related text-center"
@@ -25,9 +25,8 @@ export default function EcosystemStats() {
           </p>
           <h2 id="ecosystem-heading" className="type-heading-h2 text-on-inverse">
             {before}
-            <em className="italic">daily life</em>,
-            <br />
-            {after.replace(/^,\s*/, "")}
+            <em className="italic">daily life</em>
+            {after}
           </h2>
         </div>
 

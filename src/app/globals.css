@@ -410,8 +410,10 @@ section[aria-labelledby="block-7-label"] h2 {
 }
 
 .product-showcase-track {
+  --carousel-gutter: clamp(1.25rem, 6vw, 5rem);
   --carousel-inset: calc(
-    max((100vw - 1216px) / 2, 0px) + clamp(1.25rem, 6vw, 5rem)
+    max((100vw - 1216px - 2 * var(--carousel-gutter)) / 2, 0px) +
+      var(--carousel-gutter)
   );
   width: 100%;
   padding-inline: var(--carousel-inset);
@@ -718,7 +720,7 @@ section[aria-labelledby="block-7-label"] h2 {
 
 /* Platform tab hero — outlined display heading marquee behind the video. */
 .platform-tab-indicator {
-  background-color: var(--surface-inverse-raised);
+  background-color: var(--surface-inverse);
   top: 0;
   left: 0;
 }
@@ -807,7 +809,11 @@ section[aria-labelledby="block-7-label"] h2 {
 
   html {
     @apply font-sans;
-    background-color: var(--surface-default);
+    /* Shows in the overscroll/rubber-band area above and below the page
+       (pull-to-refresh, scrollbar drag past the end) — inverse purple, not
+       white, since that's the site's canvas colour at both the top (hero)
+       and bottom (footer/closing CTA) of every page. */
+    background-color: var(--surface-inverse);
   }
 
   body {

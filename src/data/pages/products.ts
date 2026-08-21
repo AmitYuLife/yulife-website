@@ -1,4 +1,4 @@
-import type { ProductPageData } from "./types";
+import type { FaqEntry, ProductPageData } from "./types";
 
 const defaultRatings = [
   { platform: "Trustpilot", score: "4.9" },
@@ -92,16 +92,36 @@ export const incomeProtection: ProductPageData = {
     },
   ],
   faqs: [
-    "What is group income protection and how does it work?",
-    "What makes YuLife and MetLife's approach different from a standard GIP policy?",
-    "What clinical support is available to absent employees?",
-    "How does early intervention affect premium costs?",
-    "How does YuLife protect employee data and privacy?",
-    "How does YuLife simplify administration while providing business insight?",
-    "What does YuLife's group income protection cover and how does it benefit employees?",
-    "How does YuLife's GIP support early intervention and absence management?",
-    "How do employees access support?",
-    "Is YuLife's GIP more cost-effective than traditional policies?",
+    {
+      question: "What is group income protection and how does it work?",
+      answer:
+        "Group income protection provides a regular income replacement of up to 80% of salary for employees who are unable to work due to long-term illness or injury. Unlike a one-off payout, it provides ongoing financial support during absence while MetLife's clinical team works to support recovery and a safe return to work.",
+    },
+    {
+      question: "What makes YuLife and MetLife's approach different from a standard GIP policy?",
+      answer:
+        "Most income protection policies are reactive — they pay out when someone is already absent. YuLife and MetLife use daily engagement data to identify risk early, trigger clinical intervention weeks ahead of a traditional insurer, and support recovery with dedicated clinical pathways for mental health, MSK and long-COVID.",
+    },
+    {
+      question: "What clinical support is available to absent employees?",
+      answer:
+        "MetLife's early intervention service provides expert clinical outreach from day one of a notified absence, with dedicated rehabilitation pathways for mental health conditions, musculoskeletal disorders and long-COVID. When employees are supported early, 96% return to or remain in work (MetLife UK Claims Data, April 2024).",
+    },
+    {
+      question: "How does early intervention affect premium costs?",
+      answer:
+        "The earlier an absence is identified and supported, the shorter it tends to be. MetLife also offers limited term policies, where premiums are on average 50% lower than standard policies that pay to retirement age.",
+    },
+    {
+      question: "How does YuLife protect employee data and privacy?",
+      answer:
+        "All personal data is handled with the highest level of protection. Employers receive high-level insights through the employer portal, but all data is strictly anonymised and aggregated — employers can never access individual activity or personal health data.",
+    },
+    {
+      question: "How does YuLife simplify administration while providing business insight?",
+      answer:
+        "YuLife consolidates income protection, virtual healthcare and wellbeing rewards into a single platform, removing the need for multiple vendor relationships. The employer portal shows a real-time dashboard of eNPS scores and risk distributions for burnout and absenteeism.",
+    },
   ],
 };
 
@@ -199,6 +219,61 @@ export const groupHealthInsurance: ProductPageData = {
     footnote:
       "Footnotes ¹²³* regarding cover limits, network use and Defaqto comparison — see source/legal.",
   },
+  provenRoi: {
+    eyebrow: "Proven ROI",
+    heading: "Independently verified. Consistently delivered.",
+    body: "As your people engage with their Bupa and YuLife health benefit, expect to see measurable business impact. Every figure below comes from independent research or verified platform data.",
+    stats: [
+      {
+        value: "93%",
+        label: "highly engaged\napp users",
+        note: "The industry's broadest set of game mechanics drives sustained engagement — while most wellness platforms become ghost towns, our members keep coming back.",
+        source: "YuLife internal data, 2025",
+      },
+      {
+        value: "181%",
+        label: "return on\ninvestment",
+        note: "Verified return on your benefits spend, measured across active YuLife accounts.",
+        source: "Forrester Consulting (2023): The Total Economic Impact™ of YuLife",
+      },
+      {
+        value: "85%",
+        label: "employees feel\nmore productive",
+        note: "When people are supported to be healthier, the business feels it too.",
+        source: "YuLife internal data, 2025",
+      },
+      {
+        value: "12%",
+        label: "reduction in\nsickness absence",
+        note: "The compounding effect of daily healthy habits, measured at scale.",
+        source: "Forrester Consulting (2023): The Total Economic Impact™ of YuLife",
+      },
+      {
+        value: "25%",
+        label: "lower claims risk",
+        note: "Engaged YuLife users generate significantly fewer claims over time — the first clinically validated evidence linking gamified health behaviour to lower claims frequency.",
+        source: "University of Essex (2025): Longitudinal study on gamified wellbeing and claim frequency",
+      },
+    ],
+  },
+  businessPulse: {
+    heading: "Your business has a pulse. We help you read it.",
+    body: "Behind every YuLife account is an intelligence layer that turns daily signals from across your workforce into a clear, human picture of how your team is really doing. On the health insurance plan, that signal starts with a daily AI-powered check-in. Employees answer a short health questionnaire, receive personalised tips, and are automatically guided to the right Bupa service when they need it.",
+    steps: [
+      {
+        title: "Sense",
+        description: "capture the real-time lifestyle data traditional models miss.",
+      },
+      {
+        title: "Interpret",
+        description: "spot the subtle shifts that signal rising stress or physical risk.",
+      },
+      {
+        title: "Guide",
+        description: "trigger support early, to protect health and prove ROI.",
+      },
+    ],
+  },
   valueSections: [
     {
       number: 1,
@@ -253,12 +328,42 @@ export const groupHealthInsurance: ProductPageData = {
     },
   ],
   faqs: [
-    "What does YuLife's group health insurance cover?",
-    "How does it provide faster access to specialists?",
-    "What mental health cover is included?",
-    "How does YuLife protect employee data and privacy?",
-    "Is it more cost-effective than other private medical cover?",
-    "How does it simplify administration while providing business insight?",
+    {
+      question:
+        "What does YuLife's group health insurance cover and how does it benefit employees?",
+      answer:
+        "YuLife's group health insurance is underwritten by Bupa, one of the UK's leading private medical insurers — meaning Bupa is responsible for paying claims, while YuLife delivers the employee engagement, wellbeing tools and daily rewards on top. The policy provides fast access to private medical care, including inpatient and day-patient treatment, outpatient consultations, diagnostic tests and scans, and full cancer cover. Employees also benefit from a 24/7 virtual GP via Bupa's Blua digital service, private prescriptions, and access to YuLife's gamified wellbeing tools — earning YuCoin for healthy habits redeemable at Amazon, Nike and Tesco.",
+    },
+    {
+      question:
+        "How does YuLife's group health insurance provide faster access to specialists?",
+      answer:
+        "Through Bupa's Connected Care model, employees can access cancer, mental health and musculoskeletal (MSK) treatment directly without needing a GP referral first. Bupa shortlists specialist consultants based on location, waiting times and fee-assured network membership, so employees are guided to the right care quickly. For cancer, results for key conditions can be returned within 2–4 days, with treatment starting within 31 days of first contact. For MSK, face-to-face or virtual physiotherapy is available within 2 days.",
+    },
+    {
+      question:
+        "What mental health cover is included in YuLife's group health insurance?",
+      answer:
+        "YuLife's group health insurance includes Bupa's mental health cover, which is broader than any other leading UK insurer, covering more conditions, with no time limits for outpatient treatment and inpatient cover of up to 45 days per year. Employees also have access to Bupa's Family Mental HealthLine and the 24/7 Anytime HealthLine, and can access mental health support directly through Bupa's Connected Care model without a GP referral. One course of addiction treatment per lifetime is also included.",
+    },
+    {
+      question:
+        "How does YuLife's group health insurance protect employee data and privacy?",
+      answer:
+        "All personal data within YuLife's group health insurance platform is handled with the highest level of protection. Employers receive high-level insights through the Yunity portal, but all data is strictly anonymised and aggregated. Employers can see broad trends across a department but can never access individual activity or personal health data.",
+    },
+    {
+      question:
+        "Is YuLife's group health insurance more cost-effective than other private medical cover?",
+      answer:
+        "Yes. Because YuLife's group health insurance is purchased as a group policy underwritten by Bupa, employers benefit from collective rates typically lower than individual private medical cover. The policy is available for businesses with as few as 2 employees, with a choice of cover levels — Key, Enhanced and Complete — allowing employers to tailor the level of outpatient, therapy and hospital access to suit their budget. Dental cover can also be added to the same policy.",
+    },
+    {
+      question:
+        "How does YuLife's group health insurance simplify administration while providing business insight?",
+      answer:
+        "YuLife's group health insurance consolidates private medical cover, virtual healthcare, mental health support and daily wellbeing rewards into a single platform, removing the need for multiple vendor contracts. Through the employer portal, businesses receive a real-time dashboard showing eNPS scores and risk distributions for burnout and absenteeism, with data-led insights proven to deliver a 12% reduction in sickness absence and 25% lower claims risk.",
+    },
   ],
 };
 
@@ -360,18 +465,111 @@ export const cashPlan: ProductPageData = {
     },
   },
   faqs: [
-    "What does the plan cover?",
-    "Is it the same as private health insurance? (No.)",
-    "How do employees claim?",
-    "What wellbeing benefits come alongside it?",
-    "Can employees add family members?",
-    "How is data/privacy protected?",
-    "What employer insights are provided?",
-    "What size businesses is it suited to?",
+    {
+      question: "What does YuLife's Health Cash Plan cover and how does it benefit employees?",
+      answer:
+        "YuLife's Health Cash Plan is in partnership with Bupa, one of the UK's most established health insurers, with YuLife delivering the employee experience, wellbeing tools, and engagement layer on top. The plan gives employees cash back on everyday health expenses — dental treatment, optical appointments, physiotherapy, diagnostic tests, prescriptions, and more — with 99.5% of claims paid within 5 days. Employees also earn YuCoin for healthy habits, which they can donate to charitable causes to unlock prizes and rewards.",
+    },
+    {
+      question: "Is YuLife's Health Cash Plan the same as private health insurance?",
+      answer:
+        "No. YuLife's Health Cash Plan, backed by Bupa, reimburses employees for everyday health expenses — dental, optical, physiotherapy and similar costs — up to set limits per membership level. It is separate from, and typically far more affordable than, private medical insurance (PMI). Many employers choose to offer both.",
+    },
+    {
+      question: "How do employees make a claim on YuLife's Health Cash Plan?",
+      answer:
+        "Employees are guided from YuLife to the Bupa claims portal, where they can submit claims online or by post. The process is quick and straightforward — upload or send your receipts and follow the instructions provided.",
+    },
+    {
+      question: "What wellbeing benefits do employees get alongside the plan?",
+      answer:
+        "Alongside cash back cover, employees access a full suite of daily wellbeing tools through the YuLife app: a 24/7 Digital GP service, digital physiotherapy from Phio, SkinVision for early cancer detection, and in-app CBT and mental health support.",
+    },
+    {
+      question: "Can employees add family members to the plan?",
+      answer:
+        "Yes. Employees on YuLife's Health Cash Plan can add partners, with eligibility and benefit levels varying by membership type.",
+    },
+    {
+      question: "How does YuLife protect employee data and privacy on the Health Cash Plan?",
+      answer:
+        "All personal data is handled with the highest level of protection. Employers access workforce insights through the employer portal, but all data is strictly anonymised and aggregated — employers can never access individual activity or personal health data.",
+    },
   ],
   legalFooter:
     "YuLife standard legal (FCA FRN 783352; company no. 10308260) · Bupa Health Cash Plan legal (Bupa Insurance Limited, reg. 3956433) · Third-party services legal. Full text in source — render in footer/legal styling.",
 };
+
+/**
+ * FAQ copy for the Life Insurance and Dental Insurance pages (Figma
+ * 2357:2321). Both pages are still grey-box `PageStub` scaffolds — no hero,
+ * quote or value-section copy has been approved yet — so only the FAQ
+ * component is wired in for now, via `FaqSection` alongside the stub.
+ */
+export const lifeInsuranceFaqs: FaqEntry[] = [
+  {
+    question: "What does YuLife's group life insurance cover and how does it benefit employees?",
+    answer:
+      "YuLife's group life insurance is underwritten by MetLife, meaning MetLife is responsible for paying claims, while YuLife delivers the employee experience, wellbeing tools and engagement layer on top. The policy provides a tax-free lump sum of up to 12x an employee's base salary, subject to scheme rules. Employees also benefit from a 24/7 virtual GP, private prescriptions and an EAP for mental and financial health.",
+  },
+  {
+    question: "How does it support life and legacy planning for families?",
+    answer:
+      "Group life insurance underwritten by MetLife goes beyond a lump sum payout. It includes a secure 100GB digital vault, online will writing with 24/7 support, and the Everest funeral concierge — plus bereavement and probate counselling, extending to partners, dependants and parents.",
+  },
+  {
+    question: "How do employees add or manage their beneficiaries?",
+    answer:
+      "Employees nominate and update beneficiaries directly within the YuLife app, with no complex HR paperwork required — keeping legacy benefits directed exactly where intended.",
+  },
+  {
+    question: "How does YuLife protect employee data and privacy?",
+    answer:
+      "All personal data is handled with the highest level of protection. Employers receive high-level insights through the Yunity portal, but all data is strictly anonymised and aggregated.",
+  },
+  {
+    question: "Is it more cost-effective than individual cover?",
+    answer:
+      "Yes. Group life insurance underwritten by MetLife is typically significantly cheaper than individual policies. YuLife offers cover for businesses with as few as two employees, often with instant cover and no medical underwriting required.",
+  },
+  {
+    question: "How does YuLife simplify administration while providing business insight?",
+    answer:
+      "Group life insurance brings together life cover, virtual healthcare and wellbeing rewards into a single platform. The employer portal shows a real-time dashboard of eNPS scores and risk distributions for burnout and absenteeism.",
+  },
+];
+
+export const dentalInsuranceFaqs: FaqEntry[] = [
+  {
+    question: "What does Group Dental Insurance cover?",
+    answer:
+      "Company dental insurance through YuLife enables employees to claim back the cost of dental treatment — check-ups, preventative and restorative work, dental injuries, emergencies and oral cancer treatment — up to the value of their cover level. Employees can select any dentist (NHS or private) in the UK, and pre-existing conditions are covered.",
+  },
+  {
+    question: "Does the plan cover getting braces fitted?",
+    answer:
+      "This depends on the IOTN severity grading. The plan covers IOTN Grades 4 and 5 for ages 19+, and Grades 3, 4 and 5 for ages 18 and under. The NHS usually covers Grades 1–3 for under-18s.",
+  },
+  {
+    question: "Are composite veneers covered?",
+    answer: "Only if medically necessary — anything fitted for cosmetic reasons is excluded from cover.",
+  },
+  {
+    question: "Can employees add their dependants?",
+    answer:
+      "Yes — employees can cover partners and children, with no limit on the number of children. You only pay for one, and they're covered up until their 24th birthday.",
+  },
+  {
+    question: "How much is Group Dental Insurance?",
+    answer:
+      "The cost depends on the number of employees covered and the level of cover chosen, making it viable even for small businesses.",
+  },
+  {
+    question: "Is YuLife available without insurance?",
+    answer:
+      "Yes — the global app-only option provides all the benefits of the YuLife app, without the insurance, so you can still protect your employees' wellbeing.",
+  },
+];
 
 export const productPages: Record<string, ProductPageData> = {
   "/products/income-protection": incomeProtection,

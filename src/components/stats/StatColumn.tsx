@@ -1,15 +1,13 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { cn } from "@/lib/utils";
 import type { StatColumnProps } from "@/components/stats/types";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
-
-const COLUMN_HEIGHT = "h-[272px]";
-const STAT_CONTENT_HEIGHT = "h-[192px]";
 
 const DIGIT_CYCLES = 2;
 
@@ -175,7 +173,7 @@ function RollingStatNumber({
   return (
     <span
       ref={containerRef}
-      className="rolling-stat-number group type-display-number inline-flex items-baseline leading-none text-on-inverse"
+      className="rolling-stat-number group type-display-number inline-flex items-baseline leading-none text-on-inverse text-[56px] tablet:text-[64px] desktop:text-[80px]"
       aria-label={value}
     >
       {digits.map((_digit, digitIndex) => {
@@ -215,7 +213,7 @@ function RollingStatNumber({
       })}
       {suffix && (
         <span
-          className="text-[0.333em] leading-[0.4em]"
+          className="text-[0.5em] leading-[0.4em]"
           aria-hidden="true"
         >
           {suffix}
@@ -235,7 +233,7 @@ function StatLabel({
   sourcesHref: string;
 }) {
   return (
-    <p className="type-heading-h5 w-full text-center text-on-inverse">
+    <p className="type-body-sm w-full text-center font-bold text-on-inverse">
       <span className="whitespace-pre-line">{label.trimEnd()}</span>
       {footnote != null && (
         <>
@@ -259,77 +257,19 @@ function prefersHoverInteraction() {
   return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 }
 
-function prefersReducedMotion() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 export default function StatColumn({
   value,
   label,
   note,
+  source,
   footnote,
   sourcesHref = "#sources",
+  noteClassName = "type-body-sm",
   className = "",
   index = 0,
 }: StatColumnProps) {
   const [columnEl, setColumnEl] = useState<HTMLElement | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const defaultSlideRef = useRef<HTMLDivElement>(null);
-  const descriptionSlideRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(false);
-
-  useGSAP(
-    () => {
-      if (descriptionSlideRef.current) {
-        gsap.set(descriptionSlideRef.current, { opacity: 0 });
-      }
-    },
-    { scope: containerRef },
-  );
-
-  const animateTo = useCallback((toActive: boolean) => {
-    const container = containerRef.current;
-    const track = trackRef.current;
-    const defaultSlide = defaultSlideRef.current;
-    const descriptionSlide = descriptionSlideRef.current;
-    if (!container || !track) return;
-
-    const slideHeight = container.offsetHeight;
-    const instant = prefersReducedMotion();
-
-    gsap.to(track, {
-      y: toActive ? -slideHeight : 0,
-      duration: instant ? 0 : 0.55,
-      ease: "power2.inOut",
-      overwrite: true,
-    });
-
-    if (defaultSlide) {
-      gsap.to(defaultSlide, {
-        opacity: toActive ? 0 : 1,
-        duration: instant ? 0 : 0.55,
-        ease: "power2.inOut",
-        overwrite: true,
-      });
-    }
-
-    if (descriptionSlide) {
-      gsap.to(descriptionSlide, {
-        opacity: toActive ? 1 : 0,
-        duration: instant ? 0 : 0.55,
-        ease: "power2.inOut",
-        overwrite: true,
-      });
-    }
-  }, []);
-
-  useGSAP(
-    () => {
-      animateTo(active);
-    },
-    { dependencies: [active, animateTo], scope: containerRef },
-  );
 
   const handlePointerEnter = () => {
     if (prefersHoverInteraction()) setActive(true);
@@ -350,10 +290,19 @@ export default function StatColumn({
     }
   };
 
+  // Both states are stacked in one grid cell, so the card sizes to the taller
+  // of them and stays equal-height across its row — no fixed height. Each state
+  // stretches to fill the card, so hover slides the number up and out of view
+  // while the note slides up into it (a full-height reveal, not just a fade);
+  // overflow-hidden on the card clips the travel.
   return (
     <div
       ref={setColumnEl}
-      className={`relative flex ${COLUMN_HEIGHT} cursor-default flex-col overflow-visible bg-surface-inverse-raised text-center ${className}`}
+      className={cn(
+        "group relative grid cursor-default overflow-hidden rounded-md border border-line-emphasis text-center transition-colors duration-300 ease-out",
+        active ? "bg-surface-inverse" : "bg-surface-inverse-raised",
+        className,
+      )}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
       onClick={handleClick}
@@ -363,39 +312,30 @@ export default function StatColumn({
       aria-expanded={active}
       aria-label={`${value} ${label}`}
     >
+      {/* Default state — number + label */}
       <div
-        ref={containerRef}
-        className={`relative w-full overflow-hidden ${COLUMN_HEIGHT}`}
+        aria-hidden={active}
+        className={cn(
+          "col-start-1 row-start-1 flex flex-col items-center justify-center gap-8 p-32 text-center transition-[opacity,translate] ease-out [transition-duration:180ms,300ms] tablet:p-40 motion-reduce:transition-none",
+          active ? "pointer-events-none -translate-y-full opacity-0" : "translate-y-0 opacity-100",
+        )}
       >
-        <div ref={trackRef} className="will-change-transform">
-          <div
-            ref={defaultSlideRef}
-            aria-hidden={active}
-            className={`flex ${COLUMN_HEIGHT} items-center justify-center p-32 tablet:p-40`}
-          >
-            <div
-              className={`flex ${STAT_CONTENT_HEIGHT} w-full flex-col items-center justify-center gap-none text-center`}
-            >
-              <RollingStatNumber
-                value={value}
-                triggerEl={columnEl}
-                index={index}
-              />
-              <StatLabel
-                label={label}
-                footnote={footnote}
-                sourcesHref={sourcesHref}
-              />
-            </div>
-          </div>
-          <div
-            ref={descriptionSlideRef}
-            aria-hidden={!active}
-            className={`flex flex-col items-center justify-center px-32 tablet:px-40 ${COLUMN_HEIGHT}`}
-          >
-            <p className="type-heading-h5 text-on-inverse">{note}</p>
-          </div>
-        </div>
+        <span className="flex h-[72px] flex-col justify-center">
+          <RollingStatNumber value={value} triggerEl={columnEl} index={index} />
+        </span>
+        <StatLabel label={label} footnote={footnote} sourcesHref={sourcesHref} />
+      </div>
+
+      {/* Revealed state — note (+ source) */}
+      <div
+        aria-hidden={!active}
+        className={cn(
+          "col-start-1 row-start-1 flex flex-col items-center justify-center gap-inline p-32 text-center transition-[opacity,translate] ease-out [transition-duration:180ms,300ms] tablet:p-40 motion-reduce:transition-none",
+          active ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-full opacity-0",
+        )}
+      >
+        <p className={cn(noteClassName, "text-balance leading-snug text-on-inverse")}>{note}</p>
+        {source && <p className="type-caption text-balance text-on-inverse/60">{source}</p>}
       </div>
     </div>
   );

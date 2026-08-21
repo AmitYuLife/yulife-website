@@ -8,36 +8,40 @@ import { domSrc } from "@/lib/domSrc";
 export default function StatsColumns({
   stats,
   sourcesHref = "#sources",
-  showHorizontalRule = true,
+  noteClassName,
   className,
 }: StatsColumnsProps) {
+  // Up to three stats sit in a single row (the homepage 3-up). Four or more
+  // wrap at a maximum of three per row, each row centred, so the last partial
+  // row (e.g. the 4th and 5th of five) is centred rather than left-aligned
+  // (Figma 2424:4932). Columns keep a consistent 1/3 width across rows.
+  const wide = stats.length > 3;
+
   return (
     <div {...domSrc("StatsColumns")} className={cn("relative w-full max-w-[1216px]", className)}>
-      {showHorizontalRule && (
-        <div
-          className="pointer-events-none absolute top-1/2 z-0 hidden h-px -translate-y-1/2 bg-line-emphasis tablet:block"
-          style={{
-            left: "50%",
-            width: "100vw",
-            marginLeft: "-50vw",
-          }}
-          aria-hidden="true"
-        />
-      )}
-      <div className="relative z-10 grid overflow-clip rounded-md border border-line-emphasis bg-surface-inverse-raised tablet:h-[272px] tablet:grid-cols-3">
+      <div
+        className={cn(
+          "gap-24 tablet:gap-40",
+          wide
+            ? "flex flex-wrap items-stretch justify-center"
+            : "grid tablet:grid-cols-3",
+        )}
+      >
         {stats.map((stat, index) => (
           <StatColumn
             key={stat.id ?? stat.label}
             value={stat.value}
             label={stat.label}
             note={stat.note}
+            source={stat.source}
             footnote={stat.footnote}
             sourcesHref={sourcesHref}
+            noteClassName={noteClassName}
             index={index}
             className={
-              index > 0
-                ? "border-t border-line-emphasis tablet:border-t-0 tablet:border-l"
-                : ""
+              wide
+                ? "w-full tablet:w-[calc((100%-40px)/2)] desktop:w-[calc((100%-80px)/3)]"
+                : undefined
             }
           />
         ))}

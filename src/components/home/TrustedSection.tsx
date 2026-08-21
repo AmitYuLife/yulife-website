@@ -18,10 +18,7 @@ export default function TrustedSection() {
   return (
     <section {...domSrc("TrustedSection")}
       ref={scope}
-      className="relative overflow-hidden border-t border-line-emphasis"
-      style={{
-        backgroundColor: "var(--purple-800)",
-      }}
+      className="relative overflow-hidden border-t border-line-emphasis bg-surface-inverse"
       aria-labelledby="trusted-heading"
     >
       <div className="page-container section-y">

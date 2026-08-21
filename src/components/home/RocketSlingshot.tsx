@@ -697,13 +697,18 @@ export default function RocketSlingshot() {
   );
 
   return (
-    <div className="flex w-full max-w-[488px] shrink-0 flex-col items-center gap-16">
+    <div className="flex w-full max-w-[488px] shrink-0 flex-col items-center">
       <div
         ref={canvasRef}
         data-reveal
         data-paused="true"
         className="rocket-slingshot-canvas relative w-full"
-        style={{ aspectRatio: "488 / 456" }}
+        // The 488x456 aspect ratio is load-bearing for the drag/launch geometry
+        // (all rest/armed poses are fractions of it), but the flame art bottoms
+        // out at ~79% of the canvas, leaving a dead strip below the rocket. Pull
+        // the label up into that strip so it hugs the rocket per the Figma
+        // design. The offset is a % of width, so it scales with the canvas.
+        style={{ aspectRatio: "488 / 456", marginBottom: "-14%" }}
       >
         <svg
           className="pointer-events-none absolute inset-0 z-[1] h-full w-full overflow-visible"

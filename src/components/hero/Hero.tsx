@@ -250,12 +250,11 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
         </div>
       </section>
 
-      <section
-        className="relative z-10 -mt-20 border-t border-b border-line-emphasis tablet:-mt-28 desktop:-mt-40"
-        style={{
-          backgroundColor: "var(--hero-canvas)",
-        }}
-      >
+      {/* Logo band sits on the raised purple, one step lighter than the
+          inverse hero above and the inverse section below — its own step in
+          the section alternation. The marquee's edge fade is a transparency
+          mask, so it fades into this band colour automatically. */}
+      <section className="relative z-10 -mt-20 border-t border-b border-line-emphasis bg-surface-inverse-raised tablet:-mt-28 desktop:-mt-40">
         <LogoMarquee />
       </section>
     </div>

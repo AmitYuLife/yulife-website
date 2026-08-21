@@ -16,7 +16,26 @@ function capitalizeFirst(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-export default function YunityDiagram() {
+export type YunityContent = {
+  heading: string;
+  body: string;
+  steps: readonly { title: string; description: string }[];
+};
+
+/**
+ * The Yunity lockup / heading / body card, the live star, and the three
+ * Sense/Interpret/Guide outcome cards. Copy defaults to the homepage `yunity`
+ * data; pass `content` to reuse the same visual with different copy (e.g. the
+ * Health product page's "business pulse" section). The star and outcome cards
+ * carry the `data-pillar-node` anchors the parent measures for ConnectingPaths.
+ */
+export default function YunityDiagram({
+  content = yunity,
+  headingId = "yunity-heading",
+}: {
+  content?: YunityContent;
+  headingId?: string;
+}) {
   return (
     <div {...domSrc("YunityDiagram")} className="flex flex-col items-center gap-[var(--layout-section-gap)]">
       {/* Framed lockup, heading, and body — single column (Figma SectionCard).
@@ -31,14 +50,14 @@ export default function YunityDiagram() {
               className="h-64 w-[138px] shrink-0"
             />
             <h2
-              id="yunity-heading"
+              id={headingId}
               className="type-heading-h2 text-center text-on-inverse"
             >
-              {yunity.heading}
+              {content.heading}
             </h2>
           </div>
           <p className="type-body-lg w-full text-center text-on-inverse">
-            {yunity.body}
+            {content.body}
           </p>
         </div>
       </SectionCard>
@@ -62,7 +81,7 @@ export default function YunityDiagram() {
         data-reveal
         className="flex w-full max-w-[1216px] flex-col gap-stack text-center tablet:flex-row tablet:gap-group"
       >
-        {yunity.steps.map((step, i) => (
+        {content.steps.map((step, i) => (
           <div
             key={step.title}
             data-pillar-node="bottom"

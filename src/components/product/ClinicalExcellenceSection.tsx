@@ -1,16 +1,17 @@
-import { assetPath } from "@/lib/assetPath";
 import { domSrc } from "@/lib/domSrc";
+import RevealCardGrid from "@/components/ui/RevealCardGrid";
 import type { ClinicalExcellenceSection as ClinicalExcellenceData } from "@/data/pages/types";
 
 /**
  * Clinical-benefits section for the Health product page (Figma node 2357:1512).
  *
- * A dark-purple panel (surface-inverse, a step darker than the raised
- * everyday-value section above it): a serif headline over a supporting
- * paragraph, then a grid of illustrated benefit callouts — a 120px spot
- * illustration, a bold title and a paragraph each. Three across on desktop,
- * two on tablet, one on mobile. Static, like the sibling CarrierQuoteSection —
- * spacing follows the standard section rhythm rather than pinning to the frame.
+ * A raised dark-purple panel (surface-inverse-raised, a step lighter than the
+ * inverse everyday-value section above it): a serif headline over a supporting
+ * paragraph, then a bordered `RevealCardGrid` of illustrated benefit
+ * callouts — hover (or tap/keyboard on touch) a card to slide up and reveal
+ * its body copy, the same reveal as the Proven ROI stat columns. Three
+ * across on desktop, two on tablet, one on mobile. Spacing follows the
+ * standard section rhythm rather than pinning to the frame.
  */
 export default function ClinicalExcellenceSection({
   data,
@@ -22,7 +23,7 @@ export default function ClinicalExcellenceSection({
   return (
     <section
       {...domSrc("ClinicalExcellenceSection")}
-      className="border-b border-line-emphasis bg-surface-inverse"
+      className="border-b border-line-emphasis bg-surface-inverse-raised"
     >
       <div className="page-container-wide section-y-lg flex flex-col gap-section-gap">
         {/* Header — eyebrow / serif H2 / supporting paragraph */}
@@ -36,25 +37,9 @@ export default function ClinicalExcellenceSection({
           </p>
         </header>
 
-        {/* Illustrated benefit callouts */}
-        <ul className="grid gap-x-section-gap gap-y-group sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map((card) => (
-            <li key={card.title} className="flex flex-col gap-group">
-              <img
-                src={assetPath(card.icon)}
-                alt={card.alt}
-                width={120}
-                height={120}
-                className="h-30 w-auto self-start object-contain"
-                loading="lazy"
-              />
-              <div className="flex flex-col gap-related">
-                <h3 className="type-heading-h4 text-on-inverse">{card.title}</h3>
-                <p className="type-body-lg text-on-inverse/90">{card.body}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {/* Illustrated benefit callouts — hover (or tap) a card to reveal
+            its body copy. */}
+        <RevealCardGrid items={cards} />
 
         {footnote && (
           <p className="type-body-sm text-on-inverse/60">{footnote}</p>

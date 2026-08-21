@@ -166,7 +166,9 @@ function ProductCard({
           className={[
             CARD_CLASS,
             "group block border transition-colors duration-200",
-            isActive ? "border-transparent" : "border-line-emphasis",
+            isActive
+              ? "border-transparent"
+              : "border-line-emphasis bg-surface-inverse-raised",
           ].join(" ")}
         >
           {(isActive || isExiting) && (
@@ -497,7 +499,7 @@ export default function ProductShowcase() {
   return (
     <section {...domSrc("ProductShowcase")}
       ref={scope}
-      className="relative overflow-x-clip overflow-y-visible border-b border-line-emphasis bg-surface-inverse"
+      className="relative overflow-x-clip overflow-y-visible border-b border-line-emphasis bg-surface-inverse-raised"
       aria-labelledby="protect-heading"
     >
       <div className="page-container pt-[var(--layout-section-y-lg)]">

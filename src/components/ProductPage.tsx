@@ -6,10 +6,12 @@ import EverydayValueSection, {
   type CarrierLogo,
 } from "@/components/product/EverydayValueSection";
 import ClinicalExcellenceSection from "@/components/product/ClinicalExcellenceSection";
+import ProvenRoiSection from "@/components/product/ProvenRoiSection";
+import BusinessPulseSection from "@/components/product/BusinessPulseSection";
+import JoinMissionCard from "@/components/home/JoinMissionCard";
+import FaqSection from "@/components/product/FaqSection";
 import {
-  ClosingCtaBand,
   Eyebrow,
-  FaqAccordion,
   ImagePlaceholder,
   StatTiles,
 } from "@/components/section/shared";
@@ -23,6 +25,8 @@ export default function ProductPage({ data }: { data: ProductPageData }) {
   const replacedNumbers = new Set<number>();
   if (data.everydayValue) replacedNumbers.add(1);
   if (data.clinicalExcellence) replacedNumbers.add(2);
+  if (data.businessPulse) replacedNumbers.add(3);
+  if (data.provenRoi) replacedNumbers.add(4);
   const valueSections = data.valueSections?.filter(
     (section) => !replacedNumbers.has(section.number),
   );
@@ -76,6 +80,16 @@ export default function ProductPage({ data }: { data: ProductPageData }) {
       {data.clinicalExcellence && (
         <ClinicalExcellenceSection data={data.clinicalExcellence} />
       )}
+
+      {/* Proven ROI (bespoke animated stat band). Replaces the "Proven ROI"
+          grey-box value section (number 4); per the design it sits directly
+          after clinical excellence and above the Smarter Protection section. */}
+      {data.provenRoi && <ProvenRoiSection data={data.provenRoi} />}
+
+      {/* Business pulse (bespoke Yunity block, shared with the homepage).
+          Replaces the "Smarter protection" grey-box value section (number 3);
+          sits directly below Proven ROI. */}
+      {data.businessPulse && <BusinessPulseSection data={data.businessPulse} />}
 
       {/* Cash plan: explainer */}
       {data.explainer && (
@@ -198,14 +212,8 @@ export default function ProductPage({ data }: { data: ProductPageData }) {
         </SectionBlock>
       )}
 
-      {/* FAQ */}
-      <SectionBlock
-        block={data.coverage ? "7" : "9"}
-        label="FAQ accordion"
-        flag={data.flags?.includes("FAQ near-duplicates — de-duplicate before build") ? "Near-duplicate questions" : undefined}
-      >
-        <FaqAccordion questions={data.faqs} />
-      </SectionBlock>
+      {/* FAQ — bespoke accordion on the raised purple surface. */}
+      <FaqSection faqs={data.faqs} />
 
       {/* Legal footer (Cash Plan) */}
       {data.legalFooter && (
@@ -214,15 +222,9 @@ export default function ProductPage({ data }: { data: ProductPageData }) {
         </SectionBlock>
       )}
 
-      {/* Closing CTA for standard product pages */}
-      {!data.legalFooter && (
-        <SectionBlock block="10" label="Closing CTA" band innerClassName="py-16">
-          <ClosingCtaBand
-            heading="Ready to learn more?"
-            cta={data.primaryCta}
-          />
-        </SectionBlock>
-      )}
+      {/* Closing CTA — the "Join the mission to inspire life" section, an exact
+          copy of the homepage closer (Figma 2179:2485). */}
+      {!data.legalFooter && <JoinMissionCard />}
     </>
   );
 }

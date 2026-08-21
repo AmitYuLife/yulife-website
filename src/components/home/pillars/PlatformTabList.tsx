@@ -47,7 +47,7 @@ export default function PlatformTabList({
         onActiveChange={onActiveChange}
         ariaLabel="Platform capabilities"
         orientation="horizontal"
-        className="relative z-10 grid w-full grid-cols-2 rounded-md border border-line-emphasis bg-surface-inverse tablet:grid-cols-4"
+        className="relative z-10 grid w-full grid-cols-2 rounded-md border border-line-emphasis bg-surface-inverse-raised tablet:grid-cols-4"
         tabClassName="type-label h-14 px-24 text-center"
         tabClassNameFor={(index, selected) =>
           `${tabBorderClass(index)} ${
