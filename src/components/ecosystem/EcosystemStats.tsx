@@ -2,7 +2,7 @@
 
 import { ecosystem } from "@/data/home-content";
 import { useReveal } from "@/components/home/useReveal";
-import { StatsColumns } from "@/components/stats";
+import StatCardFan from "@/components/product/StatCardFan";
 import { domSrc } from "@/lib/domSrc";
 
 export default function EcosystemStats() {
@@ -30,9 +30,7 @@ export default function EcosystemStats() {
           </h2>
         </div>
 
-        <div data-reveal className="w-full flex justify-center">
-          <StatsColumns stats={ecosystem.stats} />
-        </div>
+        <StatCardFan stats={ecosystem.stats} />
       </div>
     </section>
   );

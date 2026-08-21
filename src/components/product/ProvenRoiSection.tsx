@@ -1,18 +1,17 @@
 "use client";
 
-import { StatsColumns } from "@/components/stats";
+import StatCardFan from "@/components/product/StatCardFan";
 import { useReveal } from "@/components/home/useReveal";
 import { domSrc } from "@/lib/domSrc";
 import type { ProvenRoiSection as ProvenRoiData } from "@/data/pages/types";
 
 /**
- * "Proven ROI" section for the Health product page (Figma node 2357:1635).
+ * "Proven ROI" section for the Health product page (Figma node 2425:5202).
  *
  * An inverse dark-purple band with a centred header — eyebrow, serif headline and
- * a supporting paragraph — over a full-width row of the shared animated stat
- * columns. The notes run longer here than on the homepage, so the reveal uses
- * `type-body` and each column carries its source citation. Replaces the "Proven
- * ROI" grey-box value section (number 4).
+ * a supporting paragraph — over the stat "fan of playing cards" (`StatCardFan`):
+ * each stat is a two-faced card that flips to reveal its note and source. Replaces
+ * the "Proven ROI" grey-box value section (number 4).
  */
 export default function ProvenRoiSection({ data }: { data: ProvenRoiData }) {
   const scope = useReveal<HTMLElement>();
@@ -36,12 +35,10 @@ export default function ProvenRoiSection({ data }: { data: ProvenRoiData }) {
               {heading}
             </h2>
           </div>
-          <p className="type-body-lg max-w-[62ch] text-on-inverse/85">{body}</p>
+          <p className="type-body-lg max-w-[62ch] text-on-inverse">{body}</p>
         </div>
 
-        <div data-reveal className="flex w-full justify-center">
-          <StatsColumns stats={stats} noteClassName="type-body-sm" />
-        </div>
+        <StatCardFan stats={stats} />
       </div>
     </section>
   );
