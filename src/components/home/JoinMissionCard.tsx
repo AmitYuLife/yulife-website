@@ -48,7 +48,7 @@ export default function JoinMissionCard() {
     <section {...domSrc("JoinMissionCard")}
       ref={scope}
       data-rocket-bounds
-      className="relative overflow-hidden border-t border-b border-line-emphasis"
+      className="relative overflow-hidden border-b border-line-emphasis"
       style={{ backgroundColor: "var(--surface-inverse-raised)" }}
       aria-labelledby="final-cta-heading"
     >

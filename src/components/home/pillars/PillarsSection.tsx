@@ -168,7 +168,7 @@ export default function PillarsSection() {
           divider (overflowing ~74px = half their 148px height into this band), so
           the top padding adds that 74px back — making the visible gap above the
           SectionCard match the section-y gap below the outcome cards. */}
-      <div className="pointer-events-none relative bg-surface-inverse-raised">
+      <div className="pointer-events-none relative border-b border-line-emphasis bg-surface-inverse-raised">
         {/* Padding-top clears the straddling boxes; pointer-events stay off that
             spacer so the lower half of each box remains hoverable. */}
         <div className="page-container py-[var(--layout-section-y)] desktop:pt-[calc(var(--layout-section-y)+74px)]">

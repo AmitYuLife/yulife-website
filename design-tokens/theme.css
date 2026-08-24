@@ -313,4 +313,9 @@
   .container-page { width: 100%; max-width: var(--layout-container-max); margin-inline: auto; padding-inline: var(--layout-page-margin); }
   .section-y     { padding-block: var(--layout-section-y); }
   .section-y-lg  { padding-block: var(--layout-section-y-lg); }
+
+  /* Full-bleed section hairline. Bottom edge only — adjacent sections must
+     never both declare a border on their shared edge (border-b + border-t
+     stacks to a double line). */
+  .section-divider { border-bottom: 1px solid var(--line-emphasis); }
 }
