@@ -219,7 +219,17 @@ function ProductCard({
   );
 }
 
-export default function ProductShowcase() {
+export default function ProductShowcase({
+  surface = "inverse-raised",
+}: {
+  /**
+   * Section background. Defaults to "inverse-raised" (the homepage). Pages that
+   * reuse this section elsewhere in a section stack pass whichever surface keeps
+   * backgrounds alternating with their neighbours — the cards' own colour is
+   * fixed and unaffected either way.
+   */
+  surface?: "inverse" | "inverse-raised";
+} = {}) {
   const scope = useReveal<HTMLElement>();
   const trackRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
@@ -499,7 +509,9 @@ export default function ProductShowcase() {
   return (
     <section {...domSrc("ProductShowcase")}
       ref={scope}
-      className="relative overflow-x-clip overflow-y-visible border-b border-line-emphasis bg-surface-inverse-raised"
+      className={`relative overflow-x-clip overflow-y-visible border-b border-line-emphasis ${
+        surface === "inverse" ? "bg-surface-inverse" : "bg-surface-inverse-raised"
+      }`}
       aria-labelledby="protect-heading"
     >
       <div className="page-container pt-[var(--layout-section-y-lg)]">

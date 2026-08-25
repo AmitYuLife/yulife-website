@@ -12,13 +12,25 @@ const AWARDS = [
   assetPath("/home/award-3.svg"),
 ];
 
-export default function TrustedSection() {
+export default function TrustedSection({
+  surface = "inverse",
+}: {
+  /**
+   * Section background. Defaults to "inverse" (the homepage). Pages that reuse
+   * this section elsewhere in a section stack pass whichever surface keeps
+   * backgrounds alternating with their neighbours — the tabbed panel's own
+   * colour is fixed and unaffected either way.
+   */
+  surface?: "inverse" | "inverse-raised";
+} = {}) {
   const scope = useReveal<HTMLElement>();
 
   return (
     <section {...domSrc("TrustedSection")}
       ref={scope}
-      className="relative overflow-hidden border-b border-line-emphasis bg-surface-inverse"
+      className={`relative overflow-hidden border-b border-line-emphasis ${
+        surface === "inverse-raised" ? "bg-surface-inverse-raised" : "bg-surface-inverse"
+      }`}
       aria-labelledby="trusted-heading"
     >
       <div className="page-container section-y">

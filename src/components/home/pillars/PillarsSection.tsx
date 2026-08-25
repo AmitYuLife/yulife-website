@@ -35,8 +35,20 @@ const EMPTY: Geometry = {
  * connecting lines are measured from the real DOM (box bottoms → star → card
  * tops) so the convergence behind the Yunity star holds at every width.
  */
-export default function PillarsSection() {
+export default function PillarsSection({
+  firstBand = "inverse",
+}: {
+  /**
+   * Background of the first ("one platform") band; the second (Yunity) band
+   * always takes the other surface. Defaults to "inverse" (the homepage). Pages
+   * that reuse this section elsewhere in a section stack pass whichever value
+   * keeps backgrounds alternating with their neighbours — the capability boxes
+   * and Yunity card keep their own fixed colour either way.
+   */
+  firstBand?: "inverse" | "inverse-raised";
+} = {}) {
   const revealScope = useReveal<HTMLElement>();
+  const secondBand = firstBand === "inverse" ? "inverse-raised" : "inverse";
   const rootRef = useRef<HTMLElement | null>(null);
   const [active, setActive] = useState(DEFAULT_ACTIVE_TAB);
   const [geo, setGeo] = useState<Geometry>(EMPTY);
@@ -134,8 +146,12 @@ export default function PillarsSection() {
         bottomPoints={geo.bottomPoints}
       />
 
-      {/* Band 1 — capability platform (inverse; the raised yunity band follows) */}
-      <div className="relative border-b border-line-emphasis bg-surface-inverse">
+      {/* Band 1 — capability platform */}
+      <div
+        className={`relative border-b border-line-emphasis ${
+          firstBand === "inverse-raised" ? "bg-surface-inverse-raised" : "bg-surface-inverse"
+        }`}
+      >
         {/* Bottom padding drops to zero at desktop so the capability boxes'
             natural bottom lands on the divider; the grid itself is then pulled
             down half its height to straddle it (see TabbedPanel). */}
@@ -168,7 +184,11 @@ export default function PillarsSection() {
           divider (overflowing ~74px = half their 148px height into this band), so
           the top padding adds that 74px back — making the visible gap above the
           SectionCard match the section-y gap below the outcome cards. */}
-      <div className="pointer-events-none relative border-b border-line-emphasis bg-surface-inverse-raised">
+      <div
+        className={`pointer-events-none relative border-b border-line-emphasis ${
+          secondBand === "inverse-raised" ? "bg-surface-inverse-raised" : "bg-surface-inverse"
+        }`}
+      >
         {/* Padding-top clears the straddling boxes; pointer-events stay off that
             spacer so the lower half of each box remains hoverable. */}
         <div className="page-container py-[var(--layout-section-y)] desktop:pt-[calc(var(--layout-section-y)+74px)]">

@@ -8,6 +8,7 @@ import { assetPath } from "@/lib/assetPath";
 import { domSrc } from "@/lib/domSrc";
 import type {
   EverydayValueSection as EverydayValueData,
+  EverydayValuePanel,
   Quote,
 } from "@/data/pages/types";
 
@@ -58,11 +59,11 @@ function roundedBorderPath(
 }
 
 /**
- * The trailing "every day" is set in italic serif, matching the hero headline.
+ * The trailing accent fragment is set in italic serif, matching the hero
+ * headline. Defaults to "every day" (the Health page) when no accent is given.
  */
-function Heading({ text }: { text: string }) {
-  const accent = "every day";
-  if (text.endsWith(` ${accent}`)) {
+function Heading({ text, accent = "every day" }: { text: string; accent?: string }) {
+  if (accent && text.endsWith(` ${accent}`)) {
     return (
       <h2 className="type-display text-on-inverse">
         {text.slice(0, text.length - accent.length)}
@@ -71,6 +72,83 @@ function Heading({ text }: { text: string }) {
     );
   }
   return <h2 className="type-display text-on-inverse">{text}</h2>;
+}
+
+/**
+ * The gradient-border trace overlaid on the closing card. Kept invisible until
+ * the emphasis rail's comet arrives (opacity driven by the section's GSAP via
+ * the `data-ev-quote-path` hook), then laps the border once. Shared by the
+ * testimonial QuoteBlock and the heading/body PanelBlock so both animate
+ * identically. preserveAspectRatio is "none" because the viewBox is set to the
+ * card's exact pixel box at runtime.
+ */
+function GradientBorderTrace() {
+  return (
+    <svg
+      data-ev-quote-svg
+      aria-hidden
+      preserveAspectRatio="none"
+      className="pointer-events-none absolute -inset-px hidden overflow-visible desktop:block"
+    >
+      <defs>
+        <linearGradient id="ev-quote-gradient" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="var(--text-accent-blue)" />
+          <stop offset="37%" stopColor="var(--text-accent-purple)" />
+          <stop offset="63%" stopColor="var(--text-accent-green)" />
+          <stop offset="100%" stopColor="var(--text-accent-yellow)" />
+        </linearGradient>
+      </defs>
+      <path
+        data-ev-quote-path
+        fill="none"
+        stroke="url(#ev-quote-gradient)"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        pathLength={100}
+        strokeDasharray="22 78"
+        style={{ opacity: 0 }}
+      />
+    </svg>
+  );
+}
+
+/** A block's body — one paragraph, or several stacked <p>s. */
+function BlockBody({ body }: { body: string | readonly string[] }) {
+  const paragraphs = Array.isArray(body) ? body : [body as string];
+  return (
+    <div className="flex flex-col gap-flow">
+      {paragraphs.map((paragraph, index) => (
+        <p key={index} className="type-body-lg text-on-inverse">
+          {paragraph}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * PanelBlock — a heading + body card used as the closing panel in place of the
+ * testimonial QuoteBlock (e.g. the Businesses "3 simple steps" section). Carries
+ * the same `data-ev-quote*` hooks so the emphasis rail runs down into it and the
+ * gradient border laps it exactly as it does the quote card.
+ */
+function PanelBlock({ panel }: { panel: EverydayValuePanel }) {
+  return (
+    <div
+      data-ev-quote
+      className="relative flex w-full flex-col gap-block-gap rounded-[var(--radius-sm)] border border-line-emphasis bg-surface-inverse p-section-gap"
+    >
+      <GradientBorderTrace />
+      <h3 className="type-heading-h3 text-on-inverse">{panel.heading}</h3>
+      <div className="flex flex-col gap-flow">
+        {panel.paragraphs.map((paragraph, index) => (
+          <p key={index} className="type-body-lg text-on-inverse">
+            {paragraph}
+          </p>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -96,34 +174,7 @@ function QuoteBlock({
       data-ev-quote
       className="relative flex w-full flex-col gap-flow rounded-[var(--radius-md)] border border-line-emphasis bg-surface-inverse-raised p-[var(--gap-group)]"
     >
-      {/* Gradient border trace — desktop-only flourish, kept invisible until the
-          rail's head arrives (opacity driven by GSAP). preserveAspectRatio is
-          "none" because the viewBox is set to the block's exact pixel box. */}
-      <svg
-        data-ev-quote-svg
-        aria-hidden
-        preserveAspectRatio="none"
-        className="pointer-events-none absolute -inset-px hidden overflow-visible desktop:block"
-      >
-        <defs>
-          <linearGradient id="ev-quote-gradient" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--text-accent-blue)" />
-            <stop offset="37%" stopColor="var(--text-accent-purple)" />
-            <stop offset="63%" stopColor="var(--text-accent-green)" />
-            <stop offset="100%" stopColor="var(--text-accent-yellow)" />
-          </linearGradient>
-        </defs>
-        <path
-          data-ev-quote-path
-          fill="none"
-          stroke="url(#ev-quote-gradient)"
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          pathLength={100}
-          strokeDasharray="22 78"
-          style={{ opacity: 0 }}
-        />
-      </svg>
+      <GradientBorderTrace />
 
       <blockquote className="type-heading-h3 text-balance text-on-inverse">
         &ldquo;{quote.text}&rdquo;
@@ -180,13 +231,29 @@ export default function EverydayValueSection({
   data,
   quote,
   carrierLogo,
+  panel,
+  surface = "inverse",
 }: {
   data: EverydayValueData;
   quote?: Quote;
   carrierLogo?: CarrierLogo;
+  /**
+   * Closing card. When set, a heading/body PanelBlock renders in place of the
+   * testimonial QuoteBlock (same gradient-border trace). Takes precedence over
+   * `quote`.
+   */
+  panel?: EverydayValuePanel;
+  /**
+   * Section background. The closing card takes the opposite surface so it always
+   * contrasts. Defaults to "inverse" (dark section, raised card — the product
+   * pages); the Businesses variant flips this.
+   */
+  surface?: "inverse" | "inverse-raised";
 }) {
   const root = useRef<HTMLDivElement>(null);
-  const { eyebrow, heading, lead, body, blocks } = data;
+  const { eyebrow, heading, accent, lead, body, blocks } = data;
+  const sectionBgClass =
+    surface === "inverse-raised" ? "bg-surface-inverse-raised" : "bg-surface-inverse";
 
   useGSAP(
     () => {
@@ -394,7 +461,7 @@ export default function EverydayValueSection({
   return (
     <section
       {...domSrc("EverydayValueSection")}
-      className="section-y border-b border-line-emphasis bg-surface-inverse"
+      className={`section-y border-b border-line-emphasis ${sectionBgClass}`}
     >
       <div ref={root} className="page-container-wide flex flex-col gap-section-gap">
         {/* Header — display headline (left) + supporting copy (bottom-aligned
@@ -403,7 +470,7 @@ export default function EverydayValueSection({
         <header className="grid w-full gap-flow desktop:grid-cols-[minmax(0,1fr)_440px] desktop:items-end desktop:gap-x-section-gap">
           <div className="flex flex-col gap-related">
             <p className="type-eyebrow uppercase text-accent-purple">{eyebrow}</p>
-            <Heading text={heading} />
+            <Heading text={heading} accent={accent} />
           </div>
           <div className="flex flex-col gap-flow">
             <p className="type-body-lg text-on-inverse">{lead}</p>
@@ -481,14 +548,19 @@ export default function EverydayValueSection({
                     loading="lazy"
                   />
                   <h3 className="type-heading-h4 text-on-inverse">{block.title}</h3>
-                  <p className="type-body-lg text-on-inverse">{block.body}</p>
+                  <BlockBody body={block.body} />
                 </li>
               ))}
             </ol>
           </div>
 
-          {/* QuoteBlock — moved into this section from its standalone version */}
-          {quote && <QuoteBlock quote={quote} carrierLogo={carrierLogo} />}
+          {/* Closing card — a heading/body panel when `panel` is given, else the
+              testimonial quote. Both carry the rail's gradient-border trace. */}
+          {panel ? (
+            <PanelBlock panel={panel} />
+          ) : (
+            quote && <QuoteBlock quote={quote} carrierLogo={carrierLogo} />
+          )}
         </div>
       </div>
     </section>

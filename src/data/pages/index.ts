@@ -15,6 +15,7 @@ export const authoredRoutes = [
   "/solutions/employee-surveys",
   "/solutions/reward-and-recognition",
   "/solutions/wellbeing-insights-reporting",
+  "/who-we-help/businesses",
   "/who-we-help/carriers",
   "/who-we-help/advisers",
   "/who-we-help/individuals",

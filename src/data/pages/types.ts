@@ -60,7 +60,8 @@ export type ContentSection = {
 /** One highlight in the scroll-driven "everyday value" section. */
 export type EverydayValueBlock = {
   title: string;
-  body: string;
+  /** One paragraph, or several rendered as stacked <p>s. */
+  body: string | readonly string[];
   /** Spot illustration shown in the card while this block is active; path under /public. */
   image: string;
   alt: string;
@@ -74,10 +75,24 @@ export type EverydayValueBlock = {
 export type EverydayValueSection = {
   eyebrow: string;
   heading: string;
+  /**
+   * Trailing fragment of `heading` set in italic serif. Defaults to "every day"
+   * (the Health page's accent) when omitted.
+   */
+  accent?: string;
   /** Bold lead line above the supporting paragraph. */
   lead: string;
   body: string;
   blocks: EverydayValueBlock[];
+};
+
+/**
+ * Optional closing panel for `EverydayValueSection` — a heading + body card in
+ * place of the testimonial QuoteBlock, carrying the same gradient-border trace.
+ */
+export type EverydayValuePanel = {
+  heading: string;
+  paragraphs: readonly string[];
 };
 
 /** One clinical-benefit callout: a spot illustration, a title and a paragraph. */
