@@ -80,12 +80,22 @@ route handlers, no `next/image` optimisation. Reference `/public` assets through
 for exactly this reason; sharing `.next` leaves the dev server serving HTML pointing
 at 404'd CSS chunks.
 
-**Always inspect Figma through the MCP connector.** When working from any Figma
-design or Figma URL, pull the design through the figma-dev MCP tools
-(`get_design_context`, `get_screenshot`, `get_metadata`, `get_variable_defs`)
-before writing code. Never describe a design from memory or fall back to
-`WebFetch`, and never generate UI code without first inspecting the design through
-the connector.
+## Working from Figma
+
+**Read the design through the connector — never screenshot your way through it.**
+A screenshot is not how you read a Figma file; it is a thumbnail for orientation
+only and must never be the basis for writing code. For any Figma design or URL:
+
+1. **Invoke the `figma:figma-design-to-code` skill first.** It is a mandatory
+   prerequisite to `get_design_context` — do not skip it.
+2. Pull the *structured* design: `get_design_context` (layout, styles, generated
+   code), `get_metadata` (node tree), `get_variable_defs` (token values). These
+   return real measurements, colours, and token names — not pixels to eyeball.
+   `get_screenshot` is a supplement to those, never a substitute.
+3. Only then write code. Never describe a design from memory or via `WebFetch`.
+
+Writing *back* into Figma (`use_figma`, `create_new_file`) — invoke the
+`figma:figma-use` skill first; also mandatory.
 
 ## Commands
 
