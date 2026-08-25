@@ -92,16 +92,22 @@ function orbitPoint(theta: number, pw: number, ph: number, out: THREE.Vector3) {
  * coins would flash past her un-occluded for a frame before "clipping" into
  * their correct, hidden-behind-her state.
  */
-function PersonDepthMask({ onReady }: { onReady: () => void }) {
+function PersonDepthMask({
+  onReady,
+  personSrc,
+}: {
+  onReady: () => void;
+  personSrc: string;
+}) {
   const size = useThree((s) => s.size);
   const [ready, setReady] = useState(false);
   const texture = useMemo(
     () =>
-      new THREE.TextureLoader().load(PERSON_SRC, () => {
+      new THREE.TextureLoader().load(personSrc, () => {
         setReady(true);
         onReady();
       }),
-    [onReady],
+    [onReady, personSrc],
   );
   const pw = size.width / (1 + 2 * MARGIN);
   const ph = size.height / (1 + 2 * MARGIN);
@@ -242,7 +248,16 @@ function FrustumSync() {
   return null;
 }
 
-export default function HeroCoinOrbit() {
+/**
+ * @param personSrc Cutout used for the occlusion depth mask. Must be the same
+ * image the visible hero <img> renders, so the silhouette lines up. Defaults to
+ * the Businesses figure; pass another to swap the person (CMS).
+ */
+export default function HeroCoinOrbit({
+  personSrc = PERSON_SRC,
+}: {
+  personSrc?: string;
+} = {}) {
   const wrapper = useRef<HTMLDivElement>(null);
   const frameloop = useVisibleFrameloop(wrapper);
   // The whole layer stays hidden until the depth mask's texture has loaded —
@@ -252,7 +267,7 @@ export default function HeroCoinOrbit() {
   const handleMaskReady = useCallback(() => setMaskReady(true), []);
 
   // Once occlusion is ready, fade the coins in — same duration/ease as the
-  // person image's rise-in (BusinessesHero), so they arrive together instead
+  // person image's rise-in (PageHero), so they arrive together instead
   // of the coins popping in separately.
   useGSAP(
     () => {
@@ -294,7 +309,7 @@ export default function HeroCoinOrbit() {
       >
         <FrustumSync />
         <CoinLighting />
-        <PersonDepthMask onReady={handleMaskReady} />
+        <PersonDepthMask onReady={handleMaskReady} personSrc={personSrc} />
         <OrbitController />
       </Canvas>
     </div>

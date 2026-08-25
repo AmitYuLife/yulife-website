@@ -3,6 +3,11 @@ import { domSrc } from "@/lib/domSrc";
 
 export type IntroSectionContent = {
   heading: string;
+  /**
+   * Optional serif-italic fragment inside `heading` (e.g. "invisible"). The
+   * first occurrence is wrapped in an <em>; omit for a plain heading.
+   */
+  accent?: string;
   /** One <p> per entry. */
   paragraphs: readonly string[];
 };
@@ -21,7 +26,12 @@ const PHONE_CROP = "434 / 636";
  * meets wellbeing" heading and intro copy, above the app phone mock cropped at
  * the same point as the homepage hero (but static, no orbiting coins).
  */
-export default function IntroSection({ heading, paragraphs }: IntroSectionContent) {
+export default function IntroSection({
+  heading,
+  accent,
+  paragraphs,
+}: IntroSectionContent) {
+  const accentAt = accent ? heading.indexOf(accent) : -1;
   return (
     <section
       {...domSrc("IntroSection")}
@@ -34,7 +44,17 @@ export default function IntroSection({ heading, paragraphs }: IntroSectionConten
       */}
       <div className="page-container flex flex-col items-center gap-section-gap [padding-top:var(--layout-section-y-lg)]">
         <div className="flex max-w-[904px] flex-col items-center gap-group text-center">
-          <h2 className="type-heading-h2 text-on-inverse">{heading}</h2>
+          <h2 className="type-heading-h2 text-on-inverse">
+            {accent && accentAt !== -1 ? (
+              <>
+                {heading.slice(0, accentAt)}
+                <em className="italic">{accent}</em>
+                {heading.slice(accentAt + accent.length)}
+              </>
+            ) : (
+              heading
+            )}
+          </h2>
           <div className="flex flex-col gap-flow type-body-lg text-on-inverse">
             {paragraphs.map((paragraph, index) => (
               <p key={index} className="text-balance">

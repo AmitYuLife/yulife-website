@@ -93,6 +93,8 @@ export type EverydayValueSection = {
 export type EverydayValuePanel = {
   heading: string;
   paragraphs: readonly string[];
+  /** Optional button rendered beneath the paragraphs. */
+  cta?: Cta;
 };
 
 /** One clinical-benefit callout: a spot illustration, a title and a paragraph. */

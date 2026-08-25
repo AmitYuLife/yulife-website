@@ -102,6 +102,80 @@ export const navGroups: NavGroup[] = [
     ],
   },
   {
+    id: "solutions",
+    label: "Solutions",
+    tier: "primary",
+    purpose:
+      "Gives YuLife's individual features and services their own space. Underpins the audience and product pages, and serves buyers who want to understand how YuLife works before committing to a conversation. Also rehouses existing primary links and solution-led content.",
+    pages: [
+      {
+        label: "Employee Engagement",
+        route: "/solutions/employee-engagement",
+        purpose:
+          "How YuLife drives genuine engagement through gamification and daily habits — challenges, duels, leaderboards, team events — and why this reaches engagement levels typical benefits programmes don't.",
+        copyStatus: "approved",
+        copySource: "Employee Engagement",
+      },
+      {
+        label: "Rewards",
+        route: "/solutions/rewards",
+        purpose:
+          "How the rewards model works and why it motivates: what YuCoin is, how employees earn it, what they spend it on — connecting rewards back to health outcomes and employer value.",
+        copyStatus: "approved",
+        copySource: "Incentives & Rewards",
+      },
+      {
+        label: "Benefit Consolidation",
+        route: "/solutions/benefit-consolidation",
+        purpose:
+          "How YuLife brings an employee's benefits together in one place rather than scattered across providers — driving higher engagement across every benefit. Addresses an HR pain point and gives advisers a simplicity story.",
+        copyStatus: "approved",
+        copySource: "Benefit Consolidation",
+      },
+      {
+        label: "Mental Health & EAP",
+        route: "/solutions/mental-health-eap",
+        purpose:
+          "A clear picture of the mental health and EAP offering. Makes the case for proactive, everyday support (not a crisis service) and explains what's included.",
+        copyStatus: "approved",
+        copySource: "Mental Health (EAP)",
+      },
+      {
+        label: "Virtual GP",
+        route: "/solutions/virtual-gp",
+        purpose:
+          "Communicates fast, accessible GP access as both a health and productivity benefit — practical and frictionless, reducing absence and barriers to getting medical help quickly.",
+        copyStatus: "approved",
+        copySource: "Virtual GP",
+      },
+      {
+        label: "Wellbeing Insights & Reporting",
+        route: "/solutions/wellbeing-insights-reporting",
+        purpose:
+          "How YuLife gives employers meaningful visibility into workforce health and engagement — what data is available, how it's used, why it matters for benefits strategy and risk — without feeling like surveillance.",
+        copyStatus: "approved",
+        copySource: "Reporting",
+      },
+      {
+        label: "Employee Surveys",
+        route: "/solutions/employee-surveys",
+        purpose:
+          "How the built-in survey tool gives employers a regular, reliable read on wellbeing — part of a joined-up listening approach that helps HR act on what they hear.",
+        copyStatus: "approved",
+        copySource: "Employee Surveys",
+      },
+      {
+        label: "Reward & Recognition",
+        route: "/solutions/reward-and-recognition",
+        purpose:
+          "Connects recognition to the wellbeing journey rather than a standalone tool. NOTE: approved copy exists in the content doc but this page has no agreed home in the 'Revised' IA — confirm whether it belongs under Solutions.",
+        copyStatus: "approved",
+        copySource: "Reward & Recognition",
+        flag: "orphan",
+      },
+    ],
+  },
+  {
     id: "who-we-help",
     label: "Who we help",
     tier: "primary",
@@ -218,79 +292,6 @@ export const navGroups: NavGroup[] = [
           "Routes audiences (businesses, advisers, existing customers, press) to the right contact point and reduces friction in starting a conversation.",
         copyStatus: "none",
         flag: "under-consideration",
-      },
-    ],
-  },
-  {
-    id: "solutions",
-    label: "Solutions",
-    tier: "secondary",
-    purpose:
-      "Gives YuLife's individual features and services their own space. Underpins the audience and product pages, and serves buyers who want to understand how YuLife works before committing to a conversation. Also rehouses existing primary links and solution-led content.",
-    pages: [
-      {
-        label: "Employee Engagement",
-        route: "/solutions/employee-engagement",
-        purpose:
-          "How YuLife drives genuine engagement through gamification and daily habits — challenges, duels, leaderboards, team events — and why this reaches engagement levels typical benefits programmes don't.",
-        copyStatus: "approved",
-        copySource: "Employee Engagement",
-      },
-      {
-        label: "Rewards",
-        route: "/solutions/rewards",
-        purpose:
-          "How the rewards model works and why it motivates: what YuCoin is, how employees earn it, what they spend it on — connecting rewards back to health outcomes and employer value.",
-        copyStatus: "approved",
-        copySource: "Incentives & Rewards",
-      },
-      {
-        label: "Benefit Consolidation",
-        route: "/solutions/benefit-consolidation",
-        purpose:
-          "How YuLife brings an employee's benefits together in one place rather than scattered across providers — driving higher engagement across every benefit. Addresses an HR pain point and gives advisers a simplicity story.",
-        copyStatus: "none",
-      },
-      {
-        label: "Mental Health & EAP",
-        route: "/solutions/mental-health-eap",
-        purpose:
-          "A clear picture of the mental health and EAP offering. Makes the case for proactive, everyday support (not a crisis service) and explains what's included.",
-        copyStatus: "approved",
-        copySource: "Mental Health (EAP)",
-      },
-      {
-        label: "Virtual GP",
-        route: "/solutions/virtual-gp",
-        purpose:
-          "Communicates fast, accessible GP access as both a health and productivity benefit — practical and frictionless, reducing absence and barriers to getting medical help quickly.",
-        copyStatus: "approved",
-        copySource: "Virtual GP",
-      },
-      {
-        label: "Wellbeing Insights & Reporting",
-        route: "/solutions/wellbeing-insights-reporting",
-        purpose:
-          "How YuLife gives employers meaningful visibility into workforce health and engagement — what data is available, how it's used, why it matters for benefits strategy and risk — without feeling like surveillance.",
-        copyStatus: "approved",
-        copySource: "Reporting",
-      },
-      {
-        label: "Employee Surveys",
-        route: "/solutions/employee-surveys",
-        purpose:
-          "How the built-in survey tool gives employers a regular, reliable read on wellbeing — part of a joined-up listening approach that helps HR act on what they hear.",
-        copyStatus: "approved",
-        copySource: "Employee Surveys",
-      },
-      {
-        label: "Reward & Recognition",
-        route: "/solutions/reward-and-recognition",
-        purpose:
-          "Connects recognition to the wellbeing journey rather than a standalone tool. NOTE: approved copy exists in the content doc but this page has no agreed home in the 'Revised' IA — confirm whether it belongs under Solutions.",
-        copyStatus: "approved",
-        copySource: "Reward & Recognition",
-        flag: "orphan",
       },
     ],
   },

@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { Button } from "@/components/ui/Button";
 import { assetPath } from "@/lib/assetPath";
 import { domSrc } from "@/lib/domSrc";
 import type {
@@ -147,6 +148,13 @@ function PanelBlock({ panel }: { panel: EverydayValuePanel }) {
           </p>
         ))}
       </div>
+      {panel.cta && (
+        <div>
+          <Button href={panel.cta.href} size="lg" variant="solid" theme="onDark">
+            {panel.cta.label}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

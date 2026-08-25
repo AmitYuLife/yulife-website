@@ -6,6 +6,8 @@ import { domSrc } from "@/lib/domSrc";
 
 export type MarqueeStatsContent = {
   stats: readonly StatCountCardItem[];
+  /** Override the card grid, e.g. `desktop:grid-cols-3` for a three-stat row. */
+  cardsClassName?: string;
 };
 
 /**
@@ -14,7 +16,10 @@ export type MarqueeStatsContent = {
  * a bottom divider. The marquee is the site-wide `LogoMarquee`; the cards are
  * the Businesses-specific `StatCountCards`.
  */
-export default function MarqueeStatsSection({ stats }: MarqueeStatsContent) {
+export default function MarqueeStatsSection({
+  stats,
+  cardsClassName,
+}: MarqueeStatsContent) {
   return (
     <section
       {...domSrc("MarqueeStatsSection")}
@@ -24,7 +29,7 @@ export default function MarqueeStatsSection({ stats }: MarqueeStatsContent) {
       <div className="flex flex-col items-center gap-block-gap pb-section-gap">
         <LogoMarquee />
         <div className="page-container flex w-full justify-center">
-          <StatCountCards stats={stats} />
+          <StatCountCards stats={stats} className={cardsClassName} />
         </div>
       </div>
     </section>

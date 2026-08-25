@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import BusinessesHero, {
-  type BusinessesHeroContent,
-} from "@/components/businesses/BusinessesHero";
+import PageHero, { type PageHeroContent } from "@/components/hero/PageHero";
 import MarqueeStatsSection, {
   type MarqueeStatsContent,
 } from "@/components/businesses/MarqueeStatsSection";
@@ -18,6 +16,7 @@ import JoinMissionCard from "@/components/home/JoinMissionCard";
 import FaqSection from "@/components/product/FaqSection";
 import type { FaqEntry } from "@/data/pages/types";
 import { getPageByRoute } from "@/data/sitemap";
+import { assetPath } from "@/lib/assetPath";
 
 const route = "/who-we-help/businesses";
 const page = getPageByRoute(route);
@@ -29,7 +28,7 @@ export const metadata: Metadata = {
 
 // Hero copy from the Figma design (node 2495:7454). Verify against the approved
 // copy doc before launch.
-const hero: BusinessesHeroContent = {
+const hero: PageHeroContent = {
   eyebrow: "For businesses",
   headline: {
     lead: "Employee benefits that make a difference ",
@@ -39,12 +38,19 @@ const hero: BusinessesHeroContent = {
     "YuLife is an AI-forward insurance and wellbeing benefit. We bring group cover, " +
     "daily wellbeing and real rewards into a single experience, with insurance from " +
     "Bupa and MetLife. Available with cover, or as an app-only benefit.",
-  cta: { label: "Speak to our team", href: "/contact" },
+  ctas: [{ label: "Speak to our team", href: "/contact" }],
   ratings: [
     { platform: "Trustpilot", score: "4.9" },
     { platform: "Capterra", score: "4.8" },
     { platform: "App Store", score: "4.9" },
   ],
+  // The figure cutout with orbiting YuCoins (Figma node 2495:7454).
+  visual: {
+    kind: "person",
+    src: assetPath("/who-we-help/businesses-hero-person.webp"),
+    width: 962,
+    height: 1300,
+  },
 };
 
 // Stats + intro copy from the Figma design (nodes 2495:7526, 2495:7539). Verify
@@ -163,7 +169,7 @@ const faqs: FaqEntry[] = [
 export default function Page() {
   return (
     <>
-      <BusinessesHero {...hero} />
+      <PageHero {...hero} />
       <MarqueeStatsSection {...marqueeStats} />
       <IntroSection {...intro} />
       <LaunchStepsSection content={launchSteps} />

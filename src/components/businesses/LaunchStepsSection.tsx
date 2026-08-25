@@ -33,7 +33,8 @@ export type LaunchStepsContent = {
   lead: string;
   body: string;
   steps: readonly LaunchStep[];
-  panel: EverydayValuePanel;
+  /** Closing gradient-border card. Omit to end the section on the last step. */
+  panel?: EverydayValuePanel;
 };
 
 /** Fisher–Yates — client-only (called inside an effect), so no hydration skew. */

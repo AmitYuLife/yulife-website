@@ -1,5 +1,5 @@
 import SectionBlock from "@/components/section/SectionBlock";
-import ProductHero from "@/components/product/ProductHero";
+import PageHero from "@/components/hero/PageHero";
 import ProductLogoBar from "@/components/product/ProductLogoBar";
 import CarrierQuoteSection from "@/components/product/CarrierQuoteSection";
 import EverydayValueSection, {
@@ -15,10 +15,42 @@ import {
   ImagePlaceholder,
   StatTiles,
 } from "@/components/section/shared";
+import { assetPath } from "@/lib/assetPath";
 import type { ProductPageData } from "@/data/pages/types";
+
+// Hero carrier lockup logos, keyed by carrier name (the "Underwritten by …"
+// mark shown in the hero). Carriers without an entry fall back to their name.
+const HERO_CARRIER_LOGOS: Record<
+  string,
+  { src: string; width: number; height: number }
+> = {
+  Bupa: { src: assetPath("/logos/carriers/bupa.svg"), width: 123, height: 32 },
+};
+
+// Same static phone mockup across every product hero (2x export, 436×768 at 1x).
+const HERO_DEVICE = {
+  kind: "device" as const,
+  src: assetPath("/products/hero-phone-mockup-2x.png"),
+  width: 436,
+  height: 768,
+};
 
 export default function ProductPage({ data }: { data: ProductPageData }) {
   const heroCtas = data.hero.ctas ?? [data.primaryCta];
+
+  // Split the h1 so the clause after "… that" sets in italic serif (no hard
+  // break: at the design's measure the accent wraps onto its own line).
+  const thatAt = data.hero.h1.indexOf(" that ");
+  const heroHeadline =
+    thatAt === -1
+      ? { lead: data.hero.h1 }
+      : {
+          lead: data.hero.h1.slice(0, thatAt + 6),
+          accent: data.hero.h1.slice(thatAt + 6),
+        };
+  const heroCarrier = data.carrier
+    ? { name: data.carrier, logo: HERO_CARRIER_LOGOS[data.carrier] }
+    : undefined;
   // Bespoke sections replace their grey-box value-section equivalents (same
   // content, richer treatment), so drop those from the scaffold list:
   // everydayValue → value section 1, clinicalExcellence → value section 2.
@@ -41,13 +73,14 @@ export default function ProductPage({ data }: { data: ProductPageData }) {
   return (
     <>
       {/* Block 1 — Hero */}
-      <ProductHero
+      <PageHero
         eyebrow={data.hero.eyebrow}
-        h1={data.hero.h1}
+        headline={heroHeadline}
         body={data.hero.body}
         ctas={heroCtas}
-        carrier={data.carrier}
+        carrier={heroCarrier}
         ratings={data.ratings}
+        visual={HERO_DEVICE}
       />
 
       {/* Logo bar — dark single-row marquee directly under the hero */}

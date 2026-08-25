@@ -40,6 +40,19 @@ export const descriptions: Record<string, string> = {
   "/products/life-insurance": "Group life cover with real engagement",
   "/products/dental-insurance": "High-visibility benefit employees use",
   "/products/wellbeing-platform": "Gamified wellbeing that drives daily engagement",
+  "/solutions/employee-engagement":
+    "Gamified challenges and rewards that become a daily habit",
+  "/solutions/rewards": "Real rewards your people earn for healthy habits",
+  "/solutions/benefit-consolidation":
+    "Every benefit in one app your people open daily",
+  "/solutions/mental-health-eap":
+    "Everyday mental health support, not just the hard days",
+  "/solutions/virtual-gp": "A GP appointment in minutes, not weeks",
+  "/solutions/wellbeing-insights-reporting":
+    "The clearest view of your workforce you've had",
+  "/solutions/employee-surveys": "Hear from your people, know what to do next",
+  "/solutions/reward-and-recognition":
+    "Celebrate your people as part of their wellbeing",
   "/who-we-help/businesses": "For HR leaders, People teams and business owners",
   "/who-we-help/carriers": "Commercial partnerships for insurance carriers",
   "/who-we-help/advisers": "Tools, support and differentiation for EB consultants",
@@ -56,6 +69,7 @@ export const descriptions: Record<string, string> = {
 
 /** Category label per non-Products group (Products is handled specially). */
 const CATEGORY_LABELS: Record<string, string> = {
+  solutions: "SOLUTIONS",
   "who-we-help": "AUDIENCES",
   resources: "RESOURCES",
   about: "COMPANY",
