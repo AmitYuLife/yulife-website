@@ -84,32 +84,36 @@ export default function SitemapPage() {
         ))}
       </div>
 
-      <h2 className="mb-3 mt-10 text-xs font-semibold uppercase tracking-wide text-gray-400">
-        Secondary navigation — {secondary[0].label}
-      </h2>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {secondary[0].pages.map((p) => (
-          <Link
-            key={p.route}
-            href={p.route}
-            className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-4 py-3 text-sm hover:bg-gray-50"
-          >
-            <span className="flex items-center gap-2">
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  p.copyStatus === "approved" ? "bg-emerald-500" : "bg-gray-300"
-                }`}
-              />
-              <span className="text-gray-700">{p.label}</span>
-            </span>
-            {p.flag && (
-              <span className="text-amber-600" title={p.flag}>
-                ⚠
-              </span>
-            )}
-          </Link>
-        ))}
-      </div>
+      {secondary[0] && (
+        <>
+          <h2 className="mb-3 mt-10 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            Secondary navigation — {secondary[0].label}
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {secondary[0].pages.map((p) => (
+              <Link
+                key={p.route}
+                href={p.route}
+                className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-4 py-3 text-sm hover:bg-gray-50"
+              >
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      p.copyStatus === "approved" ? "bg-emerald-500" : "bg-gray-300"
+                    }`}
+                  />
+                  <span className="text-gray-700">{p.label}</span>
+                </span>
+                {p.flag && (
+                  <span className="text-amber-600" title={p.flag}>
+                    ⚠
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
     </section>
   );
 }
