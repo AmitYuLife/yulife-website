@@ -170,7 +170,7 @@ function PanelBlock({ panel }: { panel: EverydayValuePanel }) {
  * the overlaid SVG path (see the section's useGSAP). The path's geometry is set
  * at runtime from the block's measured box.
  */
-function QuoteBlock({
+export function QuoteBlock({
   quote,
   carrierLogo,
 }: {

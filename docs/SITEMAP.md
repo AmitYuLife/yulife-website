@@ -75,7 +75,9 @@ These are the points where the agreed IA and the content doc don't line up. Flag
 1. **Commission copy for the 8 stub-only content pages** (Dental, Wellbeing Platform, Benefit Consolidation, and the four Resources pages) — these block wireframing.
 2. **Resolve the three naming decisions** (Who we help / Solutions vs Features / public name for SaaS) early — they set URLs and redirects.
 3. **Make a call on Reward & Recognition** (keep under Solutions or drop) and on **Individuals** (standalone vs folded).
-4. Treat each page as a stack of **sections ("bricks")**, not a monolith — see `README.md`. This maps cleanly onto React Bricks and lets copy land section-by-section as it's approved.
+4. Treat each page as a stack of **sections**, not a monolith — see `README.md`. There is no
+   CMS; this structure just keeps copy edits isolated to data files section-by-section as
+   it's approved.
 
 ### User / business / tech lens
 - **User need:** self-identification (Who we help) and findability (clear Products vs Solutions split) are well served by this IA. Risk: Products vs Solutions overlap (e.g. is "Virtual GP" a product or a solution?) could confuse — worth a quick card-sort to validate.

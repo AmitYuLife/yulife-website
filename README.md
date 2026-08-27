@@ -1,9 +1,9 @@
 # YuLife 2026 Website
 
-Website redesign built with **Next.js 15 + Tailwind CSS 4**, structured so **React
-Bricks** can be the headless CMS in the build proper. The home page and a growing set
-of content pages are hand-authored; remaining routes render placeholder stubs until
-their copy and layout are ready.
+Website redesign built with **Next.js 15 + Tailwind CSS 4**. There is no CMS: content
+is edited directly in code, via a human → Claude → code workflow. The home page and a
+growing set of content pages are hand-authored; remaining routes render placeholder
+stubs until their copy and layout are ready.
 
 **Live preview:** [amityulife.github.io/yulife-website](https://amityulife.github.io/yulife-website) (GitHub Pages, static export)
 
@@ -72,7 +72,9 @@ Each template renders the page as a vertical stack of labelled section blocks
 primitives live in `src/components/section/shared.tsx`. This is deliberate:
 
 - it matches how real pages will be **composed from swappable sections**, and
-- it maps **1:1 onto React Bricks** "bricks" when the CMS goes in.
+- it keeps content and presentation separate, so copy can be updated by editing a data
+  file directly — no component changes needed — which suits the human-writes-the-brief,
+  Claude-edits-the-code workflow this project uses instead of a CMS.
 
 Replace blocks with polished section components as wireframing progresses. Because
 pages are already section-based, approved copy can land **section by section**

@@ -1,24 +1,23 @@
 import type { Metadata } from "next";
-import PageStub from "@/components/PageStub";
+import SimpleHero from "@/components/page/SimpleHero";
 import FaqSection from "@/components/product/FaqSection";
 import { dentalInsuranceFaqs } from "@/data/pages/products";
 import { getPageByRoute } from "@/data/sitemap";
 
-const page = getPageByRoute("/products/dental-insurance");
+const route = "/products/dental-insurance";
+const page = getPageByRoute(route);
 
 export const metadata: Metadata = {
   title: page.label,
   description: page.purpose,
 };
 
-// Hand-authored (see authoredRoutes in @/data/pages) so it survives `npm run
-// gen:pages`. Hero, quote and value-section copy aren't approved yet — the
-// rest of the page stays the grey-box PageStub — but the FAQ copy is
-// approved (Figma 2357:2321), so FaqSection renders alongside it.
+// Minimal bespoke placeholder hero (hero/quote/value copy not approved yet),
+// with the approved FAQ copy (Figma 2357:2321) wired in via FaqSection.
 export default function Page() {
   return (
     <>
-      <PageStub page={page} groupId="products" />
+      <SimpleHero page={page} />
       <FaqSection faqs={dentalInsuranceFaqs} />
     </>
   );

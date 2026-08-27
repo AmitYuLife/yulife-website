@@ -1,8 +1,7 @@
-export { productPages } from "./products";
-export { featurePages } from "./features";
-export { audiencePages } from "./audience";
-export { editorialPages } from "./editorial";
-
+// The wireframe template data collections (productPages / featurePages /
+// audiencePages / editorialPages) were removed with the wireframe template
+// system. `authoredRoutes` remains — it drives `npm run gen:pages`, marking the
+// hand-authored routes that the generator must not overwrite.
 export const authoredRoutes = [
   "/products/income-protection",
   "/products/health",
@@ -16,6 +15,7 @@ export const authoredRoutes = [
   "/solutions/reward-and-recognition",
   "/solutions/wellbeing-insights-reporting",
   "/who-we-help/businesses",
+  "/solutions/benefit-consolidation",
   "/who-we-help/carriers",
   "/who-we-help/advisers",
   "/who-we-help/individuals",

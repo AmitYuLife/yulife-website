@@ -10,7 +10,7 @@ export type StatCountCardItem = {
   value: string;
   /** Bold label beneath the number. Use `\n` for intentional line breaks. */
   label: string;
-  /** Stable key for lists / CMS items. */
+  /** Stable key when rendering a list. */
   id?: string;
 };
 

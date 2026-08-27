@@ -1,7 +1,9 @@
 # YuLife Website 2026 — working notes
 
 Next.js 15 (App Router, static export) + Tailwind v4 + GSAP + React Three Fiber.
-Marketing site redesign, structured so it can later move into React Bricks.
+Marketing site redesign. No CMS: content is edited directly in code via a human →
+Claude → code workflow. Structured as swappable sections/data so that workflow stays fast
+and copy changes are isolated to data files, not components.
 
 ## Finding code fast — do this before grepping
 

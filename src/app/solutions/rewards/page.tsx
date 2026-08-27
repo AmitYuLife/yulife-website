@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import FeaturePage from "@/components/FeaturePage";
-import { featurePages } from "@/data/pages/features";
+import SimpleHero from "@/components/page/SimpleHero";
 import { getPageByRoute } from "@/data/sitemap";
 
 const route = "/solutions/rewards";
 const page = getPageByRoute(route);
-const data = featurePages[route];
 
 export const metadata: Metadata = {
   title: page.label,
@@ -13,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <FeaturePage data={data} />;
+  return <SimpleHero page={page} />;
 }

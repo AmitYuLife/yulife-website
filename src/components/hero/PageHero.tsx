@@ -5,8 +5,8 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Button } from "@/components/ui/Button";
 import { TRUST_MARKS } from "@/components/hero/TrustRatings";
-import HeroImage from "@/components/product/HeroImage";
 import HeroCoinOrbit from "@/components/businesses/HeroCoinOrbit";
+import { cn } from "@/lib/utils";
 import { domSrc } from "@/lib/domSrc";
 import type { Cta, Rating } from "@/data/pages/types";
 
@@ -109,10 +109,10 @@ function TrustRow({ ratings }: { ratings: Rating[] }) {
 
 /**
  * The single site hero for content pages (products, audiences, solutions).
- * Everything is toggleable so a CMS can compose it per page: eyebrow, an
- * italic-accent headline, body, one or more CTAs, an optional carrier lockup,
- * optional ratings, and a swappable visual — either a phone `device` or a
- * `person` cutout with (optionally) orbiting coins.
+ * Every piece is a prop so a page's hero is composed per-page in its data file:
+ * eyebrow, an italic-accent headline, body, one or more CTAs, an optional
+ * carrier lockup, optional ratings, and a swappable visual — either a phone
+ * `device` or a `person` cutout with (optionally) orbiting coins.
  *
  * Replaces the former ProductHero (device + carrier) and BusinessesHero
  * (person + coins); both were the same frame with a different visual.
@@ -127,11 +127,11 @@ export default function PageHero({
   visual,
 }: PageHeroContent) {
   const scope = useRef<HTMLDivElement>(null);
-  const personRef = useRef<HTMLImageElement>(null);
+  const visualRef = useRef<HTMLImageElement>(null);
 
   // The copy block glides in on arrival — heading, body and the rows below it
-  // lift + fade in DOM order (y: 24 → 0, power3.out, 0.08 stagger). A person
-  // visual rises alongside it; a device visual animates itself (HeroImage).
+  // lift + fade in DOM order (y: 24 → 0, power3.out, 0.08 stagger). The visual
+  // (device or person) rises in alongside it.
   useGSAP(
     () => {
       const items = gsap.utils.toArray<HTMLElement>(
@@ -149,8 +149,8 @@ export default function PageHero({
             clearProps: "transform,opacity",
           });
         }
-        if (personRef.current) {
-          gsap.from(personRef.current, {
+        if (visualRef.current) {
+          gsap.from(visualRef.current, {
             y: 24,
             opacity: 0,
             duration: 0.45,
@@ -186,26 +186,45 @@ export default function PageHero({
         bottom border. Horizontal inset is the 1216 content grid.
       */}
       <div className="page-container-wide relative flex flex-col items-center gap-section-gap [padding-top:var(--layout-section-y)] desktop:block desktop:[padding-bottom:var(--layout-section-y)]">
-        {/* z-30 keeps copy above the person/orbit stack (img z-10, canvas z-20). */}
-        <div className="relative z-30 flex w-full flex-col items-start gap-flow pt-40 text-left desktop:max-w-[620px]">
-          {eyebrow && (
-            <p className="hero-enter type-eyebrow uppercase text-accent-purple">
-              {eyebrow}
-            </p>
+        {/*
+          z-30 keeps copy above the person/orbit stack (img z-10, canvas z-20).
+          The copy defines the hero's height (Figma: 576px of content between
+          equal section-y bands = an 896px hero at XL). The visual is taller than
+          the band below its top, so it always runs past the bottom border, where
+          the root's overflow-hidden crops it — no gap, and never resized.
+        */}
+        <div
+          className={cn(
+            "relative z-30 flex w-full flex-col items-start gap-flow text-left desktop:max-w-[747px]",
+            // Figma: with an eyebrow the copy starts at the frame top; without
+            // one (the product heroes) the heading sits 40px down.
+            eyebrow ? "pt-0" : "pt-40",
           )}
-          <h1
-            className="hero-enter type-heading-h2"
-            style={{ color: "var(--hero-ink)" }}
-          >
-            {headline.lead}
-            {headline.accent && <em className="italic">{headline.accent}</em>}
-          </h1>
-          <p
-            className="hero-enter type-body-lg"
-            style={{ color: "var(--hero-ink)" }}
-          >
-            {body}
-          </p>
+        >
+          {/* Figma HeadingDescription: eyebrow+heading, then body 24px below. */}
+          <div className="flex flex-col gap-stack">
+            {/* Figma EyebrowHeading: only 8px between the eyebrow and the h1. */}
+            <div className="flex flex-col gap-inline">
+              {eyebrow && (
+                <p className="hero-enter type-eyebrow uppercase text-accent-purple">
+                  {eyebrow}
+                </p>
+              )}
+              <h1
+                className="hero-enter type-heading-h2"
+                style={{ color: "var(--hero-ink)" }}
+              >
+                {headline.lead}
+                {headline.accent && <em className="italic">{headline.accent}</em>}
+              </h1>
+            </div>
+            <p
+              className="hero-enter type-body-lg"
+              style={{ color: "var(--hero-ink)" }}
+            >
+              {body}
+            </p>
+          </div>
           {/*
             A single CTA sits on one line with the carrier lockup (nowrap at
             desktop). Two-plus CTAs are wider than the row, so let them wrap and
@@ -234,41 +253,41 @@ export default function PageHero({
           {ratings && <TrustRow ratings={ratings} />}
         </div>
 
-        {visual?.kind === "device" && (
+        {visual && (
           /*
-            Device: a static phone mockup pinned to the content grid's top-right
-            at its natural width, out of flow so it can't drive the section
-            height; the root's overflow-hidden crops it at the bottom border.
+            The visual is a FIXED size, identical on every page (device 436px
+            wide, person 560px). It's pinned to the content grid's right edge,
+            out of flow so it never drives the section height, and cropped at the
+            hero's bottom border by the root's overflow-hidden. The copy column's
+            min-height keeps the section at least as tall as the visual, so the
+            visual always reaches the border (no gap) without being resized. A
+            device sits top-aligned with the copy; a person stands on the bottom
+            border.
           */
-          <div className="mx-auto mt-12 w-full max-w-[436px] shrink-0 desktop:absolute desktop:right-[var(--container-gutter)] desktop:top-[var(--layout-section-y)] desktop:mt-0 desktop:w-[436px]">
-            <HeroImage
-              src={visual.src}
-              alt={visual.alt ?? ""}
-              width={visual.width}
-              height={visual.height}
-              className="h-auto w-full"
-            />
-          </div>
-        )}
-
-        {visual?.kind === "person" && (
-          /*
-            Person: the figure is pinned bottom-right so it sits flush on the
-            hero's bottom border, cropped at the top by overflow-hidden if the
-            copy column is shorter. When `coins`, YuCoins orbit her in a 3D
-            canvas whose depth mask (same cutout) hides the far-arc coins.
-          */
-          <div className="relative mx-auto mt-12 w-full max-w-[420px] shrink-0 desktop:absolute desktop:bottom-0 desktop:right-[var(--container-gutter)] desktop:mt-0 desktop:w-[560px] desktop:max-w-[560px]">
+          <div
+            className={cn(
+              "relative mx-auto mt-12 w-full shrink-0 desktop:absolute desktop:right-[var(--container-gutter)] desktop:mt-0",
+              // Figma: both visuals sit at the content frame's top (y=160 =
+              // --layout-section-y), 436px wide for a device and 590px for a
+              // person, and are clipped by the hero's bottom border.
+              visual.kind === "device"
+                ? "max-w-[436px] desktop:top-[var(--layout-section-y)] desktop:w-[436px]"
+                : "max-w-[590px] desktop:top-[var(--layout-section-y)] desktop:w-[590px]",
+            )}
+          >
             <img
-              ref={personRef}
+              ref={visualRef}
               src={visual.src}
               alt={visual.alt ?? ""}
               width={visual.width}
               height={visual.height}
               decoding="async"
+              draggable={false}
               className="relative z-10 block h-auto w-full"
             />
-            {visual.coins !== false && <HeroCoinOrbit personSrc={visual.src} />}
+            {visual.kind === "person" && visual.coins !== false && (
+              <HeroCoinOrbit personSrc={visual.src} />
+            )}
           </div>
         )}
       </div>

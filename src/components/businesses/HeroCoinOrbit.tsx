@@ -251,7 +251,7 @@ function FrustumSync() {
 /**
  * @param personSrc Cutout used for the occlusion depth mask. Must be the same
  * image the visible hero <img> renders, so the silhouette lines up. Defaults to
- * the Businesses figure; pass another to swap the person (CMS).
+ * the Businesses figure; pass another to swap the person for a different page.
  */
 export default function HeroCoinOrbit({
   personSrc = PERSON_SRC,

@@ -9,7 +9,7 @@ export type StatsColumnItem = {
   source?: string;
   /** Optional source marker shown as subscript on the label */
   footnote?: number;
-  /** Stable key for lists / CMS items */
+  /** Stable key when rendering a list */
   id?: string;
 };
 

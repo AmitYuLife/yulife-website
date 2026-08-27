@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import EditorialPage from "@/components/EditorialPage";
-import { editorialPages } from "@/data/pages/editorial";
+import SimpleHero from "@/components/page/SimpleHero";
 import { getPageByRoute } from "@/data/sitemap";
 
 const route = "/about/careers";
 const page = getPageByRoute(route);
-const data = editorialPages[route];
 
 export const metadata: Metadata = {
   title: page.label,
@@ -13,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <EditorialPage data={data} />;
+  return <SimpleHero page={page} />;
 }
