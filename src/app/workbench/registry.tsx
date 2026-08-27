@@ -11,8 +11,8 @@ import TrustRatings from "@/components/ui/TrustRatings";
 import SectionCard from "@/components/ui/SectionCard";
 import PillarBox from "@/components/ui/PillarBox";
 import YunityDiagram from "@/components/blocks/YunityDiagram";
-import QuoteBlock from "@/components/blocks/QuoteBlock";
 import StatFlipCardDemo from "./StatFlipCardDemo";
+import QuoteBlockDemo from "./QuoteBlockDemo";
 
 import SimpleHero from "@/components/sections/SimpleHero";
 import ImageRightHeroDemo from "./ImageRightHeroDemo";
@@ -186,15 +186,9 @@ export const blockSpecs: Spec[] = [
   {
     name: "QuoteBlock",
     source: "src/components/blocks/QuoteBlock.tsx",
-    note: "bordered pull-quote card · author lockup + optional partner logo",
-    tone: "dark",
-    render: () => (
-      <QuoteBlock
-        quote="Employers are looking for solutions that not only support people when they become unwell, but help them stay healthy in the first place."
-        author="Dan Sullivan"
-        role="Director of Product and Proposition"
-      />
-    ),
+    note: "bordered pull-quote card · toggle the optional avatar + partner logo",
+    padded: false,
+    render: () => <QuoteBlockDemo />,
   },
   {
     name: "RevealCardGrid",

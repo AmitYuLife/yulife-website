@@ -39,7 +39,7 @@ export default function QuoteBlock({
         className,
       )}
     >
-      <blockquote className="type-heading-h4 text-balance text-on-inverse">
+      <blockquote className="type-quote text-balance text-on-inverse">
         &ldquo;{quote}&rdquo;
       </blockquote>
       <figcaption className="flex flex-wrap items-end justify-between gap-group">

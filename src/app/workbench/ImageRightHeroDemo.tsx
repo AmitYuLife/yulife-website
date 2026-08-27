@@ -5,7 +5,7 @@ import ImageRightHero, {
   type ImageRightHeroContent,
 } from "@/components/sections/ImageRightHero";
 import { assetPath } from "@/lib/assetPath";
-import { cn } from "@/lib/utils";
+import { ToggleStrip, ToggleButton } from "./ToggleStrip";
 
 /**
  * Workbench-only harness: renders the one ImageRightHero section with a toggle
@@ -63,31 +63,14 @@ export default function ImageRightHeroDemo() {
 
   return (
     <div>
-      {/* Toggle strip — workbench chrome, not part of the section. */}
-      <div className="flex items-center gap-inline border-b border-line bg-surface-subtle px-16 py-12">
-        <span className="type-caption text-emphasis">Visual</span>
-        <div className="flex gap-inline" role="group" aria-label="Hero visual variant">
-          {(Object.keys(VARIANTS) as VariantKey[]).map((key) => {
-            const active = key === variant;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setVariant(key)}
-                aria-pressed={active}
-                className={cn(
-                  "type-label rounded-sm border px-controls py-inline capitalize transition-colors",
-                  active
-                    ? "border-line-emphasis bg-surface-inverse text-on-inverse"
-                    : "border-line bg-surface text-emphasis hover:border-line-emphasis",
-                )}
-              >
-                {key === "person" ? "Person + coins" : "Device"}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* Variant switch — workbench chrome, not part of the section. */}
+      <ToggleStrip label="Visual">
+        {(Object.keys(VARIANTS) as VariantKey[]).map((key) => (
+          <ToggleButton key={key} active={key === variant} onClick={() => setVariant(key)}>
+            {key === "person" ? "Person + coins" : "Device"}
+          </ToggleButton>
+        ))}
+      </ToggleStrip>
 
       {/* The hero tucks under the site header with a negative top margin; the
           workbench has no site header, so neutralise it inside the frame. */}
