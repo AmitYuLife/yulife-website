@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import SimpleHero from "@/components/page/SimpleHero";
-import FaqSection from "@/components/product/FaqSection";
+import SimpleHero from "@/components/sections/SimpleHero";
+import FaqSection from "@/components/sections/FaqSection";
 import { lifeInsuranceFaqs } from "@/data/pages/products";
 import { getPageByRoute } from "@/data/sitemap";
 

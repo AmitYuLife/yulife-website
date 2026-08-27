@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import HomePage from "@/components/HomePage";
+import HomePage from "@/app/HomePage";
 import { home } from "@/data/sitemap";
 
 export const metadata: Metadata = {

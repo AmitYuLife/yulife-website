@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import PageHero, { type PageHeroContent } from "@/components/hero/PageHero";
+import PageHero, { type PageHeroContent } from "@/components/sections/PageHero";
 import MarqueeStatsSection, {
   type MarqueeStatsContent,
-} from "@/components/businesses/MarqueeStatsSection";
+} from "@/components/sections/MarqueeStatsSection";
 import IntroSection, {
   type IntroSectionContent,
-} from "@/components/businesses/IntroSection";
+} from "@/components/sections/IntroSection";
 import LaunchStepsSection, {
   type LaunchStepsContent,
-} from "@/components/businesses/LaunchStepsSection";
-import PillarsSection from "@/components/home/pillars/PillarsSection";
-import TrustedSection from "@/components/home/TrustedSection";
-import JoinMissionCard from "@/components/home/JoinMissionCard";
+} from "@/components/sections/LaunchStepsSection";
+import PillarsSection from "@/components/sections/PillarsSection";
+import TrustedSection from "@/components/sections/TrustedSection";
+import JoinMissionCard from "@/components/sections/JoinMissionCard";
 import { getPageByRoute } from "@/data/sitemap";
 import { assetPath } from "@/lib/assetPath";
 

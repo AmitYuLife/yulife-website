@@ -2,26 +2,27 @@ import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/Button";
 import Accordion, { AccordionItem } from "@/components/ui/Accordion";
-import RevealCardGrid, { type RevealCardGridItem } from "@/components/ui/RevealCardGrid";
-import { StatsColumns, type StatsColumnItem } from "@/components/stats";
+import RevealCardGrid, { type RevealCardGridItem } from "@/components/patterns/RevealCardGrid";
+import StatsColumns from "@/components/patterns/StatsColumns";
+import type { StatsColumnItem } from "@/components/patterns/statsTypes";
 
-import SimpleHero from "@/components/page/SimpleHero";
-import PageHero from "@/components/hero/PageHero";
-import CarrierQuoteSection from "@/components/product/CarrierQuoteSection";
-import ClinicalExcellenceSection from "@/components/product/ClinicalExcellenceSection";
-import IntroSection from "@/components/businesses/IntroSection";
+import SimpleHero from "@/components/sections/SimpleHero";
+import PageHero from "@/components/sections/PageHero";
+import CarrierQuoteSection from "@/components/sections/CarrierQuoteSection";
+import ClinicalExcellenceSection from "@/components/sections/ClinicalExcellenceSection";
+import IntroSection from "@/components/sections/IntroSection";
 
 // Scroll/GSAP/R3F sections — shown via the ReducedMotionHarness (final state).
-import Hero from "@/components/hero/Hero";
-import LogoMarquee from "@/components/hero/LogoMarquee";
-import FaqSection from "@/components/product/FaqSection";
-import ProvenRoiSection from "@/components/product/ProvenRoiSection";
-import EverydayValueSection from "@/components/product/EverydayValueSection";
-import BusinessPulseSection from "@/components/product/BusinessPulseSection";
-import StatCardFan from "@/components/product/StatCardFan";
-import ProductLogoBar from "@/components/product/ProductLogoBar";
-import MarqueeStatsSection from "@/components/businesses/MarqueeStatsSection";
-import StatCountCards from "@/components/businesses/StatCountCards";
+import Hero from "@/components/sections/Hero";
+import LogoMarquee from "@/components/patterns/LogoMarquee";
+import FaqSection from "@/components/sections/FaqSection";
+import ProvenRoiSection from "@/components/sections/ProvenRoiSection";
+import EverydayValueSection from "@/components/sections/EverydayValueSection";
+import BusinessPulseSection from "@/components/sections/BusinessPulseSection";
+import StatCardFan from "@/components/patterns/StatCardFan";
+import ProductLogoBar from "@/components/sections/ProductLogoBar";
+import MarqueeStatsSection from "@/components/sections/MarqueeStatsSection";
+import StatCountCards from "@/components/sections/StatCountCards";
 
 export type Spec = {
   name: string;
@@ -90,21 +91,21 @@ export const componentSpecs: Spec[] = [
   },
   {
     name: "RevealCardGrid",
-    source: "src/components/ui/RevealCardGrid.tsx",
+    source: "src/components/patterns/RevealCardGrid.tsx",
     note: "hover / tap to reveal",
     tone: "dark",
     render: () => <RevealCardGrid items={revealItems} columns={3} />,
   },
   {
     name: "StatsColumns",
-    source: "src/components/stats/StatsColumns.tsx",
+    source: "src/components/patterns/StatsColumns.tsx",
     note: "hover to reveal · odometer counts under the harness",
     tone: "dark",
     render: () => <StatsColumns stats={sampleStats} />,
   },
   {
     name: "StatCardFan",
-    source: "src/components/product/StatCardFan.tsx",
+    source: "src/components/patterns/StatCardFan.tsx",
     note: "fanned + interactive (hover to flip) · entrance resolved by harness",
     tone: "dark",
     render: () => <StatCardFan stats={sampleStats} />,
@@ -118,7 +119,7 @@ export const componentSpecs: Spec[] = [
 export const sectionSpecs: Spec[] = [
   {
     name: "PageHero",
-    source: "src/components/hero/PageHero.tsx",
+    source: "src/components/sections/PageHero.tsx",
     note: "content-page hero · static device visual",
     padded: false,
     // The hero tucks under the site header with a negative top margin; the
@@ -152,7 +153,7 @@ export const sectionSpecs: Spec[] = [
   },
   {
     name: "SimpleHero",
-    source: "src/components/page/SimpleHero.tsx",
+    source: "src/components/sections/SimpleHero.tsx",
     note: "minimal placeholder hero — eyebrow · title · CTA",
     padded: false,
     render: () => (
@@ -168,7 +169,7 @@ export const sectionSpecs: Spec[] = [
   },
   {
     name: "IntroSection",
-    source: "src/components/businesses/IntroSection.tsx",
+    source: "src/components/sections/IntroSection.tsx",
     padded: false,
     render: () => (
       <IntroSection
@@ -182,7 +183,7 @@ export const sectionSpecs: Spec[] = [
   },
   {
     name: "ClinicalExcellenceSection",
-    source: "src/components/product/ClinicalExcellenceSection.tsx",
+    source: "src/components/sections/ClinicalExcellenceSection.tsx",
     note: "cards reveal on hover / tap",
     padded: false,
     render: () => (
@@ -203,7 +204,7 @@ export const sectionSpecs: Spec[] = [
   },
   {
     name: "CarrierQuoteSection",
-    source: "src/components/product/CarrierQuoteSection.tsx",
+    source: "src/components/sections/CarrierQuoteSection.tsx",
     padded: false,
     render: () => (
       <CarrierQuoteSection
@@ -219,7 +220,7 @@ export const sectionSpecs: Spec[] = [
   // ── Scroll / GSAP / R3F sections (rendered in resolved state via the harness) ──
   {
     name: "FaqSection",
-    source: "src/components/product/FaqSection.tsx",
+    source: "src/components/sections/FaqSection.tsx",
     note: "reveal resolved by harness",
     padded: false,
     render: () => (
@@ -234,7 +235,7 @@ export const sectionSpecs: Spec[] = [
   },
   {
     name: "ProvenRoiSection",
-    source: "src/components/product/ProvenRoiSection.tsx",
+    source: "src/components/sections/ProvenRoiSection.tsx",
     note: "reveal + StatCardFan resolved by harness",
     padded: false,
     render: () => (
@@ -254,7 +255,7 @@ export const sectionSpecs: Spec[] = [
   },
   {
     name: "EverydayValueSection",
-    source: "src/components/product/EverydayValueSection.tsx",
+    source: "src/components/sections/EverydayValueSection.tsx",
     note: "scroll-scrubbed steps shown resolved (first block active)",
     padded: false,
     render: () => (
@@ -277,7 +278,7 @@ export const sectionSpecs: Spec[] = [
   },
   {
     name: "BusinessPulseSection",
-    source: "src/components/product/BusinessPulseSection.tsx",
+    source: "src/components/sections/BusinessPulseSection.tsx",
     note: "R3F star (Yunity) + reveal — live 3D via harness",
     padded: false,
     render: () => (
@@ -296,7 +297,7 @@ export const sectionSpecs: Spec[] = [
   },
   {
     name: "StatCountCards",
-    source: "src/components/businesses/StatCountCards.tsx",
+    source: "src/components/sections/StatCountCards.tsx",
     note: "odometers count under the harness",
     tone: "dark",
     render: () => (
@@ -311,7 +312,7 @@ export const sectionSpecs: Spec[] = [
   },
   {
     name: "MarqueeStatsSection",
-    source: "src/components/businesses/MarqueeStatsSection.tsx",
+    source: "src/components/sections/MarqueeStatsSection.tsx",
     note: "logo marquee (fixed content) + stat cards",
     padded: false,
     render: () => (
@@ -326,21 +327,21 @@ export const sectionSpecs: Spec[] = [
   },
   {
     name: "ProductLogoBar",
-    source: "src/components/product/ProductLogoBar.tsx",
+    source: "src/components/sections/ProductLogoBar.tsx",
     note: "fixed content (reads home-content) — not prop-driven",
     padded: false,
     render: () => <ProductLogoBar />,
   },
   {
     name: "LogoMarquee",
-    source: "src/components/hero/LogoMarquee.tsx",
+    source: "src/components/patterns/LogoMarquee.tsx",
     note: "fixed content (reads home-content); rowCount is the only prop",
     tone: "dark",
     render: () => <LogoMarquee rowCount={2} />,
   },
   {
     name: "Hero (homepage)",
-    source: "src/components/hero/Hero.tsx",
+    source: "src/components/sections/Hero.tsx",
     note: "fixed content + R3F coin field; copy resolved by harness",
     padded: false,
     render: () => <Hero />,

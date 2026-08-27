@@ -10,7 +10,7 @@ import {
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
-import { getCoinAssets } from "@/components/yucoin/assets";
+import { getCoinAssets } from "@/components/three/yucoin/assets";
 
 /** Production values from assets.ts / CoinLighting.tsx — the reset baseline. */
 const DEFAULTS = {

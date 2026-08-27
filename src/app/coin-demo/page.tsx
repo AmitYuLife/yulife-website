@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import HeroAsset from "@/components/hero/HeroAsset";
+import HeroAsset from "@/components/three/HeroAsset";
 
 export const metadata: Metadata = { title: "Coin demo" };
 

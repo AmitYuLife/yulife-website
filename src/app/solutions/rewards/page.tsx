@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import SimpleHero from "@/components/page/SimpleHero";
+import SimpleHero from "@/components/sections/SimpleHero";
 import { getPageByRoute } from "@/data/sitemap";
 
 const route = "/solutions/rewards";

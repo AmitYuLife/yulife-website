@@ -45,8 +45,8 @@ When you add a new section, spread the helper onto its root and rerun `gen:map`:
 | Homepage copy & content | `src/data/home-content.ts` |
 | Wireframe page copy | `src/data/pages/{products,features,audience,editorial}.ts` |
 | IA / nav / route inventory | `src/data/sitemap.ts`, `docs/SITEMAP.md` |
-| Nav mega-menu content | `src/components/nav/menuContent.ts` |
-| Homepage sections | `src/components/home/*`, `src/components/hero/*` |
+| Nav mega-menu content | `src/components/layout/nav/menuContent.ts` |
+| Homepage sections | `src/components/sections/*` (composed from `src/components/patterns/*` + `src/components/three/*`) |
 | Design tokens (generated from Figma) | `design-tokens/theme.css`, `design-tokens/tokens.json` |
 | Semantic utilities (`.page-container`, keyframes) | `src/app/globals.css` |
 | Specs | `docs/specs/*.md` · audits in `docs/audits/` |
@@ -66,7 +66,7 @@ render from data through `SectionBlock` — don't "improve" their styling unless
 
 **Layout width** comes from `.page-container` (centred 1216px + fluid gutters).
 
-**Scroll reveals** go through `useReveal()` (`src/components/home/useReveal.ts`):
+**Scroll reveals** go through `useReveal()` (`src/components/hooks/useReveal.ts`):
 add `data-reveal` to any descendant. For a second trigger inside one section use
 `data-reveal-anchor="name"` + `data-reveal-on="name"`. It honours reduced motion.
 

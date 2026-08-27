@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import PageHero, { type PageHeroContent } from "@/components/hero/PageHero";
+import PageHero, { type PageHeroContent } from "@/components/sections/PageHero";
 import MarqueeStatsSection, {
   type MarqueeStatsContent,
-} from "@/components/businesses/MarqueeStatsSection";
+} from "@/components/sections/MarqueeStatsSection";
 import EverydayValueSection, {
   QuoteBlock,
   type CarrierLogo,
-} from "@/components/product/EverydayValueSection";
-import ClinicalExcellenceSection from "@/components/product/ClinicalExcellenceSection";
-import FaqSection from "@/components/product/FaqSection";
-import JoinMissionCard from "@/components/home/JoinMissionCard";
+} from "@/components/sections/EverydayValueSection";
+import ClinicalExcellenceSection from "@/components/sections/ClinicalExcellenceSection";
+import FaqSection from "@/components/sections/FaqSection";
+import JoinMissionCard from "@/components/sections/JoinMissionCard";
 import type {
   Cta,
   Quote,
