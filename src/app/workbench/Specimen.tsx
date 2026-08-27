@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * A uniform frame around one catalog item in the design-system workbench: a
+ * A uniform frame around one catalog item in the workbench: a
  * header strip (name · optional note · source path) over a padded stage. Purely
  * presentational — it never touches the component it wraps, so what you see is
  * the real component rendering itself.

@@ -48,7 +48,7 @@ function SwatchBlock({ group }: { group: SwatchGroup }) {
 
 export default function FoundationsPage() {
   return (
-    <div className="mx-auto flex max-w-[1216px] flex-col gap-section-gap px-32 py-40">
+    <div className="mx-auto flex max-w-[1680px] flex-col gap-section-gap px-32 py-40">
       <header>
         <h1 className="type-heading-h3 text-default">Foundations</h1>
         <p className="type-body-md mt-12 max-w-[70ch] text-emphasis">

@@ -1,4 +1,4 @@
-// Foundations data for the design-system workbench, derived from the single
+// Foundations data for the workbench, derived from the single
 // source of truth: design-tokens/tokens.json (W3C DTCG format). This is the
 // first consumer of that file — a tiny, pure resolver, no React. If the token
 // file changes, these galleries update automatically on next build.

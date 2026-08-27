@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { componentSpecs } from "./registry";
+import { componentSpecs, sectionSpecs } from "./registry";
 import { typographyRoles, primitiveColorGroups, semanticColorGroups } from "./tokens";
 
 const primitiveCount = primitiveColorGroups.reduce((n, g) => n + g.swatches.length, 0);
@@ -7,21 +7,26 @@ const semanticCount = semanticColorGroups.reduce((n, g) => n + g.swatches.length
 
 const CARDS = [
   {
-    href: "/design-system/foundations",
+    href: "/workbench/foundations",
     title: "Foundations",
     body: `${primitiveCount + semanticCount} colours, ${typographyRoles.length} type roles, plus spacing, radii and gaps — generated from design-tokens/tokens.json.`,
   },
   {
-    href: "/design-system/components",
+    href: "/workbench/components",
     title: "Components",
     body: `${componentSpecs.length} reusable UI primitives, each rendered in isolation from sample props.`,
   },
+  {
+    href: "/workbench/sections",
+    title: "Sections",
+    body: `${sectionSpecs.length} reusable, prop-driven page sections rendered full-bleed from sample props.`,
+  },
 ];
 
-export default function DesignSystemOverview() {
+export default function WorkbenchOverview() {
   return (
-    <div className="mx-auto max-w-[1216px] px-32 py-40">
-      <h1 className="type-heading-h3 text-default">Design System Workbench</h1>
+    <div className="mx-auto max-w-[1680px] px-32 py-40">
+      <h1 className="type-heading-h3 text-default">Workbench</h1>
       <p className="type-body-lg mt-16 max-w-[70ch] text-emphasis">
         Every foundation, component and template on the site, rendered in
         isolation so they can be developed and reviewed without a full page
