@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { dotState, flowEase } from "./flowTiming";
+import { dotState, flowEase } from "@/lib/flowTiming";
 
 const WAVE_DURATION = 2.2; // seconds for one pulse to travel star → card
 const WAVE_STAGGER = 0.4; // launch offset between the three bottom lines

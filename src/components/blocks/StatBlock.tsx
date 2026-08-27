@@ -1,16 +1,16 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import StatColumn from "@/components/patterns/StatColumn";
-import type { StatsColumnsProps } from "@/components/patterns/statsTypes";
+import StatColumn from "@/components/ui/StatColumn";
+import type { StatBlockProps } from "@/components/ui/statsTypes";
 import { domSrc } from "@/lib/domSrc";
 
-export default function StatsColumns({
+export default function StatBlock({
   stats,
   sourcesHref = "#sources",
   noteClassName,
   className,
-}: StatsColumnsProps) {
+}: StatBlockProps) {
   // Up to three stats sit in a single row (the homepage 3-up). Four or more
   // wrap at a maximum of three per row, each row centred, so the last partial
   // row (e.g. the 4th and 5th of five) is centred rather than left-aligned
@@ -18,7 +18,7 @@ export default function StatsColumns({
   const wide = stats.length > 3;
 
   return (
-    <div {...domSrc("StatsColumns")} className={cn("relative w-full max-w-[1216px]", className)}>
+    <div {...domSrc("StatBlock")} className={cn("relative w-full max-w-[1216px]", className)}>
       <div
         className={cn(
           "gap-24 tablet:gap-40",

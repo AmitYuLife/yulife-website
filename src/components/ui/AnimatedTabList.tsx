@@ -3,7 +3,7 @@
 import { useRef, type ReactNode } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { PLATFORM_SWITCH_DURATION_S, PLATFORM_SWITCH_EASE } from "./platform-switch";
+import { PLATFORM_SWITCH_DURATION_S, PLATFORM_SWITCH_EASE } from "@/lib/platform-switch";
 
 gsap.registerPlugin(useGSAP);
 

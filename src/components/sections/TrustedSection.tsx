@@ -1,7 +1,7 @@
 "use client";
 
 import { socialProof } from "@/data/home-content";
-import TrustedTabbedPanel from "@/components/patterns/TrustedTabbedPanel";
+import TrustedTabbedPanel from "@/components/blocks/TrustedTabbedPanel";
 import { useReveal } from "@/components/hooks/useReveal";
 import { assetPath } from "@/lib/assetPath";
 import { domSrc } from "@/lib/domSrc";

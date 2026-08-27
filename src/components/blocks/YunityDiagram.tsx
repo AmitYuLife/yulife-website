@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { yunity } from "@/data/home-content";
 import { assetPath } from "@/lib/assetPath";
-import SectionCard from "./SectionCard";
+import SectionCard from "@/components/ui/SectionCard";
 import { domSrc } from "@/lib/domSrc";
 
 // R3F canvas is browser-only; load it client-side without blocking the band.

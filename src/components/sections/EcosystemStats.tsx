@@ -2,7 +2,7 @@
 
 import { ecosystem } from "@/data/home-content";
 import { useReveal } from "@/components/hooks/useReveal";
-import StatCardFan from "@/components/patterns/StatCardFan";
+import StatCardFan from "@/components/blocks/StatCardFan";
 import { domSrc } from "@/lib/domSrc";
 
 export default function EcosystemStats() {

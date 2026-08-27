@@ -2,24 +2,31 @@ import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/Button";
 import Accordion, { AccordionItem } from "@/components/ui/Accordion";
-import RevealCardGrid, { type RevealCardGridItem } from "@/components/patterns/RevealCardGrid";
-import StatsColumns from "@/components/patterns/StatsColumns";
-import type { StatsColumnItem } from "@/components/patterns/statsTypes";
+import RevealCardGrid, { type RevealCardGridItem } from "@/components/blocks/RevealCardGrid";
+import StatBlock from "@/components/blocks/StatBlock";
+import StatColumn from "@/components/ui/StatColumn";
+import type { StatsColumnItem } from "@/components/ui/statsTypes";
+import HeroButtons from "@/components/ui/HeroButtons";
+import TrustRatings from "@/components/ui/TrustRatings";
+import SectionCard from "@/components/ui/SectionCard";
+import PillarBox from "@/components/ui/PillarBox";
+import YunityDiagram from "@/components/blocks/YunityDiagram";
+import QuoteBlock from "@/components/blocks/QuoteBlock";
+import StatFlipCardDemo from "./StatFlipCardDemo";
 
 import SimpleHero from "@/components/sections/SimpleHero";
-import PageHero from "@/components/sections/PageHero";
-import CarrierQuoteSection from "@/components/sections/CarrierQuoteSection";
+import ImageRightHeroDemo from "./ImageRightHeroDemo";
 import ClinicalExcellenceSection from "@/components/sections/ClinicalExcellenceSection";
 import IntroSection from "@/components/sections/IntroSection";
 
 // Scroll/GSAP/R3F sections — shown via the ReducedMotionHarness (final state).
 import Hero from "@/components/sections/Hero";
-import LogoMarquee from "@/components/patterns/LogoMarquee";
+import LogoMarquee from "@/components/blocks/LogoMarquee";
 import FaqSection from "@/components/sections/FaqSection";
 import ProvenRoiSection from "@/components/sections/ProvenRoiSection";
 import EverydayValueSection from "@/components/sections/EverydayValueSection";
 import BusinessPulseSection from "@/components/sections/BusinessPulseSection";
-import StatCardFan from "@/components/patterns/StatCardFan";
+import StatCardFan from "@/components/blocks/StatCardFan";
 import ProductLogoBar from "@/components/sections/ProductLogoBar";
 import MarqueeStatsSection from "@/components/sections/MarqueeStatsSection";
 import StatCountCards from "@/components/sections/StatCountCards";
@@ -52,9 +59,8 @@ const sampleStats: StatsColumnItem[] = [
 ];
 
 // ── Components ────────────────────────────────────────────────────────────────
-// The genuinely reusable UI primitives. (The grey-box wireframe scaffolding —
-// SectionBlock, section/shared and the four page templates — was removed with
-// the wireframe system.)
+// The genuinely reusable UI primitives (src/components/ui/*). Composites that
+// assemble these into a self-contained unit live in `blockSpecs` below.
 export const componentSpecs: Spec[] = [
   {
     name: "Button",
@@ -90,25 +96,126 @@ export const componentSpecs: Spec[] = [
     ),
   },
   {
+    name: "StatFlipCard",
+    source: "src/components/ui/StatFlipCard.tsx",
+    note: "the single card inside StatCardFan · click / tap to flip",
+    tone: "dark",
+    render: () => <StatFlipCardDemo />,
+  },
+  {
+    name: "StatColumn",
+    source: "src/components/ui/StatColumn.tsx",
+    note: "the single column inside StatBlock · hover to reveal",
+    tone: "dark",
+    render: () => (
+      <div className="mx-auto w-[280px]">
+        <StatColumn
+          value={sampleStats[0].value}
+          label={sampleStats[0].label}
+          note={sampleStats[0].note}
+          source={sampleStats[0].source}
+          footnote={sampleStats[0].footnote}
+        />
+      </div>
+    ),
+  },
+  {
+    name: "SectionCard",
+    source: "src/components/ui/SectionCard.tsx",
+    note: "framed inverse content panel · forwards div props",
+    tone: "dark",
+    render: () => (
+      <SectionCard>
+        <div className="flex flex-col items-center gap-stack text-center">
+          <h4 className="type-heading-h4 text-on-inverse">A framed content panel</h4>
+          <p className="type-body-md max-w-[48ch] text-on-inverse">
+            The generic inverse card used above the Yunity star and reusable by other bands.
+          </p>
+        </div>
+      </SectionCard>
+    ),
+  },
+  {
+    name: "PillarBox",
+    source: "src/components/ui/PillarBox.tsx",
+    note: "one capability box · hover / tap to reveal description",
+    tone: "dark",
+    render: () => (
+      <div className="mx-auto w-[280px]">
+        <PillarBox
+          title="Move"
+          description="Earn YuCoin for every walk, run and ride — converted into real rewards."
+        />
+      </div>
+    ),
+  },
+  {
+    name: "HeroButtons",
+    source: "src/components/ui/HeroButtons.tsx",
+    note: "hero CTA row · fixed content",
+    tone: "dark",
+    render: () => <HeroButtons />,
+  },
+  {
+    name: "TrustRatings",
+    source: "src/components/ui/TrustRatings.tsx",
+    note: "rating badges · reads home-content",
+    render: () => <TrustRatings />,
+  },
+];
+
+// ── Blocks ────────────────────────────────────────────────────────────────────
+// Self-contained composites that assemble components (and their own animation)
+// into a reusable unit. Interactive / scroll-reveal / R3F blocks are shown in
+// their resolved state via the ReducedMotionHarness.
+export const blockSpecs: Spec[] = [
+  {
+    name: "StatBlock",
+    source: "src/components/blocks/StatBlock.tsx",
+    note: "3-up stat columns · hover to reveal · odometer counts under the harness",
+    tone: "dark",
+    render: () => <StatBlock stats={sampleStats} />,
+  },
+  {
+    name: "StatCardFan",
+    source: "src/components/blocks/StatCardFan.tsx",
+    note: "fanned + interactive (hover to flip) · entrance resolved by harness",
+    tone: "dark",
+    render: () => <StatCardFan stats={sampleStats} />,
+  },
+  {
+    name: "QuoteBlock",
+    source: "src/components/blocks/QuoteBlock.tsx",
+    note: "bordered pull-quote card · author lockup + optional partner logo",
+    tone: "dark",
+    render: () => (
+      <QuoteBlock
+        quote="Employers are looking for solutions that not only support people when they become unwell, but help them stay healthy in the first place."
+        author="Dan Sullivan"
+        role="Director of Product and Proposition"
+      />
+    ),
+  },
+  {
     name: "RevealCardGrid",
-    source: "src/components/patterns/RevealCardGrid.tsx",
+    source: "src/components/blocks/RevealCardGrid.tsx",
     note: "hover / tap to reveal",
     tone: "dark",
     render: () => <RevealCardGrid items={revealItems} columns={3} />,
   },
   {
-    name: "StatsColumns",
-    source: "src/components/patterns/StatsColumns.tsx",
-    note: "hover to reveal · odometer counts under the harness",
+    name: "LogoMarquee",
+    source: "src/components/blocks/LogoMarquee.tsx",
+    note: "fixed content (reads home-content); rowCount is the only prop",
     tone: "dark",
-    render: () => <StatsColumns stats={sampleStats} />,
+    render: () => <LogoMarquee rowCount={2} />,
   },
   {
-    name: "StatCardFan",
-    source: "src/components/patterns/StatCardFan.tsx",
-    note: "fanned + interactive (hover to flip) · entrance resolved by harness",
+    name: "YunityDiagram",
+    source: "src/components/blocks/YunityDiagram.tsx",
+    note: "Yunity lockup + live star + outcome cards · R3F resolved by harness",
     tone: "dark",
-    render: () => <StatCardFan stats={sampleStats} />,
+    render: () => <YunityDiagram />,
   },
 ];
 
@@ -118,38 +225,14 @@ export const componentSpecs: Spec[] = [
 // ScrollTrigger / R3F sections are deferred — they need a scroll/canvas harness.
 export const sectionSpecs: Spec[] = [
   {
-    name: "PageHero",
-    source: "src/components/sections/PageHero.tsx",
-    note: "content-page hero · static device visual",
+    name: "ImageRightHero",
+    source: "src/components/sections/ImageRightHero.tsx",
+    note: "content-page hero · copy left, visual right · toggle device ⇄ person+coins",
     padded: false,
-    // The hero tucks under the site header with a negative top margin; the
-    // workbench has no site header, so neutralise it inside the frame.
-    render: () => (
-      <div className="[&>*]:!mt-0">
-        <PageHero
-          eyebrow="Group Life Insurance"
-          headline={{ lead: "Life cover that ", accent: "gives back" }}
-          body="Protection your people value every day — with wellbeing rewards built in."
-          ctas={[
-            { label: "Speak to our team", href: "/contact" },
-            { label: "See how it works", href: "/products" },
-          ]}
-          ratings={[
-            { platform: "Trustpilot", score: "4.9" },
-            { platform: "Capterra", score: "4.8" },
-            { platform: "App Store", score: "4.9" },
-          ]}
-          carrier={{ name: "MetLife" }}
-          visual={{
-            kind: "device",
-            src: "/products/hero-phone-mockup.png",
-            alt: "YuLife app",
-            width: 436,
-            height: 900,
-          }}
-        />
-      </div>
-    ),
+    // Real section with a variant toggle (device mockup ⇄ person + R3F coins).
+    // Mirrors the Health Cash Plan (2520:10233) and For Businesses (2495:7454)
+    // heroes; both share the 700 · 80 · 436 frame — only the visual changes.
+    render: () => <ImageRightHeroDemo />,
   },
   {
     name: "SimpleHero",
@@ -198,20 +281,6 @@ export const sectionSpecs: Spec[] = [
             { icon: dotIcon("ffd600"), alt: "", title: "Private prescriptions", body: "Delivered to the door, no clinic queue." },
           ],
           footnote: "Illustrative sample content.",
-        }}
-      />
-    ),
-  },
-  {
-    name: "CarrierQuoteSection",
-    source: "src/components/sections/CarrierQuoteSection.tsx",
-    padded: false,
-    render: () => (
-      <CarrierQuoteSection
-        quote={{
-          text: "YuLife has transformed how our members engage with their benefits — every single day.",
-          author: "Jane Doe",
-          role: "Head of People, Acme Co.",
         }}
       />
     ),
@@ -331,13 +400,6 @@ export const sectionSpecs: Spec[] = [
     note: "fixed content (reads home-content) — not prop-driven",
     padded: false,
     render: () => <ProductLogoBar />,
-  },
-  {
-    name: "LogoMarquee",
-    source: "src/components/patterns/LogoMarquee.tsx",
-    note: "fixed content (reads home-content); rowCount is the only prop",
-    tone: "dark",
-    render: () => <LogoMarquee rowCount={2} />,
   },
   {
     name: "Hero (homepage)",

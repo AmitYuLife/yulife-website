@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import PageHero, { type PageHeroContent } from "@/components/sections/PageHero";
+import ImageRightHero, { type ImageRightHeroContent } from "@/components/sections/ImageRightHero";
 import MarqueeStatsSection, {
   type MarqueeStatsContent,
 } from "@/components/sections/MarqueeStatsSection";
@@ -28,10 +28,12 @@ export const metadata: Metadata = {
 
 // Hero copy from the Figma design (node 2495:7454). Verify against the approved
 // copy doc before launch.
-const hero: PageHeroContent = {
+const hero: ImageRightHeroContent = {
   eyebrow: "For businesses",
   headline: {
-    lead: "Employee benefits that make a difference ",
+    // Explicit breaks so the italic "every day" lands on its own line, matching
+    // the design's three-line wrap regardless of font metrics.
+    lead: "Benefits that\nmake a difference\n",
     accent: "every day",
   },
   body:
@@ -169,7 +171,7 @@ const faqs: FaqEntry[] = [
 export default function Page() {
   return (
     <>
-      <PageHero {...hero} />
+      <ImageRightHero {...hero} />
       <MarqueeStatsSection {...marqueeStats} />
       <IntroSection {...intro} />
       <LaunchStepsSection content={launchSteps} />

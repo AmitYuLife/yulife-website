@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import PageHero, { type PageHeroContent } from "@/components/sections/PageHero";
+import ImageRightHero, { type ImageRightHeroContent } from "@/components/sections/ImageRightHero";
 import MarqueeStatsSection, {
   type MarqueeStatsContent,
 } from "@/components/sections/MarqueeStatsSection";
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 // team". As on the Businesses page, they resolve to "/contact" here.
 const speakToTeam = { label: "Speak to our team", href: "/contact" };
 
-const hero: PageHeroContent = {
+const hero: ImageRightHeroContent = {
   eyebrow: "Benefit consolidation",
   headline: {
     lead: "Every benefit your people have in a place ",
@@ -135,7 +135,7 @@ const howItWorks: LaunchStepsContent = {
 export default function Page() {
   return (
     <>
-      <PageHero {...hero} />
+      <ImageRightHero {...hero} />
       <MarqueeStatsSection {...marqueeStats} />
       <IntroSection {...intro} />
       <LaunchStepsSection content={howItWorks} />

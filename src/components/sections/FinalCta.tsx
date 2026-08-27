@@ -3,7 +3,7 @@
 import { useCallback, useRef } from "react";
 import { finalCta } from "@/data/home-content";
 import { Button } from "@/components/ui/Button";
-import FinalCtaRocket from "@/components/patterns/FinalCtaRocket";
+import FinalCtaRocket from "@/components/blocks/FinalCtaRocket";
 import { useReveal } from "@/components/hooks/useReveal";
 import { domSrc } from "@/lib/domSrc";
 

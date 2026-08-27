@@ -161,9 +161,7 @@ function PanelBlock({ panel }: { panel: EverydayValuePanel }) {
 
 /**
  * QuoteBlock — bordered card at the foot of the section. Serif-bold pull quote
- * over a small avatar + name / role lockup. Fed by the page's carrier quote,
- * which used to live in its own section (CarrierQuoteSection); on pages with an
- * everyday-value section it now sits here instead.
+ * over a small avatar + name / role lockup, fed by the page's carrier quote.
  *
  * The emphasis rail runs down to this block's top border and, on desktop, a
  * gradient comet laps the border clockwise when the scroll reaches it — drawn by

@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { testimonials, DEFAULT_TESTIMONIAL, type Testimonial } from "@/data/home-content";
 import { useCarouselKeyboard, type CarouselDirection } from "@/hooks/useCarouselKeyboard";
 import { marqueeLogoSrc } from "@/data/marquee-logos";
-import AnimatedTabList from "./AnimatedTabList";
-import { PLATFORM_SWITCH_MS, PLATFORM_SWITCH_EASE } from "./platform-switch";
+import AnimatedTabList from "@/components/ui/AnimatedTabList";
+import { PLATFORM_SWITCH_MS, PLATFORM_SWITCH_EASE } from "@/lib/platform-switch";
 import { domSrc } from "@/lib/domSrc";
 
 const TABLET_MEDIA = "(min-width: 768px)";

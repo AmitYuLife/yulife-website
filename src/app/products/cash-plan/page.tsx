@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import PageHero, { type PageHeroContent } from "@/components/sections/PageHero";
+import ImageRightHero, { type ImageRightHeroContent } from "@/components/sections/ImageRightHero";
 import MarqueeStatsSection, {
   type MarqueeStatsContent,
 } from "@/components/sections/MarqueeStatsSection";
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
 const speakToTeam: Cta = { label: "Speak to our team", href: "/contact" };
 
 // § Hero — headline, body, carrier lockup and ratings verbatim from the design.
-const hero: PageHeroContent = {
+const hero: ImageRightHeroContent = {
   headline: {
     lead: "Game-changing cash plan designed for ",
     accent: "every day use",
@@ -270,7 +270,7 @@ const faqs: readonly FaqEntry[] = [
 export default function Page() {
   return (
     <>
-      <PageHero {...hero} />
+      <ImageRightHero {...hero} />
       <MarqueeStatsSection {...marqueeStats} />
 
       {/* § What is a Health Cash Plan? — heading over a two-column explainer,

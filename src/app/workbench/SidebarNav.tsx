@@ -33,6 +33,17 @@ const LINKS = [
     ),
   },
   {
+    href: "/workbench/blocks",
+    label: "Blocks",
+    icon: (
+      <>
+        <rect x="4" y="4" width="16" height="7" rx="1" />
+        <rect x="4" y="13" width="7" height="7" rx="1" />
+        <rect x="13" y="13" width="7" height="7" rx="1" />
+      </>
+    ),
+  },
+  {
     href: "/workbench/sections",
     label: "Sections",
     icon: (

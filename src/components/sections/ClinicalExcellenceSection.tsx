@@ -1,5 +1,5 @@
 import { domSrc } from "@/lib/domSrc";
-import RevealCardGrid from "@/components/patterns/RevealCardGrid";
+import RevealCardGrid from "@/components/blocks/RevealCardGrid";
 import type { ClinicalExcellenceSection as ClinicalExcellenceData } from "@/data/pages/types";
 
 /**

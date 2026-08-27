@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { RollingStatNumber } from "@/components/patterns/RollingStatNumber";
-import type { StatColumnProps } from "@/components/patterns/statsTypes";
+import { RollingStatNumber } from "@/components/ui/RollingStatNumber";
+import type { StatColumnProps } from "@/components/ui/statsTypes";
 
 function StatLabel({
   label,

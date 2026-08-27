@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { RollingStatNumber } from "@/components/patterns/RollingStatNumber";
+import { RollingStatNumber } from "@/components/ui/RollingStatNumber";
 import { domSrc } from "@/lib/domSrc";
 
 export type StatCountCardItem = {

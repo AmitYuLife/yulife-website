@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { componentSpecs, sectionSpecs } from "./registry";
+import { componentSpecs, blockSpecs, sectionSpecs } from "./registry";
 import { typographyRoles, primitiveColorGroups, semanticColorGroups } from "./tokens";
 
 const primitiveCount = primitiveColorGroups.reduce((n, g) => n + g.swatches.length, 0);
@@ -15,6 +15,11 @@ const CARDS = [
     href: "/workbench/components",
     title: "Components",
     body: `${componentSpecs.length} reusable UI primitives, each rendered in isolation from sample props.`,
+  },
+  {
+    href: "/workbench/blocks",
+    title: "Blocks",
+    body: `${blockSpecs.length} self-contained composites that assemble components into a reusable unit.`,
   },
   {
     href: "/workbench/sections",

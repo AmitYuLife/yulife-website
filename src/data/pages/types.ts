@@ -133,7 +133,7 @@ export type ProvenRoiStat = {
 /**
  * Bespoke "Proven ROI" section (Health product page, Figma 2357:1635). A raised
  * dark-purple band with an eyebrow, serif headline, lead paragraph and a row of
- * animated stat columns (the shared StatsColumns block). Replaces the "Proven
+ * animated stat columns (the shared StatBlock block). Replaces the "Proven
  * ROI" grey-box value section, the same way `clinicalExcellence` replaces its.
  */
 export type ProvenRoiSection = {

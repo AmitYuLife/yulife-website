@@ -267,7 +267,7 @@ export default function HeroCoinOrbit({
   const handleMaskReady = useCallback(() => setMaskReady(true), []);
 
   // Once occlusion is ready, fade the coins in — same duration/ease as the
-  // person image's rise-in (PageHero), so they arrive together instead
+  // person image's rise-in (ImageRightHero), so they arrive together instead
   // of the coins popping in separately.
   useGSAP(
     () => {

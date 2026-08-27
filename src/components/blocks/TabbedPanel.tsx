@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { pillars, type PillarVideo } from "@/data/home-content";
-import PillarBox from "./PillarBox";
-import PlatformHeadingMarquee from "./PlatformHeadingMarquee";
-import PlatformTabList from "./PlatformTabList";
-import { PLATFORM_SWITCH_MS, PLATFORM_SWITCH_EASE } from "./platform-switch";
+import PillarBox from "@/components/ui/PillarBox";
+import PlatformHeadingMarquee from "@/components/ui/PlatformHeadingMarquee";
+import PlatformTabList from "@/components/ui/PlatformTabList";
+import { PLATFORM_SWITCH_MS, PLATFORM_SWITCH_EASE } from "@/lib/platform-switch";
 import { domSrc } from "@/lib/domSrc";
 
 /** Accent per capability box / start-node, left → right. */

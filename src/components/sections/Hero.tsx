@@ -3,11 +3,11 @@
 import { useCallback, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import HeroHeadline from "@/components/patterns/HeroHeadline";
-import HeroButtons from "@/components/patterns/HeroButtons";
-import TrustRatings from "@/components/patterns/TrustRatings";
+import HeroHeadline from "@/components/ui/HeroHeadline";
+import HeroButtons from "@/components/ui/HeroButtons";
+import TrustRatings from "@/components/ui/TrustRatings";
 import HeroAsset from "@/components/three/HeroAsset";
-import LogoMarquee from "@/components/patterns/LogoMarquee";
+import LogoMarquee from "@/components/blocks/LogoMarquee";
 import { domSrc } from "@/lib/domSrc";
 
 gsap.registerPlugin(useGSAP);

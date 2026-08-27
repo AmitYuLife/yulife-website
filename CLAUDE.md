@@ -46,7 +46,7 @@ When you add a new section, spread the helper onto its root and rerun `gen:map`:
 | Wireframe page copy | `src/data/pages/{products,features,audience,editorial}.ts` |
 | IA / nav / route inventory | `src/data/sitemap.ts`, `docs/SITEMAP.md` |
 | Nav mega-menu content | `src/components/layout/nav/menuContent.ts` |
-| Homepage sections | `src/components/sections/*` (composed from `src/components/patterns/*` + `src/components/three/*`) |
+| Homepage sections | `src/components/sections/*` (composed from `src/components/blocks/*` + `src/components/ui/*` + `src/components/three/*`) |
 | Design tokens (generated from Figma) | `design-tokens/theme.css`, `design-tokens/tokens.json` |
 | Semantic utilities (`.page-container`, keyframes) | `src/app/globals.css` |
 | Specs | `docs/specs/*.md` · audits in `docs/audits/` |

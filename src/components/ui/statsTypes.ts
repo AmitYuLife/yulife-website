@@ -13,7 +13,7 @@ export type StatsColumnItem = {
   id?: string;
 };
 
-export type StatsColumnsProps = {
+export type StatBlockProps = {
   stats: readonly StatsColumnItem[];
   /** Anchor for footnote links. Defaults to `#sources`. */
   sourcesHref?: string;

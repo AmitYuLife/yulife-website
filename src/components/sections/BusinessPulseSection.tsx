@@ -2,11 +2,11 @@
 
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useReveal } from "@/components/hooks/useReveal";
-import YunityDiagram from "@/components/patterns/YunityDiagram";
+import YunityDiagram from "@/components/blocks/YunityDiagram";
 import ConnectingPaths, {
   type ColorPoint,
   type Point,
-} from "@/components/patterns/ConnectingPaths";
+} from "@/components/ui/ConnectingPaths";
 import { domSrc } from "@/lib/domSrc";
 import type { BusinessPulseSection as BusinessPulseData } from "@/data/pages/types";
 

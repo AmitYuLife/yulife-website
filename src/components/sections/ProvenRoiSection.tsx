@@ -1,6 +1,6 @@
 "use client";
 
-import StatCardFan from "@/components/patterns/StatCardFan";
+import StatCardFan from "@/components/blocks/StatCardFan";
 import { useReveal } from "@/components/hooks/useReveal";
 import { domSrc } from "@/lib/domSrc";
 import type { ProvenRoiSection as ProvenRoiData } from "@/data/pages/types";

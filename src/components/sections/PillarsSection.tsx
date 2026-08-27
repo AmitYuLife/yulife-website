@@ -2,13 +2,13 @@
 
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useReveal } from "@/components/hooks/useReveal";
-import TabbedPanel, { DEFAULT_ACTIVE_TAB, PILLAR_COLORS } from "@/components/patterns/TabbedPanel";
-import YunityDiagram from "@/components/patterns/YunityDiagram";
+import TabbedPanel, { DEFAULT_ACTIVE_TAB, PILLAR_COLORS } from "@/components/blocks/TabbedPanel";
+import YunityDiagram from "@/components/blocks/YunityDiagram";
 import { domSrc } from "@/lib/domSrc";
 import ConnectingPaths, {
   type ColorPoint,
   type Point,
-} from "@/components/patterns/ConnectingPaths";
+} from "@/components/ui/ConnectingPaths";
 
 const PLATFORM_INTRO =
   "From daily habits to life's hardest moments — every layer of your people's health in one place.";

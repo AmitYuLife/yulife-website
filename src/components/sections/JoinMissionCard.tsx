@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { useReveal } from "@/components/hooks/useReveal";
 import { domSrc } from "@/lib/domSrc";
 
-const RocketSlingshot = dynamic(() => import("@/components/patterns/RocketSlingshot"), {
+const RocketSlingshot = dynamic(() => import("@/components/blocks/RocketSlingshot"), {
   ssr: false,
   loading: () => (
     <div

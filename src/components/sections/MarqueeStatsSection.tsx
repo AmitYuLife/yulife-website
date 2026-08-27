@@ -1,4 +1,4 @@
-import LogoMarquee from "@/components/patterns/LogoMarquee";
+import LogoMarquee from "@/components/blocks/LogoMarquee";
 import StatCountCards, {
   type StatCountCardItem,
 } from "@/components/sections/StatCountCards";
