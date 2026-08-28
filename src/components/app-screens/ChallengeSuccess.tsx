@@ -22,6 +22,26 @@ function reduceMotion() {
   );
 }
 
+/** Either the one-time welcome intro or a real activity — the two card
+ * slots don't care which they're holding, only how to render it. */
+type SlotContent = { kind: "intro" } | { kind: "activity"; activity: ChallengeActivity };
+
+/** The first-load slide (Figma node 2582:12125) shown in the activity card's
+ * slot before the loop starts — same position and width as the card it
+ * precedes, so the slide-out/slide-in transition between them is seamless. */
+function WelcomeHeadline() {
+  return (
+    <p
+      className="w-[327px] text-center text-[48px] leading-[48px]"
+      style={{ fontFamily: "var(--font-serif)", color: "var(--app-text-on-dark)" }}
+    >
+      <span style={{ fontWeight: 700, fontStyle: "normal" }}>Welcome to</span>
+      <br />
+      <span style={{ fontWeight: 700, fontStyle: "italic" }}>the Yuniverse</span>
+    </p>
+  );
+}
+
 // Pulls in three.js + @react-three/fiber (~190KB gzipped) — deferred behind a
 // dynamic import, same as the existing hero's HeroCoinField, so that weight
 // never lands on the initial page bundle. The placeholder reserves the
@@ -42,6 +62,8 @@ const CARD_WIDTH = 327;
 /** Breathing room between the outgoing and incoming card mid-slide. */
 const CARD_GAP = 32;
 const CARD_SLIDE_DISTANCE = CARD_WIDTH + CARD_GAP;
+/** How long the welcome intro holds before handing off to the first activity. */
+const INTRO_DURATION = 3;
 
 export interface ChallengeSuccessProps {
   /** The activity currently on display — advances only once its caller
@@ -95,8 +117,12 @@ export default function ChallengeSuccess({
   // element the viewer is actually looking at).
   const slotARef = useRef<HTMLDivElement>(null);
   const slotBRef = useRef<HTMLDivElement>(null);
-  const [slotAActivity, setSlotAActivity] = useState<ChallengeActivity>(activity);
-  const [slotBActivity, setSlotBActivity] = useState<ChallengeActivity | null>(null);
+  // Slot A starts on the welcome intro on every render, server included, so
+  // hydration never mismatches — a reduced-motion visitor jumps straight to
+  // the first activity a moment later in the mount effect below, the same
+  // "swap after mount" trick StatusBar uses for its own SSR placeholder.
+  const [slotAContent, setSlotAContent] = useState<SlotContent>({ kind: "intro" });
+  const [slotBContent, setSlotBContent] = useState<SlotContent | null>(null);
   const [currentSlot, setCurrentSlot] = useState<"a" | "b">("a");
   const [enteringSlot, setEnteringSlot] = useState<"a" | "b" | null>(null);
   const prevActivityIndexRef = useRef(activityIndex);
@@ -116,8 +142,36 @@ export default function ChallengeSuccess({
     if (coinWrapRef.current) onCollectEnd?.(coinWrapRef.current.getBoundingClientRect());
   };
 
+  // A slot only ever wires up the collect handlers while it's the one
+  // actually at rest — the other slot (mid-slide, or just parked) renders
+  // read-only, whether it's holding the intro or a stale activity.
+  const renderSlot = (content: SlotContent, isCurrent: boolean) =>
+    content.kind === "intro" ? (
+      <WelcomeHeadline />
+    ) : (
+      <ActivityCard
+        icon={<content.activity.icon className="size-[24px] shrink-0" />}
+        label={content.activity.label}
+        value={content.activity.value}
+        coinAmount={coinAmount}
+        onCollect={isCurrent ? onCollect : undefined}
+        onCollectStart={isCurrent ? handleCollectStart : undefined}
+        onCollectEnd={isCurrent ? handleCollectEnd : undefined}
+        collectDisabled={isCurrent && locked}
+        coinSpinBoostRef={coinSpinBoostRef}
+        coinScaleBoostRef={coinScaleBoostRef}
+      />
+    );
+
   useGSAP(
     () => {
+      // Reduced motion skips the intro outright — it's a decorative beat,
+      // not information, so there's nothing to preserve by staging it.
+      if (reduceMotion()) {
+        setSlotAContent({ kind: "activity", activity });
+        return;
+      }
+
       const mm = gsap.matchMedia();
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
@@ -131,6 +185,19 @@ export default function ChallengeSuccess({
           if (i >= 0) loops.splice(i, 1, next);
           else loops.push(next);
         };
+
+        // ── Welcome intro: holds for INTRO_DURATION, then hands off to the
+        // first activity through the same slide used between activities.
+        // Tracked like the other loops so it only counts down while the
+        // screen is actually visible — a visitor scrolling it into view
+        // late still gets the full intro rather than finding it already
+        // gone from ticking by offscreen.
+        track(
+          gsap.delayedCall(INTRO_DURATION, () => {
+            setSlotBContent({ kind: "activity", activity });
+            setEnteringSlot("b");
+          }),
+        );
 
         // ── Clownfish traverse the screen right → left (they face left) ──
         gsap.utils.toArray<HTMLElement>("[data-cs-clownfish]").forEach((el, i) => {
@@ -384,16 +451,18 @@ export default function ChallengeSuccess({
       if (activityIndex === prevActivityIndexRef.current) return;
       prevActivityIndexRef.current = activityIndex;
 
+      const nextContent: SlotContent = { kind: "activity", activity };
+
       if (reduceMotion()) {
-        if (currentSlot === "a") setSlotAActivity(activity);
-        else setSlotBActivity(activity);
+        if (currentSlot === "a") setSlotAContent(nextContent);
+        else setSlotBContent(nextContent);
         setLocked(false);
         return;
       }
 
       const next = currentSlot === "a" ? "b" : "a";
-      if (next === "a") setSlotAActivity(activity);
-      else setSlotBActivity(activity);
+      if (next === "a") setSlotAContent(nextContent);
+      else setSlotBContent(nextContent);
       setEnteringSlot(next);
     },
     { dependencies: [activityIndex], scope: rootRef },
@@ -488,36 +557,14 @@ export default function ChallengeSuccess({
               ref={slotARef}
               className={currentSlot === "a" ? undefined : "absolute left-0 top-0 pointer-events-none"}
             >
-              <ActivityCard
-                icon={<slotAActivity.icon className="size-[24px] shrink-0" />}
-                label={slotAActivity.label}
-                value={slotAActivity.value}
-                coinAmount={coinAmount}
-                onCollect={currentSlot === "a" ? onCollect : undefined}
-                onCollectStart={currentSlot === "a" ? handleCollectStart : undefined}
-                onCollectEnd={currentSlot === "a" ? handleCollectEnd : undefined}
-                collectDisabled={currentSlot === "a" && locked}
-                coinSpinBoostRef={coinSpinBoostRef}
-                coinScaleBoostRef={coinScaleBoostRef}
-              />
+              {renderSlot(slotAContent, currentSlot === "a")}
             </div>
-            {slotBActivity && (
+            {slotBContent && (
               <div
                 ref={slotBRef}
                 className={currentSlot === "b" ? undefined : "absolute left-0 top-0 pointer-events-none"}
               >
-                <ActivityCard
-                  icon={<slotBActivity.icon className="size-[24px] shrink-0" />}
-                  label={slotBActivity.label}
-                  value={slotBActivity.value}
-                  coinAmount={coinAmount}
-                  onCollect={currentSlot === "b" ? onCollect : undefined}
-                  onCollectStart={currentSlot === "b" ? handleCollectStart : undefined}
-                  onCollectEnd={currentSlot === "b" ? handleCollectEnd : undefined}
-                  collectDisabled={currentSlot === "b" && locked}
-                  coinSpinBoostRef={coinSpinBoostRef}
-                  coinScaleBoostRef={coinScaleBoostRef}
-                />
+                {renderSlot(slotBContent, currentSlot === "b")}
               </div>
             )}
           </div>
