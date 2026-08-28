@@ -6,20 +6,37 @@ import { useGSAP } from "@gsap/react";
 import HeroHeadline from "@/components/ui/HeroHeadline";
 import { Button } from "@/components/ui/Button";
 import TrustRatings from "@/components/ui/TrustRatings";
-import HeroAsset from "@/components/three/HeroAsset";
+import ChallengeSuccessStage from "@/components/app-screens/ChallengeSuccessStage";
 import LogoMarquee from "@/components/blocks/LogoMarquee";
 import { domSrc } from "@/lib/domSrc";
 
 gsap.registerPlugin(useGSAP);
 
-/** The phone's own arrival, before anything else happens. */
+/** The phone fades + rises into its raised "first" position, in seconds. */
 const FADE_DURATION = 0.45;
-/** Beat the phone holds still after arriving, before the jolt, in seconds. */
-const JOLT_BEAT = 0.2;
-/** How far the phone kicks up, px. Enough to read as a knock, not a bounce. */
-const JOLT_DISTANCE = 14;
-const JOLT_UP_DURATION = 0.1;
-const JOLT_SETTLE_DURATION = 0.45;
+/** How long the phone holds high before the copy arrives, in seconds. */
+const HOLD = 2.5;
+/** The push-down: phone travels from the raised position to its final rest. */
+const PUSH_DURATION = 0.5;
+/**
+ * Handed to the phone (`ChallengeSuccess`) so its own Welcome→activity slide
+ * fires on the push-down beat rather than on its own default clock. Both this
+ * timeline and the phone's visibility-gated intro start together at mount
+ * (the hero sits at the top of the page), so matching the durations lines the
+ * two up: the card swaps just as the copy shoves the phone down.
+ */
+const INTRO_DURATION = FADE_DURATION + HOLD;
+
+/**
+ * Where the phone sits at the START of the intro, as the gap between the
+ * phone's bottom and the top of the logo band, expressed as a fraction of the
+ * phone's own height (Figma "Home 1", node 2584:12463: 374px gap over a 901px
+ * phone). Anchoring the raised position to the logo — rather than to the copy
+ * block's height — keeps it put as the copy wraps to more or fewer lines.
+ */
+const PHONE_START_GAP_RATIO = 0.415;
+/** If the coin never reports ready (WebGL off, etc.), reveal anyway after this. */
+const COIN_READY_FALLBACK_MS = 2500;
 
 export type HeroVariant = "product" | "character" | "atmosphere";
 
@@ -30,23 +47,23 @@ interface HeroProps {
 export default function Hero({ variant = "atmosphere" }: HeroProps) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<HTMLElement>(null);
-  // Set inside useGSAP so the coin-complete callback can trigger the copy
-  // reveal built with the correct (motion vs reduced-motion) choreography.
-  const revealCopyRef = useRef<() => void>(() => {});
-  const revealFiredRef = useRef(false);
+  const logoRef = useRef<HTMLElement>(null);
   const introStartedRef = useRef(false);
 
-  const revealCopy = useCallback(() => {
-    if (revealFiredRef.current) return;
-    revealFiredRef.current = true;
-    revealCopyRef.current();
+  // The intro starts only once the phone is BOTH in view AND the 3D coin has
+  // painted — so the phone never fades in a beat before the coin pops in. The
+  // builder is set inside useGSAP (it needs the motion vs reduced-motion
+  // context); these refs let the two async signals trigger it from outside.
+  const inViewRef = useRef(false);
+  const coinReadyRef = useRef(false);
+  const startIntroRef = useRef<() => void>(() => {});
+  const tryStartIntro = useCallback(() => {
+    if (inViewRef.current && coinReadyRef.current) startIntroRef.current();
   }, []);
-
-  // Handed to the coin field so the fountain is triggered BY the phone's jolt
-  // rather than guessing at the intro's progress. Re-rendering here is safe:
-  // useGSAP has no deps, so the timeline is built once and isn't disturbed.
-  const [coinsArmed, setCoinsArmed] = useState(false);
-  const launchCoins = useCallback(() => setCoinsArmed(true), []);
+  const handleCoinReady = useCallback(() => {
+    coinReadyRef.current = true;
+    tryStartIntro();
+  }, [tryStartIntro]);
 
   // The secondary CTA matches the primary's rendered width — Button doesn't
   // forward a ref, so the primary is measured via its wrapper instead.
@@ -63,11 +80,15 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
 
   useGSAP(
     () => {
-      // The copy block (headline → trust ratings) and the phone/coins are
-      // choreographed in two phases: the phone appears first and high, the
-      // coins fountain from behind it, and only when they land does the copy
-      // unfold — its 0 → auto height growth pushing the phone and the rest of
-      // the page down into the final layout.
+      // The copy block and the phone are choreographed in two beats: the phone
+      // fades up into a raised position and holds there, then the copy slides
+      // in and pushes the phone down into its final spot behind the logo bar.
+      //
+      // Crucially the copy's layout height is reserved from the start — only
+      // its lines are hidden — so the hero's total height never changes and
+      // the logo bar never moves. The phone's whole travel is a transform, not
+      // a reflow: it starts raised (see `rise`, anchored to the logo band) and
+      // animates back to 0 as the copy appears.
       const copyLines = [
         ".hero-headline h1",
         ".hero-headline p",
@@ -78,149 +99,100 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
       const mm = gsap.matchMedia();
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        // Start collapsed + hidden. overflow:hidden clips the copy while the
-        // container has zero height; it's released once the unfold lands.
-        gsap.set(".hero-copy", { height: 0, overflow: "hidden" });
         gsap.set(copyLines, { opacity: 0, y: 24 });
-        gsap.set(".hero-asset", { opacity: 0, y: 24 });
+        gsap.set(".hero-phone", { opacity: 0 });
 
-        // Phase 2 — fired by the coin field as the penultimate coin lands, so the
-        // drop begins just as the fountain finishes settling. The height tween and
-        // the line reveals run together, so the push down and the copy appearing
-        // read as one connected motion.
-        revealCopyRef.current = () => {
-          // How far the copy's growth will push the asset (phone + coins) down.
-          const copyEl =
-            sectionRef.current?.querySelector<HTMLElement>(".hero-copy");
-          const pushDistance = copyEl?.scrollHeight ?? 0;
-          // Pin the coins in place only on tablet+. On mobile they drop away
-          // after landing (HeroAsset), so there's nothing to hold.
-          const pinCoins = window.matchMedia("(min-width: 768px)").matches;
+        const startIntro = () => {
+          if (introStartedRef.current) return;
+          introStartedRef.current = true;
 
-          // A brisk shove rather than a glide: the whole travel in 300ms. Still
-          // quicker than the coins themselves (~2700px/s peak against their
-          // 450–650), but by the time this fires they've all but settled, so
-          // there's nothing left to pace against.
-          //
-          // Ease-OUT so it starts immediately and lands softly instead of
-          // stopping dead. Both this and the counter-shift below must keep
-          // matching durations and easings so they cancel exactly throughout,
-          // not just at the end — that's what holds the coins' screen positions
-          // steady while the phone drops out from under them.
-          const PUSH = { duration: 0.3, ease: "power2.out" } as const;
+          // How far the phone sits above its rest position while the copy is
+          // hidden. Anchored to the logo band, not the copy height: at the
+          // start the phone's bottom holds PHONE_START_GAP_RATIO of its own
+          // height above the logo (matching Figma), so it doesn't creep up
+          // when the copy wraps to more lines. rise = (final phone bottom) −
+          // (raised phone bottom); scroll cancels since all rects share it.
+          const phoneEl = sectionRef.current?.querySelector<HTMLElement>(".hero-phone");
+          const logoEl = logoRef.current;
+          let rise = 0;
+          if (phoneEl && logoEl) {
+            const phoneRect = phoneEl.getBoundingClientRect();
+            // The device (PhoneMockup, 434×901) fills the band's width and
+            // overflows it downward, so its real height comes from the aspect.
+            const phoneH = (phoneRect.width * 901) / 434;
+            const finalBottom = phoneRect.top + phoneH;
+            const raisedBottom = logoEl.getBoundingClientRect().top - PHONE_START_GAP_RATIO * phoneH;
+            rise = Math.max(0, finalBottom - raisedBottom);
+          }
 
-          const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-          tl.to(
-            ".hero-copy",
-            {
-              height: "auto",
-              ...PUSH,
-              onComplete: () =>
-                // Drop the clip + fixed height so later reflow (resize, font
-                // swaps) and button hover/focus rings aren't constrained.
-                gsap.set(".hero-copy", { height: "auto", overflow: "visible" }),
-            },
+          const pushAt = FADE_DURATION + HOLD;
+          const tl = gsap.timeline();
+
+          // Beat 1 — fade up into the raised first position.
+          tl.fromTo(
+            ".hero-phone",
+            { y: -rise + 24, opacity: 0 },
+            { y: -rise, opacity: 1, duration: FADE_DURATION, ease: "power3.out" },
             0,
           );
 
-          if (pinCoins) {
-            // The landed coins hold their on-screen position: the push moves the
-            // whole asset (phone + coins) down by pushDistance, so shift the coin
-            // layer up by the same amount + ease to cancel it out — the phone
-            // slides down out of a coin field that stays put. HeroAsset's
-            // scroll-follow composes on the nested .hero-coin-scroll.
-            tl.to(".hero-coin-spill", { y: -pushDistance, ...PUSH }, 0);
-          }
-
-          tl.to(".hero-headline h1", { opacity: 1, y: 0, duration: 0.5 }, 0.08)
+          // Beat 2 — the copy slides in and pushes the phone down to rest. The
+          // push and the line reveals run together so they read as one motion;
+          // the phone's own card swaps Welcome→activity here too (INTRO_DURATION).
+          tl.to(
+            ".hero-phone",
+            {
+              y: 0,
+              duration: PUSH_DURATION,
+              ease: "power3.out",
+              onComplete: () => gsap.set(".hero-phone", { clearProps: "transform" }),
+            },
+            pushAt,
+          );
+          tl.to(".hero-headline h1", { opacity: 1, y: 0, duration: 0.5 }, pushAt + 0.08)
             .to(".hero-headline p", { opacity: 1, y: 0, duration: 0.45 }, "<0.12")
             .to(".hero-cta-row", { opacity: 1, y: 0, duration: 0.4 }, "<0.12")
             .to(".hero-ratings", { opacity: 1, y: 0, duration: 0.35 }, "<0.1");
         };
 
-        // Phase 1 — the phone arrives on its own, holds for a beat, then takes a
-        // jolt: something knocks it, and the coins are knocked loose with it.
-        //
-        // The jolt goes on the phone IMAGE, not .hero-asset (which contains the
-        // coin canvas — jolting that would carry the coins along and kill the
-        // effect) and not .hero-asset-scene (centred with -translate-x-1/2, which
-        // GSAP overwrites with translate:none, throwing the phone off-centre).
-        // The img is positioned with left/top percentages, so y is free.
-        let fallback = 0;
-        const startIntro = () => {
-          if (introStartedRef.current) return;
-          introStartedRef.current = true;
+        // Registered for the async coin-ready / in-view signals to fire.
+        startIntroRef.current = startIntro;
 
-          // Absolute positions: the jolt's own timing is stated once, rather than
-          // chaining off whichever tween happened to be added last.
-          const joltAt = FADE_DURATION + JOLT_BEAT;
-          const intro = gsap.timeline();
-          intro.to(
-            ".hero-asset",
-            { opacity: 1, y: 0, duration: FADE_DURATION, ease: "power3.out" },
-            0,
-          );
-          intro.to(
-            ".hero-asset-phone",
-            {
-              y: -JOLT_DISTANCE,
-              duration: JOLT_UP_DURATION,
-              ease: "power2.out",
-              // Fired on the upstroke, so the burst and the kick are the same
-              // event. The furthest-reaching coins launch first and clear the
-              // phone almost instantly (heroAssetLayout), so they break cover
-              // while it's still moving rather than a beat later.
-              onStart: launchCoins,
-            },
-            joltAt,
-          );
-          // Recoil: back past rest, then settle.
-          intro.to(
-            ".hero-asset-phone",
-            { y: 0, duration: JOLT_SETTLE_DURATION, ease: "back.out(2.2)" },
-            joltAt + JOLT_UP_DURATION,
-          );
-          // Phase 2 isn't on this timeline: the coin field calls revealCopy as the
-          // penultimate coin lands, which the intro can't know the timing of.
-          // Safety net: if the WebGL fountain never reports completion (failed
-          // to mount, no coins), reveal the copy anyway so the hero can't get
-          // stuck with the headline permanently collapsed. Armed with the
-          // intro, never before — see the gate below.
-          fallback = window.setTimeout(revealCopy, 6000);
-        };
+        // Safety net: if the coin never reports ready, don't leave the phone
+        // hidden — mark it ready after a beat and let the intro run.
+        const coinFallback = window.setTimeout(() => {
+          coinReadyRef.current = true;
+          tryStartIntro();
+        }, COIN_READY_FALLBACK_MS);
 
-        // The intro is viewport-gated. It changes page layout (the copy's
-        // 0 → auto growth pushes the phone and everything under it down) and it
-        // spends the one-shot coin fountain, so running it off screen both
-        // shoves the reader's scroll position and burns the burst — and the
-        // coins would then be flying relative to a phone that has already moved.
+        // Viewport-gated: the intro spends a one-shot entrance and a synced
+        // internal transition, so it shouldn't burn before the hero is on
+        // screen. On the homepage it's at the top, so this fires at mount —
+        // then it still waits on the coin (tryStartIntro checks both).
         const scene = sceneRef.current;
         if (!scene) {
-          startIntro();
-          return;
+          inViewRef.current = true;
+          tryStartIntro();
+          return () => window.clearTimeout(coinFallback);
         }
 
         const observer = new IntersectionObserver((entries) => {
           if (!entries.some((entry) => entry.isIntersecting)) return;
           observer.disconnect();
-          startIntro();
+          inViewRef.current = true;
+          tryStartIntro();
         });
         observer.observe(scene);
 
         return () => {
           observer.disconnect();
-          window.clearTimeout(fallback);
+          window.clearTimeout(coinFallback);
         };
       });
 
       mm.add("(prefers-reduced-motion: reduce)", () => {
-        // No motion: land straight in the final layout, everything visible. The
-        // coins still need arming or they'd never mount — the field skips the
-        // flight itself under reduced motion and just sits in its slots.
-        gsap.set(".hero-copy", { height: "auto", overflow: "visible" });
-        gsap.set([...copyLines, ".hero-asset"], { opacity: 1, y: 0 });
-        revealCopyRef.current = () => {};
-        launchCoins();
+        // No motion: land straight in the final layout, everything visible.
+        gsap.set([...copyLines, ".hero-phone"], { opacity: 1, y: 0 });
       });
     },
     { scope: sectionRef },
@@ -246,9 +218,9 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
         {variant === "character" && <CharacterBackground />}
 
         <div className="page-container relative z-10 flex w-full flex-col items-center pt-[var(--layout-section-y)]">
-          {/* The top padding stays outside the collapse so the phone keeps a
-              comfortable gap under the nav while the copy is folded away.
-              .hero-copy animates height 0 → auto to push the phone + page down. */}
+          {/* The copy's layout height is always reserved (only its lines are
+              hidden during the intro), so the hero height stays constant and
+              the logo bar never moves — the phone alone translates down. */}
           <div className="hero-copy w-full">
             <div className="hero-copy-inner mx-auto flex w-full max-w-[904px] flex-col items-center gap-flow">
               <HeroHeadline />
@@ -274,8 +246,21 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
           </div>
         </div>
 
-        <div className="relative z-0 mt-section-gap w-full">
-          <HeroAsset coinsArmed={coinsArmed} onEntranceComplete={revealCopy} />
+        {/* The phone (ChallengeSuccess) sits below the copy in the final
+            layout; its lower half is overlapped by the logo bar (z-10 vs the
+            phone's z-0). Centred with flex — never translate-x — so GSAP's y
+            tween on .hero-phone can't collide with a CSS translate. */}
+        <div className="relative z-0 mt-section-gap flex w-full justify-center">
+          <div
+            className="hero-phone relative h-[300px] w-[181px] overflow-visible tablet:h-[460px] tablet:w-[277px] desktop:h-[620px] desktop:w-[374px]"
+            aria-hidden="true"
+          >
+            <ChallengeSuccessStage
+              introDuration={INTRO_DURATION}
+              onCoinReady={handleCoinReady}
+              phoneStyle={{ width: "100%" }}
+            />
+          </div>
         </div>
       </section>
 
@@ -283,7 +268,7 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
           inverse hero above and the inverse section below — its own step in
           the section alternation. The marquee's edge fade is a transparency
           mask, so it fades into this band colour automatically. */}
-      <section className="relative z-10 -mt-20 border-t border-b border-line-emphasis bg-surface-inverse-raised tablet:-mt-28 desktop:-mt-40">
+      <section ref={logoRef} className="relative z-10 -mt-20 border-t border-b border-line-emphasis bg-surface-inverse-raised tablet:-mt-28 desktop:-mt-40">
         <LogoMarquee />
       </section>
     </div>

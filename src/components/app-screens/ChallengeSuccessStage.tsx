@@ -43,6 +43,11 @@ function reduceMotion() {
 export interface ChallengeSuccessStageProps {
   totalSteps?: number;
   coinAmount?: number;
+  /** Passed through to `ChallengeSuccess` — retimes the welcome intro's
+   * handoff to the first activity (see its `introDuration`). */
+  introDuration?: number;
+  /** Bubbled up from `ChallengeSuccess` once the 3D coin has painted. */
+  onCoinReady?: () => void;
   /** Fires on the collect button click. */
   onCollect?: () => void;
   /** Sizes the phone slot — pass e.g. `{ width }` from a width toggle. */
@@ -66,6 +71,8 @@ export interface ChallengeSuccessStageProps {
 export default function ChallengeSuccessStage({
   totalSteps,
   coinAmount = 200,
+  introDuration,
+  onCoinReady,
   onCollect,
   phoneStyle,
   className,
@@ -205,6 +212,8 @@ export default function ChallengeSuccessStage({
           activity={activities[activityIndex]}
           activityIndex={activityIndex}
           coinAmount={coinAmount}
+          introDuration={introDuration}
+          onCoinReady={onCoinReady}
           onCollect={onCollect}
           onCollectEnd={handleCollectEnd}
         />

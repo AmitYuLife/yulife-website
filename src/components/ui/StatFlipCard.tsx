@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { assetPath } from "@/lib/assetPath";
@@ -20,6 +20,20 @@ const PUSH_X = 16; // shift of a neighbour away from the active card, px
 // Pointer tilt — the same lean as the home-page floating cards, without the
 // drop-shadow/sheen (which softened the text and lagged during the flip).
 const TILT_MAX_DEG = 12;
+
+// Hatch-gradient sweep easing (same fix as HeroHeadline's gradient tracking:
+// ease toward the pointer via rAF, decoupled from pointermove's event rate,
+// instead of a CSS transition — see hero-accent-gradient-interactive).
+const HATCH_EASE_FACTOR = 0.25; // share of the remaining distance closed each frame
+const HATCH_SETTLE_THRESHOLD_DEG = 0.5; // stop the rAF loop once this close to target
+
+/** Shortest signed distance from `from` to `to` around a circle, in degrees. */
+function shortestAngleDelta(from: number, to: number) {
+  let delta = (to - from) % 360;
+  if (delta > 180) delta -= 360;
+  if (delta < -180) delta += 360;
+  return delta;
+}
 
 // Flip timing — snappy, and closing runs 10% faster than opening.
 const FLIP_OPEN_DURATION = 0.45;
@@ -62,6 +76,29 @@ function HeartGlyph({ className }: { className?: string }) {
         stroke="var(--color-line-emphasis)"
       />
     </svg>
+  );
+}
+
+/**
+ * One arced hatch band on the card back, coloured by the angular brand sweep
+ * masked to the hairline artwork (mask alpha = the SVG's own hairlines, so
+ * their opacity carries straight through). The sweep's `from` angle reads
+ * `--hatch-gradient-angle`, which the pointer-tilt handler drives — turning
+ * the band into a foil-style sheen that reacts to where the light "hits".
+ */
+function HatchBand({ className }: { className: string }) {
+  const maskUrl = `url(${assetPath(HATCH)})`;
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "stat-card-hatch-band pointer-events-none absolute aspect-[334/246] select-none",
+        "[mask-mode:alpha] [mask-repeat:no-repeat] [mask-size:100%_100%]",
+        "[-webkit-mask-repeat:no-repeat] [-webkit-mask-size:100%_100%]",
+        className,
+      )}
+      style={{ WebkitMaskImage: maskUrl, maskImage: maskUrl }}
+    />
   );
 }
 
@@ -114,9 +151,13 @@ export default function StatFlipCard({
   angle,
   layout,
 }: StatFlipCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
   const liftRef = useRef<HTMLDivElement>(null);
   const flipRef = useRef<HTMLDivElement>(null);
   const reducedRef = useRef(false);
+  const hatchTargetAngle = useRef(0);
+  const hatchCurrentAngle = useRef(0);
+  const hatchRafId = useRef<number | null>(null);
   const { number, suffix } = parseStatValue(stat.value);
   const label = stat.label.replace(/\n/g, " ");
   const active = isHovered || isOpen;
@@ -124,6 +165,35 @@ export default function StatFlipCard({
   useEffect(() => {
     reducedRef.current = prefersReducedMotion();
   }, []);
+
+  // Eases the applied --hatch-gradient-angle toward the latest pointer
+  // target every frame, decoupled from pointermove's event rate — this is
+  // what makes the sweep glide instead of jumping straight to each sample
+  // (same fix as HeroHeadline's gradient tracking).
+  const tickHatchGradient = useCallback(() => {
+    const el = cardRef.current;
+    if (!el) {
+      hatchRafId.current = null;
+      return;
+    }
+
+    const delta = shortestAngleDelta(hatchCurrentAngle.current, hatchTargetAngle.current);
+    hatchCurrentAngle.current += delta * HATCH_EASE_FACTOR;
+    el.style.setProperty("--hatch-gradient-angle", `${hatchCurrentAngle.current.toFixed(2)}deg`);
+
+    if (Math.abs(delta) < HATCH_SETTLE_THRESHOLD_DEG) {
+      hatchRafId.current = null;
+      return;
+    }
+    hatchRafId.current = requestAnimationFrame(tickHatchGradient);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (hatchRafId.current !== null) cancelAnimationFrame(hatchRafId.current);
+    },
+    [],
+  );
 
   // Lift / peek / straighten / part — fan layout only.
   useGSAP(
@@ -186,6 +256,15 @@ export default function StatFlipCard({
     const py = (e.clientY - rect.top) / rect.height - 0.5;
     el.style.setProperty("--tilt-x", `${(-py * TILT_MAX_DEG).toFixed(2)}deg`);
     el.style.setProperty("--tilt-y", `${(px * TILT_MAX_DEG).toFixed(2)}deg`);
+    // Sweep the hatch gradient to face the pointer, like foil catching light
+    // from that direction (atan2 measured from centre, converted from
+    // math convention — 0deg = east — to the conic-gradient convention
+    // used by `from`, where 0deg = north). Only the target updates here;
+    // tickHatchGradient eases the applied value toward it every frame.
+    hatchTargetAngle.current = (Math.atan2(py, px) * 180) / Math.PI + 90;
+    if (hatchRafId.current === null) {
+      hatchRafId.current = requestAnimationFrame(tickHatchGradient);
+    }
   };
 
   const handleLeave = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -193,6 +272,17 @@ export default function StatFlipCard({
     const el = e.currentTarget;
     el.style.setProperty("--tilt-x", "0deg");
     el.style.setProperty("--tilt-y", "0deg");
+    hatchTargetAngle.current = 0;
+    if (reducedRef.current) {
+      if (hatchRafId.current !== null) {
+        cancelAnimationFrame(hatchRafId.current);
+        hatchRafId.current = null;
+      }
+      hatchCurrentAngle.current = 0;
+      el.style.setProperty("--hatch-gradient-angle", "0deg");
+    } else if (hatchRafId.current === null) {
+      hatchRafId.current = requestAnimationFrame(tickHatchGradient);
+    }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -205,6 +295,7 @@ export default function StatFlipCard({
   return (
     <div ref={liftRef} className="will-change-transform">
       <div
+        ref={cardRef}
         data-stat-card={index}
         className={cn(
           "relative h-[487px] w-[324px] cursor-pointer rounded-[24px] will-change-transform [transform:perspective(1000px)_rotateX(var(--tilt-x,0deg))_rotateY(var(--tilt-y,0deg))] [transition:transform_0.4s_cubic-bezier(0.22,1,0.36,1),box-shadow_0.25s_ease] motion-reduce:transition-none",
@@ -261,18 +352,8 @@ export default function StatFlipCard({
               aria-hidden={!isOpen}
               className="absolute inset-0 flex flex-col items-start justify-between overflow-hidden rounded-[24px] border border-line-emphasis bg-surface-inverse p-40 text-left [backface-visibility:hidden] will-change-transform [transform:rotateY(180deg)]"
             >
-              <img
-                src={assetPath(HATCH)}
-                alt=""
-                aria-hidden
-                className="pointer-events-none absolute left-0 top-0 w-full rotate-180 select-none"
-              />
-              <img
-                src={assetPath(HATCH)}
-                alt=""
-                aria-hidden
-                className="pointer-events-none absolute bottom-0 left-0 w-full select-none"
-              />
+              <HatchBand className="left-0 top-0 w-full rotate-180" />
+              <HatchBand className="bottom-0 left-0 w-full" />
               <p className="type-body-lg relative text-balance text-on-inverse">{stat.note}</p>
               {stat.source && (
                 <p className="type-body-sm relative text-on-inverse">{stat.source}</p>

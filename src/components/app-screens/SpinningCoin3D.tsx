@@ -159,19 +159,29 @@ function SpinningGroup({
   paused,
   spinBoostRef,
   scaleBoostRef,
+  onReady,
 }: {
   paused: boolean;
   spinBoostRef: RefObject<number>;
   scaleBoostRef: RefObject<number>;
+  onReady?: () => void;
 }) {
   const spin = useRef<THREE.Group>(null);
   const coin = useIllustratedCoin();
   const assets = useMemo(getCoinAssets, []);
   const view = useMemo(() => new THREE.Vector3(), []);
+  const readyRef = useRef(false);
 
   useFrame((_, delta) => {
     const g = spin.current;
     if (!g) return;
+    // First rendered frame — the coin is now painted, so callers can reveal
+    // whatever was waiting on it (the hero fades the phone in only now, so the
+    // coin never pops in a beat after the phone).
+    if (!readyRef.current) {
+      readyRef.current = true;
+      onReady?.();
+    }
     g.scale.setScalar(scaleBoostRef.current);
     if (!paused) g.rotation.y += Math.min(delta, 0.1) * SPIN_SPEED * spinBoostRef.current;
 
@@ -218,10 +228,13 @@ export default function SpinningCoin3D({
   className,
   spinBoostRef,
   scaleBoostRef,
+  onReady,
 }: {
   className?: string;
   spinBoostRef?: RefObject<number>;
   scaleBoostRef?: RefObject<number>;
+  /** Fired once, on the first rendered frame — the coin is now on screen. */
+  onReady?: () => void;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const frameloop = useVisibleFrameloop(wrapRef);
@@ -261,6 +274,7 @@ export default function SpinningCoin3D({
             paused={reducedMotion}
             spinBoostRef={spinBoostRef ?? ownBoostRef}
             scaleBoostRef={scaleBoostRef ?? ownScaleRef}
+            onReady={onReady}
           />
         </Canvas>
       </div>

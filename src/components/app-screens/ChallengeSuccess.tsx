@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -62,7 +62,10 @@ const CARD_WIDTH = 327;
 /** Breathing room between the outgoing and incoming card mid-slide. */
 const CARD_GAP = 32;
 const CARD_SLIDE_DISTANCE = CARD_WIDTH + CARD_GAP;
-/** How long the welcome intro holds before handing off to the first activity. */
+/** Default hold for the welcome intro before handing off to the first
+ * activity. Overridable per mount via the `introDuration` prop — the homepage
+ * hero, for one, syncs it to its own entrance so the Welcome→activity slide
+ * lands on the phone's push-down beat. */
 const INTRO_DURATION = 3;
 
 export interface ChallengeSuccessProps {
@@ -73,6 +76,14 @@ export interface ChallengeSuccessProps {
   /** Identifies `activity` so the crossfade only fires on a real change. */
   activityIndex: number;
   coinAmount?: number;
+  /** Seconds the welcome intro holds before handing off to the first
+   * activity. Defaults to `INTRO_DURATION`; a caller can retime it to line the
+   * handoff up with its own choreography (e.g. the hero's push-down). */
+  introDuration?: number;
+  /** Fired once the 3D coin has painted its first frame — lets a host defer
+   * revealing the phone until the coin is actually on screen (no pop-in). Also
+   * gates this screen's own welcome→activity handoff, so the two stay in step. */
+  onCoinReady?: () => void;
   /** Fires on the collect button click — the YuCoin fountain binds here later. */
   onCollect?: () => void;
   /** Fires the instant the button is pressed down — starts the coin spray. */
@@ -98,11 +109,29 @@ export default function ChallengeSuccess({
   activity,
   activityIndex,
   coinAmount = 200,
+  introDuration = INTRO_DURATION,
+  onCoinReady,
   onCollect,
   onCollectStart,
   onCollectEnd,
 }: ChallengeSuccessProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  // Flips true on the coin's first painted frame (or a fallback, so a WebGL
+  // failure can't leave the phone hidden forever). Both the welcome→activity
+  // handoff below and the host's phone reveal wait on this, off the same
+  // moment, so they stay in sync.
+  const [coinReady, setCoinReady] = useState(false);
+  const coinReadyFiredRef = useRef(false);
+  const markCoinReady = useCallback(() => {
+    if (coinReadyFiredRef.current) return;
+    coinReadyFiredRef.current = true;
+    setCoinReady(true);
+    onCoinReady?.();
+  }, [onCoinReady]);
+  useEffect(() => {
+    const fallback = window.setTimeout(markCoinReady, 1500);
+    return () => window.clearTimeout(fallback);
+  }, [markCoinReady]);
   const { loops, pausedRef } = useLoopPause(rootRef);
   const coinSpinBoostRef = useRef(1);
   const coinScaleBoostRef = useRef(1);
@@ -186,18 +215,9 @@ export default function ChallengeSuccess({
           else loops.push(next);
         };
 
-        // ── Welcome intro: holds for INTRO_DURATION, then hands off to the
-        // first activity through the same slide used between activities.
-        // Tracked like the other loops so it only counts down while the
-        // screen is actually visible — a visitor scrolling it into view
-        // late still gets the full intro rather than finding it already
-        // gone from ticking by offscreen.
-        track(
-          gsap.delayedCall(INTRO_DURATION, () => {
-            setSlotBContent({ kind: "activity", activity });
-            setEnteringSlot("b");
-          }),
-        );
+        // ── Welcome intro: the hold + handoff to the first activity lives in
+        // its own coinReady-gated effect below (so it starts when the coin is
+        // actually on screen, in step with the host's phone reveal), not here.
 
         // ── Clownfish traverse the screen right → left (they face left) ──
         gsap.utils.toArray<HTMLElement>("[data-cs-clownfish]").forEach((el, i) => {
@@ -438,6 +458,26 @@ export default function ChallengeSuccess({
     { scope: rootRef },
   );
 
+  // Welcome intro handoff — held out of the main timeline so it only starts
+  // once the coin has painted (coinReady), matching the host's phone reveal.
+  // After `introDuration` it hands the welcome slide off to the first activity
+  // through the same slot slide used between activities. Reduced motion never
+  // shows the intro (the mount effect above swaps straight to the activity),
+  // so this is a no-op there.
+  const introHandedOffRef = useRef(false);
+  useGSAP(
+    () => {
+      if (!coinReady || introHandedOffRef.current || reduceMotion()) return;
+      introHandedOffRef.current = true;
+      const call = gsap.delayedCall(introDuration, () => {
+        setSlotBContent({ kind: "activity", activity });
+        setEnteringSlot("b");
+      });
+      return () => call.kill();
+    },
+    { dependencies: [coinReady], scope: rootRef },
+  );
+
   // Advances the ActivityCard when `activityIndex` changes. That prop only
   // changes once the caller confirms the collect animation has actually
   // finished (see ChallengeSuccessStage's `handleCollectEnd`, gated on the
@@ -543,6 +583,7 @@ export default function ChallengeSuccess({
               className="size-full"
               spinBoostRef={coinSpinBoostRef}
               scaleBoostRef={coinScaleBoostRef}
+              onReady={markCoinReady}
             />
           </div>
           {/* No overflow-hidden here — the slide is meant to clip against the
