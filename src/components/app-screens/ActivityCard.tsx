@@ -1,5 +1,4 @@
 import type { ReactNode, RefObject } from "react";
-import { ShoeIcon, TrophyIcon } from "./icons";
 import CollectButton from "./CollectButton";
 
 function StatRow({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
@@ -12,19 +11,28 @@ function StatRow({ icon, label, value }: { icon: ReactNode; label: string; value
   );
 }
 
-/** Glass card over the ocean: challenge stats + the collect CTA. */
-export default function StatsCard({
-  totalSteps,
-  personalBest,
+/** Glass card over the ocean: one activity stat + the collect CTA. */
+export default function ActivityCard({
+  icon,
+  label,
+  value,
   coinAmount,
   onCollect,
+  onCollectStart,
+  onCollectEnd,
+  collectDisabled,
   coinSpinBoostRef,
   coinScaleBoostRef,
 }: {
-  totalSteps: number;
-  personalBest: number;
+  icon: ReactNode;
+  label: string;
+  value: string;
   coinAmount: number;
   onCollect?: () => void;
+  onCollectStart?: () => void;
+  onCollectEnd?: () => void;
+  /** Blocks the collect button — while a collect is already mid-flight. */
+  collectDisabled?: boolean;
   coinSpinBoostRef?: RefObject<number>;
   coinScaleBoostRef?: RefObject<number>;
 }) {
@@ -37,21 +45,13 @@ export default function StatsCard({
         color: "var(--app-text-on-dark)",
       }}
     >
-      <div className="flex w-full flex-col gap-[8px]">
-        <StatRow
-          icon={<ShoeIcon className="size-[24px] shrink-0" />}
-          label="Total steps"
-          value={totalSteps.toLocaleString("en-GB")}
-        />
-        <StatRow
-          icon={<TrophyIcon className="size-[24px] shrink-0" />}
-          label="Personal best"
-          value={personalBest.toLocaleString("en-GB")}
-        />
-      </div>
+      <StatRow icon={icon} label={label} value={value} />
       <CollectButton
         label={`Collect ${coinAmount.toLocaleString("en-GB")} YuCoin`}
         onCollect={onCollect}
+        onCollectStart={onCollectStart}
+        onCollectEnd={onCollectEnd}
+        disabled={collectDisabled}
         coinSpinBoostRef={coinSpinBoostRef}
         coinScaleBoostRef={coinScaleBoostRef}
       />

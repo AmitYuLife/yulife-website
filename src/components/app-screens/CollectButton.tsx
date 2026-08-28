@@ -20,6 +20,11 @@ const COIN_SPIN_BOOST = 40;
 const COIN_SCALE_PRESSED = 0.88;
 const COIN_SCALE_BOUNCE = 1.1;
 
+/** How long the release's elastic wobble takes — exported so callers (the
+ * ActivityCard's slide-to-next-activity transition) can pick up right as the
+ * button visually settles, instead of waiting on a separate animation. */
+export const COLLECT_BOUNCE_DURATION = 0.6;
+
 /**
  * The pink "Collect N YuCoin" button. Pressing sits the button down onto its
  * hard shadow (and darkens the fill); releasing springs it back with an
@@ -31,15 +36,28 @@ const COIN_SCALE_BOUNCE = 1.1;
  * shrinks it while pressed, bouncing past 100% on release before settling —
  * both tweened directly on their shared refs rather than via React state, so
  * they don't force a re-render of the R3F canvas.
+ *
+ * `onCollectStart`/`onCollectEnd` are discrete lifecycle events (press down /
+ * press released) for effects that live outside this file — the coin spray
+ * and release trail — fired from inside the same `pressedRef` guards as the
+ * rest of press()/release(), so a mashed button can't double-fire them.
  */
 export default function CollectButton({
   label,
   onCollect,
+  onCollectStart,
+  onCollectEnd,
+  disabled,
   coinSpinBoostRef,
   coinScaleBoostRef,
 }: {
   label: string;
   onCollect?: () => void;
+  onCollectStart?: () => void;
+  onCollectEnd?: () => void;
+  /** Blocks presses — the caller sets this once a collect is mid-flight, so
+   * a second press can't stack another collect on the running animation. */
+  disabled?: boolean;
   coinSpinBoostRef?: RefObject<number>;
   coinScaleBoostRef?: RefObject<number>;
 }) {
@@ -50,8 +68,9 @@ export default function CollectButton({
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const press = () => {
-    if (pressedRef.current) return;
+    if (disabled || pressedRef.current) return;
     pressedRef.current = true;
+    onCollectStart?.();
     const btn = buttonRef.current;
     if (!btn) return;
     btn.style.backgroundColor = "var(--app-cta-pressed)";
@@ -79,6 +98,7 @@ export default function CollectButton({
   const release = () => {
     if (!pressedRef.current) return;
     pressedRef.current = false;
+    onCollectEnd?.();
     const btn = buttonRef.current;
     if (!btn) return;
     btn.style.backgroundColor = "var(--app-cta)";
@@ -97,7 +117,7 @@ export default function CollectButton({
     });
     gsap.to(btn, {
       y: 0,
-      duration: 0.6,
+      duration: COLLECT_BOUNCE_DURATION,
       ease: "elastic.out(1, 0.4)",
     });
     if (coinSpinBoostRef) {
@@ -127,7 +147,11 @@ export default function CollectButton({
       onKeyUp={(e) => {
         if (e.key === " " || e.key === "Enter") release();
       }}
-      onClick={() => onCollect?.()}
+      onClick={() => {
+        if (disabled) return;
+        onCollect?.();
+      }}
+      aria-disabled={disabled}
       className="flex w-full cursor-pointer items-center justify-center gap-[8px] rounded-[8px] border-2 px-[32px] py-[16px] will-change-transform motion-reduce:active:translate-y-[4px] motion-reduce:active:shadow-[inset_0px_4px_0px_0px_var(--app-cta-edge)]"
       style={{
         backgroundColor: "var(--app-cta)",

@@ -248,6 +248,14 @@ export default function SpinningCoin3D({
           gl={{ alpha: true, antialias: true }}
           frameloop={frameloop}
           style={{ overflow: "visible" }}
+          // react-use-measure defaults to getBoundingClientRect, which reports
+          // this container's *post-transform* size — inflated by
+          // AppScreenFrame's CSS scale() on every ancestor chain. Canvas then
+          // applies that oversized width/height as its own inline style, and
+          // the same ancestor transform scales it again, so the coin renders
+          // larger than its box and off-centre. offsetSize reads the
+          // pre-transform layout size instead, which is what Canvas needs.
+          resize={{ offsetSize: true }}
         >
           <SpinningGroup
             paused={reducedMotion}

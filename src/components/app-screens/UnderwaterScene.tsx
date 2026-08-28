@@ -25,6 +25,13 @@ const DESIGN_BUBBLES: Array<[number, number, number]> = [
 /** Extra pooled bubbles the spawner recycles; idle at opacity 0. */
 const POOL_SIZE = 8;
 
+/**
+ * Foreground pool — rendered after the seabed strip so it paints in front of
+ * the sand/coral, giving the scene a near/far layer of bubbles instead of a
+ * single flat one. Larger, so the depth cue reads as "closer to camera".
+ */
+const FOREGROUND_POOL_SIZE = 6;
+
 const JELLYFISH: Array<[number, number, number, number]> = [
   [299, 409, 105.54, 116.14],
   [337, 507, 64.62, 71.11],
@@ -90,7 +97,7 @@ export default function UnderwaterScene() {
           height={166}
         />
         <img
-          data-cs-coral=""
+          data-cs-structure=""
           src={assetPath(`${ASSETS}/coral.svg`)}
           alt=""
           className="absolute"
@@ -141,6 +148,18 @@ export default function UnderwaterScene() {
           height={106}
         />
       </div>
+
+      {/* Foreground bubbles — painted after the seabed strip so they rise in
+          front of the sand and coral, emerging from the bottom edge. */}
+      {Array.from({ length: FOREGROUND_POOL_SIZE }, (_, i) => (
+        <div
+          key={`pool-fg-${i}`}
+          data-cs-bubble-pool-fg=""
+          className="absolute left-0 top-[800px] size-[22px] opacity-0"
+        >
+          <Bubble />
+        </div>
+      ))}
 
       {CLOWNFISH.map(([x, y], i) => (
         <div key={i} data-cs-clownfish="" className="absolute h-[33px] w-[44px]" style={{ left: x, top: y }}>

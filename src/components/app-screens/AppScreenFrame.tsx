@@ -1,6 +1,4 @@
-"use client";
-
-import { useLayoutEffect, useRef, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /** Native design size of every app screen (iPhone X). */
@@ -13,9 +11,14 @@ export const SCREEN_H = 812;
  * gives this frame (the PhoneMockup screen hole, a workbench specimen). The
  * outer box reserves the correct aspect ratio — unless `fill`, where the
  * parent owns the size (e.g. the mock-up's screen hole, which is slightly
- * shorter than 375:812 and clips the bottom of the scene) — and a
- * ResizeObserver writes the scale factor straight onto the element so resizes
- * never re-render React.
+ * shorter than 375:812 and clips the bottom of the scene).
+ *
+ * The scale factor is pure CSS, not measured in JS: the outer box declares
+ * itself a query container, and the inner element reads its resolved width
+ * back as `cqw` units, converting to a unitless scale via `calc(<length> /
+ * <length>)`. That's resolved during layout, before the first paint — so
+ * unlike a ResizeObserver-driven scale, there is no wrong-size frame (and
+ * therefore nothing to hide or fade in while waiting for one).
  *
  * GSAP inside the screen animates its own elements — the scale transform
  * lives out here on a separate element, so the two never fight.
@@ -30,26 +33,12 @@ export default function AppScreenFrame({
   fill?: boolean;
   children: ReactNode;
 }) {
-  const outerRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const outer = outerRef.current;
-    if (!outer) return;
-    const apply = () =>
-      outer.style.setProperty("--screen-scale", String(outer.clientWidth / SCREEN_W));
-    apply();
-    const observer = new ResizeObserver(apply);
-    observer.observe(outer);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <div
-      ref={outerRef}
       className={cn("relative w-full overflow-hidden", fill && "h-full", className)}
       style={{
         ...(fill ? {} : { aspectRatio: `${SCREEN_W} / ${SCREEN_H}` }),
-        ["--screen-scale" as string]: "1",
+        containerType: "inline-size",
       }}
     >
       <div
@@ -57,7 +46,7 @@ export default function AppScreenFrame({
         style={{
           width: SCREEN_W,
           height: SCREEN_H,
-          transform: "scale(var(--screen-scale))",
+          transform: `scale(calc(100cqw / ${SCREEN_W}px))`,
         }}
       >
         {children}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { domSrc } from "@/lib/domSrc";
@@ -10,18 +11,55 @@ import PhoneMockup from "./PhoneMockup";
 import useLoopPause from "./useLoopPause";
 import StatusBar from "./StatusBar";
 import UnderwaterScene from "./UnderwaterScene";
-import StatsCard from "./StatsCard";
-import SpinningCoin3D from "./SpinningCoin3D";
-import { YuLogoSquare } from "./icons";
+import ActivityCard from "./ActivityCard";
+import { YuCoinNavIcon, YuLogoSquare } from "./icons";
+import type { ChallengeActivity } from "./activities";
+
+function reduceMotion() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+// Pulls in three.js + @react-three/fiber (~190KB gzipped) — deferred behind a
+// dynamic import, same as the existing hero's HeroCoinField, so that weight
+// never lands on the initial page bundle. The placeholder reserves the
+// coin's exact footprint so its arrival doesn't shift the layout below it.
+const SpinningCoin3D = dynamic(() => import("./SpinningCoin3D"), {
+  ssr: false,
+  loading: () => <div className="size-full" />,
+});
 
 gsap.registerPlugin(useGSAP);
 
+/** Idle coin-spray pool — recycled while the button is held, like the bubble pool. */
+const SPRAY_POOL_SIZE = 10;
+/** Card-to-card slide: fast, so it reads as a snappy follow-on to the collect. */
+const CARD_SLIDE_DURATION = 0.32;
+/** Matches ActivityCard's own `w-[327px]`. */
+const CARD_WIDTH = 327;
+/** Breathing room between the outgoing and incoming card mid-slide. */
+const CARD_GAP = 32;
+const CARD_SLIDE_DISTANCE = CARD_WIDTH + CARD_GAP;
+
 export interface ChallengeSuccessProps {
-  totalSteps?: number;
-  personalBest?: number;
+  /** The activity currently on display — advances only once its caller
+   * confirms the collect animation has fully played out (see
+   * `ChallengeSuccessStage`), never on click alone. */
+  activity: ChallengeActivity;
+  /** Identifies `activity` so the crossfade only fires on a real change. */
+  activityIndex: number;
   coinAmount?: number;
   /** Fires on the collect button click — the YuCoin fountain binds here later. */
   onCollect?: () => void;
+  /** Fires the instant the button is pressed down — starts the coin spray. */
+  onCollectStart?: () => void;
+  /**
+   * Fires on release — stops the spray and hands back the coin's current
+   * viewport rect, the trail-to-counter sequence's start point.
+   */
+  onCollectEnd?: (coinRect: DOMRect) => void;
 }
 
 /**
@@ -35,15 +73,48 @@ export interface ChallengeSuccessProps {
  * offscreen.
  */
 export default function ChallengeSuccess({
-  totalSteps = 5264,
-  personalBest = 17732,
+  activity,
+  activityIndex,
   coinAmount = 200,
   onCollect,
+  onCollectStart,
+  onCollectEnd,
 }: ChallengeSuccessProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const { loops, pausedRef } = useLoopPause(rootRef);
   const coinSpinBoostRef = useRef(1);
   const coinScaleBoostRef = useRef(1);
+  const coinWrapRef = useRef<HTMLDivElement>(null);
+  const sprayingRef = useRef(false);
+  const startSprayRef = useRef<() => void>(() => {});
+  // Two persistent card slots rather than one reused node: the visible
+  // (current) slot's content and position never change out from under it —
+  // only the *other*, off-screen slot gets new content and gets pushed to
+  // its starting position before it slides in. That's what keeps the swap
+  // glitch-free (no same-frame content-swap-plus-transform-reset on the
+  // element the viewer is actually looking at).
+  const slotARef = useRef<HTMLDivElement>(null);
+  const slotBRef = useRef<HTMLDivElement>(null);
+  const [slotAActivity, setSlotAActivity] = useState<ChallengeActivity>(activity);
+  const [slotBActivity, setSlotBActivity] = useState<ChallengeActivity | null>(null);
+  const [currentSlot, setCurrentSlot] = useState<"a" | "b">("a");
+  const [enteringSlot, setEnteringSlot] = useState<"a" | "b" | null>(null);
+  const prevActivityIndexRef = useRef(activityIndex);
+  // Locked the instant a press starts, unlocked only once the next card has
+  // fully slid into place — closes the window where a second press could
+  // fire mid-sequence and stack another collect on top of an animation
+  // that's still playing out.
+  const [locked, setLocked] = useState(false);
+
+  const handleCollectStart = () => {
+    setLocked(true);
+    onCollectStart?.();
+    startSprayRef.current();
+  };
+  const handleCollectEnd = () => {
+    sprayingRef.current = false;
+    if (coinWrapRef.current) onCollectEnd?.(coinWrapRef.current.getBoundingClientRect());
+  };
 
   useGSAP(
     () => {
@@ -200,11 +271,69 @@ export default function ChallengeSuccess({
           .toArray<HTMLElement>("[data-cs-bubble-pool]")
           .forEach((el) => spawn(el, undefined, true));
 
-        // ── Coral and seaweed sway independently around their base ──
+        // Foreground pool: same idiom, but starts below the visible frame so
+        // each bubble emerges from under the sand as it rises, and travels a
+        // touch faster/bigger to read as the nearer layer.
+        const spawnForeground = (el: HTMLElement, prev?: gsap.core.Animation, initial = false) => {
+          const duration = rand(3.5, 7);
+          const tl = gsap.timeline({
+            delay: initial ? rand(0, 6) : rand(0.2, 2.5),
+            onComplete: () => {
+              if (!pausedRef.current) spawnForeground(el, tl);
+            },
+          });
+          tl.set(el, { x: rand(16, 340), y: 0, scale: rand(0.7, 1.3), opacity: 0 });
+          tl.to(el, { y: -rand(480, 820), x: `+=${rand(-24, 24)}`, duration, ease: "none" }, 0);
+          tl.to(el, { opacity: 0.9, duration: duration * 0.15, ease: "none" }, 0);
+          tl.to(el, { opacity: 0, duration: duration * 0.25, ease: "none" }, duration * 0.75);
+          if (prev) replace(prev, tl);
+          else track(tl);
+        };
+        gsap.utils
+          .toArray<HTMLElement>("[data-cs-bubble-pool-fg]")
+          .forEach((el) => spawnForeground(el, undefined, true));
+
+        // ── Coin spray: same self-perpetuating pool idiom as the bubbles,
+        // gated on sprayingRef instead of running forever — each pooled coin
+        // shoots outward from the button-arm origin (the coin's centre),
+        // fades out, and either respawns (still pressed) or stops.
+        const spawnSprayCoin = (el: HTMLElement, prev?: gsap.core.Animation) => {
+          if (!sprayingRef.current || pausedRef.current) return;
+          const angle = rand(0, Math.PI * 2);
+          // Far enough that coins genuinely exit the 375×812 screen in most
+          // directions and get clipped by its edge, rather than fading out
+          // while still well inside it.
+          const distance = rand(180, 380);
+          const tl = gsap.timeline({ onComplete: () => spawnSprayCoin(el, tl) });
+          tl.set(el, { x: 0, y: 0, rotation: rand(-30, 30), scale: rand(0.5, 0.9), opacity: 0 });
+          tl.to(el, { opacity: 1, duration: 0.08, ease: "none" }, 0);
+          tl.to(
+            el,
+            {
+              x: Math.cos(angle) * distance,
+              y: Math.sin(angle) * distance,
+              rotation: `+=${rand(-180, 180)}`,
+              duration: rand(0.5, 0.9),
+              ease: "power2.out",
+            },
+            0,
+          );
+          tl.to(el, { opacity: 0, duration: 0.2, ease: "none" }, ">-0.2");
+          if (prev) replace(prev, tl);
+          else track(tl);
+        };
+        startSprayRef.current = () => {
+          sprayingRef.current = true;
+          gsap.utils.toArray<HTMLElement>("[data-cs-coin-spray]").forEach((el, i) => {
+            track(gsap.delayedCall(i * 0.03, () => spawnSprayCoin(el, undefined)));
+          });
+        };
+
+        // ── Coral and seaweed sway independently around their base — the
+        // archway structure stays rigid, it's stone, not a soft-bodied plant ──
         (
           [
             ["[data-cs-coral-back]", 4.8, 4],
-            ["[data-cs-coral]", 5.6, 3],
             ["[data-cs-seaweed]", 3.9, 5],
           ] as const
         ).forEach(([selector, duration, degrees]) => {
@@ -242,6 +371,62 @@ export default function ChallengeSuccess({
     { scope: rootRef },
   );
 
+  // Advances the ActivityCard when `activityIndex` changes. That prop only
+  // changes once the caller confirms the collect animation has actually
+  // finished (see ChallengeSuccessStage's `handleCollectEnd`, gated on the
+  // button's own bounce-back rather than the slower coin trail), so this is
+  // the visual half of "next step doesn't load in until the YuCoin has been
+  // collected" — never triggered by the click itself. Reduced motion swaps
+  // the content of the current slot outright rather than staging the slide
+  // below.
+  useGSAP(
+    () => {
+      if (activityIndex === prevActivityIndexRef.current) return;
+      prevActivityIndexRef.current = activityIndex;
+
+      if (reduceMotion()) {
+        if (currentSlot === "a") setSlotAActivity(activity);
+        else setSlotBActivity(activity);
+        setLocked(false);
+        return;
+      }
+
+      const next = currentSlot === "a" ? "b" : "a";
+      if (next === "a") setSlotAActivity(activity);
+      else setSlotBActivity(activity);
+      setEnteringSlot(next);
+    },
+    { dependencies: [activityIndex], scope: rootRef },
+  );
+
+  // Runs the actual transition once the entering slot above has its new
+  // content (and so has a ref worth animating): the current slot drifts left
+  // while fading out, the entering one — starting a gap's width to the right
+  // — fades in while drifting left into place. No transform ever needs
+  // resetting on the slot the viewer is looking at — the *other* slot gets
+  // pushed back to its off-screen starting mark before its own next
+  // entrance, whenever that turns out to be.
+  useGSAP(
+    () => {
+      if (!enteringSlot) return;
+      const outEl = currentSlot === "a" ? slotARef.current : slotBRef.current;
+      const inEl = enteringSlot === "a" ? slotARef.current : slotBRef.current;
+      if (!outEl || !inEl) return;
+      gsap.set(inEl, { x: CARD_SLIDE_DISTANCE, opacity: 0 });
+      gsap
+        .timeline({
+          onComplete: () => {
+            setCurrentSlot(enteringSlot);
+            setEnteringSlot(null);
+            setLocked(false);
+          },
+        })
+        .to(outEl, { x: -CARD_SLIDE_DISTANCE, opacity: 0, duration: CARD_SLIDE_DURATION, ease: "power2.inOut" }, 0)
+        .to(inEl, { x: 0, opacity: 1, duration: CARD_SLIDE_DURATION, ease: "power2.inOut" }, 0);
+    },
+    { dependencies: [enteringSlot], scope: rootRef },
+  );
+
   return (
     <PhoneMockup>
       <div
@@ -270,19 +455,72 @@ export default function ChallengeSuccess({
             <StatusBar />
             <YuLogoSquare className="absolute left-1/2 top-[52px] size-[24px] -translate-x-1/2" />
           </div>
-          <SpinningCoin3D
-            className="h-[160px] w-[152px] shrink-0"
-            spinBoostRef={coinSpinBoostRef}
-            scaleBoostRef={coinScaleBoostRef}
-          />
-          <StatsCard
-            totalSteps={totalSteps}
-            personalBest={personalBest}
-            coinAmount={coinAmount}
-            onCollect={onCollect}
-            coinSpinBoostRef={coinSpinBoostRef}
-            coinScaleBoostRef={coinScaleBoostRef}
-          />
+          <div ref={coinWrapRef} className="relative h-[160px] w-[152px] shrink-0">
+            {/* Painted first (behind the coin) so the coin's own opaque face
+                occludes coins spawning under it — its transparent canvas
+                background lets them show through everywhere else. */}
+            <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+              {Array.from({ length: SPRAY_POOL_SIZE }, (_, i) => (
+                <div
+                  key={i}
+                  data-cs-coin-spray=""
+                  className="absolute left-1/2 top-1/2 -ml-[12px] -mt-[12px] size-[24px] opacity-0"
+                >
+                  <YuCoinNavIcon className="size-full" />
+                </div>
+              ))}
+            </div>
+            <SpinningCoin3D
+              className="size-full"
+              spinBoostRef={coinSpinBoostRef}
+              scaleBoostRef={coinScaleBoostRef}
+            />
+          </div>
+          {/* No overflow-hidden here — the slide is meant to clip against the
+              phone's own screen edge (the root div above), not disappear
+              early against this narrower slot. Whichever slot isn't current
+              is absolutely positioned over the top of it (out of flow, so it
+              never affects this container's height); the current slot stays
+              in normal flow so the container's height always tracks real
+              card content instead of a guessed pixel value. */}
+          <div className="relative w-[327px]">
+            <div
+              ref={slotARef}
+              className={currentSlot === "a" ? undefined : "absolute left-0 top-0 pointer-events-none"}
+            >
+              <ActivityCard
+                icon={<slotAActivity.icon className="size-[24px] shrink-0" />}
+                label={slotAActivity.label}
+                value={slotAActivity.value}
+                coinAmount={coinAmount}
+                onCollect={currentSlot === "a" ? onCollect : undefined}
+                onCollectStart={currentSlot === "a" ? handleCollectStart : undefined}
+                onCollectEnd={currentSlot === "a" ? handleCollectEnd : undefined}
+                collectDisabled={currentSlot === "a" && locked}
+                coinSpinBoostRef={coinSpinBoostRef}
+                coinScaleBoostRef={coinScaleBoostRef}
+              />
+            </div>
+            {slotBActivity && (
+              <div
+                ref={slotBRef}
+                className={currentSlot === "b" ? undefined : "absolute left-0 top-0 pointer-events-none"}
+              >
+                <ActivityCard
+                  icon={<slotBActivity.icon className="size-[24px] shrink-0" />}
+                  label={slotBActivity.label}
+                  value={slotBActivity.value}
+                  coinAmount={coinAmount}
+                  onCollect={currentSlot === "b" ? onCollect : undefined}
+                  onCollectStart={currentSlot === "b" ? handleCollectStart : undefined}
+                  onCollectEnd={currentSlot === "b" ? handleCollectEnd : undefined}
+                  collectDisabled={currentSlot === "b" && locked}
+                  coinSpinBoostRef={coinSpinBoostRef}
+                  coinScaleBoostRef={coinScaleBoostRef}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </PhoneMockup>

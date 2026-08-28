@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 const TIME_FORMAT = new Intl.DateTimeFormat(undefined, {
   hour: "2-digit",
@@ -11,14 +11,20 @@ const TIME_FORMAT = new Intl.DateTimeFormat(undefined, {
 /**
  * iPhone status bar chrome shared by the fake app screens. The clock shows the
  * viewer's real system time and ticks on the minute. The SSR/first render emits
- * the Figma value ("09:04") so the static export never hydrates mismatched.
+ * the Figma value ("09:04") so the static export never hydrates mismatched —
+ * but that placeholder stays masked (not shown) until the real time replaces
+ * it, so the viewer never sees the wrong time flash before the correct one.
  */
 export default function StatusBar() {
   const [time, setTime] = useState("09:04");
+  const [ready, setReady] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let interval: ReturnType<typeof setInterval> | undefined;
-    const tick = () => setTime(TIME_FORMAT.format(new Date()));
+    const tick = () => {
+      setTime(TIME_FORMAT.format(new Date()));
+      setReady(true);
+    };
     tick();
     // Align the interval to the next minute boundary so the clock never lags.
     const boundary = setTimeout(() => {
@@ -33,7 +39,10 @@ export default function StatusBar() {
 
   return (
     <div className="relative h-[44px] w-full opacity-90" style={{ color: "var(--app-status-ink)" }}>
-      <p className="absolute left-[21px] top-[8px] flex h-[23px] items-center font-bold text-[15px] leading-none">
+      <p
+        className="absolute left-[21px] top-[8px] flex h-[23px] items-center font-bold text-[15px] leading-none transition-opacity duration-150 motion-reduce:transition-none"
+        style={{ opacity: ready ? 1 : 0 }}
+      >
         {time}
       </p>
       <div className="absolute right-[14px] top-[15px] flex h-[16px] items-center gap-[2px]">
