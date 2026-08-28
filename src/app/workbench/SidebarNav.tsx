@@ -54,6 +54,16 @@ const LINKS = [
       </>
     ),
   },
+  {
+    href: "/workbench/app",
+    label: "App",
+    icon: (
+      <>
+        <rect x="7" y="2.5" width="10" height="19" rx="2" />
+        <path d="M10.5 18.5h3" />
+      </>
+    ),
+  },
 ];
 
 export default function SidebarNav() {

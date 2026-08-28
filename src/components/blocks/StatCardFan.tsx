@@ -187,7 +187,9 @@ export default function StatCardFan({ stats }: { stats: readonly ProvenRoiStat[]
               style={{
                 bottom: bounds.bottom,
                 // Layers descend left→right, so the first card sits on top.
-                zIndex: isOpen ? 100 : isHovered ? 60 : stats.length - 1 - i,
+                // Hovering only peeks a card up/forward in place — it doesn't
+                // change stacking order; only opening (flipping) a card does.
+                zIndex: isOpen ? 100 : stats.length - 1 - i,
                 transformOrigin: `center ${FAN_PIVOT}px`,
               }}
             >

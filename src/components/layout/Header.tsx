@@ -27,17 +27,14 @@ const TOP_BAR_H = 72;
 const DROP_GAP = 10;
 /** Tuck under the pill — high enough to read as a layer behind the bar. */
 const DROP_TUCK = TOP_BAR_H + DROP_GAP + 16;
-/** Quick opacity fade masks the tucked origin on open. */
-const OPEN_FADE_MS = 120;
-/** Open — fade + slide down from behind the bar. */
-const OPEN_MS = 120;
-const OPEN_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
-/** Close — snappy exit. */
-const CLOSE_MS = 80;
-const CLOSE_EASE = "cubic-bezier(0.55, 0.05, 1, 0.85)";
-/** Menu-to-menu content switch — Stripe/Linear pace. */
-const SWITCH_MS = 120;
-const SWITCH_EASE = "cubic-bezier(0.2, 0, 0, 1)";
+/** Pane geometry — open/close slide and menu-switch cross-slide, Stripe pace. */
+const PANE_TRANSFORM_MS = 250;
+const PANE_TRANSFORM_EASE = "cubic-bezier(0.6, 0, 0.2, 0.5)";
+/** Whole-panel opacity fade — independent of the slide, masks the tucked origin. */
+const OPEN_FADE_MS = 180;
+const OPEN_FADE_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
+const CLOSE_FADE_MS = 150;
+const CLOSE_FADE_EASE = "cubic-bezier(0.55, 0.05, 1, 0.85)";
 const PANEL_ID = "nav-mega-menu-panel";
 
 
@@ -101,7 +98,7 @@ export default function Header() {
       setRenderedMenu(activeMenu);
       switchTimeout.current = setTimeout(() => {
         setExitingMenu(null);
-      }, SWITCH_MS);
+      }, PANE_TRANSFORM_MS);
       return () => clearTimeout(switchTimeout.current);
     }
 
@@ -216,7 +213,7 @@ export default function Header() {
     setIsOpen(false);
     setDropExpanded(false);
     clearTimeout(closeTimeout.current);
-    closeTimeout.current = setTimeout(finishClose, CLOSE_MS + 32);
+    closeTimeout.current = setTimeout(finishClose, PANE_TRANSFORM_MS + 32);
   }, [finishClose]);
 
   const handleLeave = useCallback(() => {
@@ -282,8 +279,8 @@ export default function Header() {
   }, [isOpen, closeMenu]);
 
   const panelSlideVariant = slideDirection > 0 ? "Right" : "Left";
-  const motionMs = isOpen ? OPEN_MS : CLOSE_MS;
-  const motionEase = isOpen ? OPEN_EASE : CLOSE_EASE;
+  const motionMs = isOpen ? OPEN_FADE_MS : CLOSE_FADE_MS;
+  const motionEase = isOpen ? OPEN_FADE_EASE : CLOSE_FADE_EASE;
 
   return (
     <>
@@ -343,8 +340,8 @@ export default function Header() {
                   visibility: menuVisible ? "visible" : "hidden",
                   ["--mega-drop-tuck" as string]: `${DROP_TUCK}px`,
                   ["--mega-open-fade-ms" as string]: `${OPEN_FADE_MS}ms`,
-                  ["--mega-open-ms" as string]: `${OPEN_MS}ms`,
-                  ["--mega-close-ms" as string]: `${CLOSE_MS}ms`,
+                  ["--mega-close-fade-ms" as string]: `${CLOSE_FADE_MS}ms`,
+                  ["--mega-pane-ms" as string]: `${PANE_TRANSFORM_MS}ms`,
                 }}
                 aria-hidden={!isOpen}
               >
@@ -361,7 +358,6 @@ export default function Header() {
                       className="mega-menu-panel overflow-hidden rounded-md border border-line-subtle bg-surface shadow-[0_16px_32px_rgb(0_0_0/0.18)]"
                       style={{
                         height: panelHeight,
-                        ["--mega-switch-ms" as string]: `${SWITCH_MS}ms`,
                       }}
                     >
                       <div className="relative">
@@ -369,7 +365,7 @@ export default function Header() {
                           <div
                             className="mega-menu-switch-layer absolute inset-x-0 top-0"
                             style={{
-                              animation: `megaPanelExit${panelSlideVariant} ${SWITCH_MS}ms ${SWITCH_EASE} both`,
+                              animation: `megaPanelExit${panelSlideVariant}X ${PANE_TRANSFORM_MS}ms ${PANE_TRANSFORM_EASE} both, megaPanelFadeOut ${CLOSE_FADE_MS}ms ${CLOSE_FADE_EASE} both`,
                               pointerEvents: "none",
                             }}
                             aria-hidden="true"
@@ -383,7 +379,7 @@ export default function Header() {
                           className="mega-menu-switch-layer relative"
                           style={{
                             animation: exitingMenu
-                              ? `megaPanelEnter${panelSlideVariant} ${SWITCH_MS}ms ${SWITCH_EASE} both`
+                              ? `megaPanelEnter${panelSlideVariant}X ${PANE_TRANSFORM_MS}ms ${PANE_TRANSFORM_EASE} both, megaPanelFadeIn ${OPEN_FADE_MS}ms ${OPEN_FADE_EASE} both`
                               : undefined,
                           }}
                         >

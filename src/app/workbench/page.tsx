@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { componentSpecs, blockSpecs, sectionSpecs } from "./registry";
+import { componentSpecs, blockSpecs, sectionSpecs, appScreenSpecs } from "./registry";
 import { typographyRoles, primitiveColorGroups, semanticColorGroups } from "./tokens";
 
 const primitiveCount = primitiveColorGroups.reduce((n, g) => n + g.swatches.length, 0);
@@ -25,6 +25,11 @@ const CARDS = [
     href: "/workbench/sections",
     title: "Sections",
     body: `${sectionSpecs.length} reusable, prop-driven page sections rendered full-bleed from sample props.`,
+  },
+  {
+    href: "/workbench/app",
+    title: "App",
+    body: `${appScreenSpecs.length} fake live app screen${appScreenSpecs.length === 1 ? "" : "s"} — interactive, animated canvases headed for the device mock-ups in page heroes.`,
   },
 ];
 

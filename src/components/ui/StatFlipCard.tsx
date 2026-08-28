@@ -207,7 +207,7 @@ export default function StatFlipCard({
       <div
         data-stat-card={index}
         className={cn(
-          "relative h-[487px] w-[324px] cursor-pointer rounded-[24px] [transform:perspective(1000px)_rotateX(var(--tilt-x,0deg))_rotateY(var(--tilt-y,0deg))] [transition:transform_0.4s_cubic-bezier(0.22,1,0.36,1),box-shadow_0.25s_ease] motion-reduce:transition-none",
+          "relative h-[487px] w-[324px] cursor-pointer rounded-[24px] will-change-transform [transform:perspective(1000px)_rotateX(var(--tilt-x,0deg))_rotateY(var(--tilt-y,0deg))] [transition:transform_0.4s_cubic-bezier(0.22,1,0.36,1),box-shadow_0.25s_ease] motion-reduce:transition-none",
           // Shadow/Card (Figma) — a flat offset drop shadow when the card is
           // resting; it drops away as the card tilts/lifts on hover or open.
           active ? "shadow-none" : "shadow-[8px_8px_0px_0px_rgba(0,0,0,0.08)]",
@@ -223,12 +223,12 @@ export default function StatFlipCard({
         aria-label={`${stat.value} ${label}`}
       >
         <div className="absolute inset-0 [perspective:1200px]">
-          <div ref={flipRef} className="relative h-full w-full [transform-style:preserve-3d]">
+          <div ref={flipRef} className="relative h-full w-full will-change-transform [transform-style:preserve-3d]">
             {/* Front */}
             <div
               aria-hidden={isOpen}
               className={cn(
-                "absolute inset-0 flex flex-col items-center justify-center gap-8 overflow-hidden rounded-[24px] border border-line-emphasis p-40 text-center transition-colors duration-150 [backface-visibility:hidden] motion-reduce:transition-none",
+                "absolute inset-0 flex flex-col items-center justify-center gap-8 overflow-hidden rounded-[24px] border border-line-emphasis p-40 text-center transition-colors duration-150 [backface-visibility:hidden] will-change-transform motion-reduce:transition-none",
                 active ? "bg-surface-inverse" : "bg-surface-inverse-raised",
               )}
             >
@@ -259,7 +259,7 @@ export default function StatFlipCard({
             {/* Back (Figma node 2440:5339) — claim top, source bottom, left-aligned. */}
             <div
               aria-hidden={!isOpen}
-              className="absolute inset-0 flex flex-col items-start justify-between overflow-hidden rounded-[24px] border border-line-emphasis bg-surface-inverse p-40 text-left [backface-visibility:hidden] [transform:rotateY(180deg)]"
+              className="absolute inset-0 flex flex-col items-start justify-between overflow-hidden rounded-[24px] border border-line-emphasis bg-surface-inverse p-40 text-left [backface-visibility:hidden] will-change-transform [transform:rotateY(180deg)]"
             >
               <img
                 src={assetPath(HATCH)}

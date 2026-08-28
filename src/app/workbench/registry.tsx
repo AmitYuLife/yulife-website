@@ -12,6 +12,7 @@ import PillarBox from "@/components/ui/PillarBox";
 import YunityDiagram from "@/components/blocks/YunityDiagram";
 import StatFlipCardDemo from "./StatFlipCardDemo";
 import QuoteBlockDemo from "./QuoteBlockDemo";
+import ChallengeSuccessDemo from "./ChallengeSuccessDemo";
 
 import SimpleHero from "@/components/sections/SimpleHero";
 import ImageRightHeroDemo from "./ImageRightHeroDemo";
@@ -393,5 +394,19 @@ export const sectionSpecs: Spec[] = [
     note: "fixed content + R3F coin field; copy resolved by harness",
     padded: false,
     render: () => <Hero />,
+  },
+];
+
+// ── App screens ───────────────────────────────────────────────────────────────
+// Fake live app screens (src/components/app-screens/*) headed for the device
+// mock-ups in page heroes. Rendered on /workbench/app WITHOUT the
+// ReducedMotionHarness so their ambient loops actually play.
+export const appScreenSpecs: Spec[] = [
+  {
+    name: "ChallengeSuccess",
+    source: "src/components/app-screens/ChallengeSuccess.tsx",
+    note: "live app screen in the iPhone mock-up · loops pause offscreen",
+    padded: false,
+    render: () => <ChallengeSuccessDemo />,
   },
 ];
