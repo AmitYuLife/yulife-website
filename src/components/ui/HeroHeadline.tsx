@@ -20,7 +20,9 @@ export default function HeroHeadline() {
     const offsetX = (nx - 0.5) * 100 * POINTER_INFLUENCE;
     const offsetY = (ny - 0.5) * 100 * POINTER_INFLUENCE;
 
-    accentEl.style.backgroundPosition = `${50 + offsetX}% ${50 + offsetY}%`;
+    // A higher background-position shifts the image the opposite way, so
+    // subtract the offset to make the gradient travel with the pointer.
+    accentEl.style.backgroundPosition = `${50 - offsetX}% ${50 - offsetY}%`;
   }, []);
 
   const breakAt = hero.h1.indexOf(" that ");
@@ -42,7 +44,7 @@ export default function HeroHeadline() {
     );
 
   return (
-    <div {...domSrc("HeroHeadline")} className="hero-headline flex w-full flex-col items-center gap-flow text-center">
+    <div {...domSrc("HeroHeadline")} className="hero-headline flex w-full flex-col items-center gap-stack text-center">
       <h1
         className="type-display w-full"
         style={{ color: "var(--hero-ink)" }}

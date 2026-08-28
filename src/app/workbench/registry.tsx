@@ -6,7 +6,6 @@ import RevealCardGrid, { type RevealCardGridItem } from "@/components/blocks/Rev
 import StatBlock from "@/components/blocks/StatBlock";
 import StatColumn from "@/components/ui/StatColumn";
 import type { StatsColumnItem } from "@/components/ui/statsTypes";
-import HeroButtons from "@/components/ui/HeroButtons";
 import TrustRatings from "@/components/ui/TrustRatings";
 import SectionCard from "@/components/ui/SectionCard";
 import PillarBox from "@/components/ui/PillarBox";
@@ -148,13 +147,6 @@ export const componentSpecs: Spec[] = [
         />
       </div>
     ),
-  },
-  {
-    name: "HeroButtons",
-    source: "src/components/ui/HeroButtons.tsx",
-    note: "hero CTA row · fixed content",
-    tone: "dark",
-    render: () => <HeroButtons />,
   },
   {
     name: "TrustRatings",

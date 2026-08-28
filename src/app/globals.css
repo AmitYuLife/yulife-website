@@ -165,7 +165,10 @@
 .hero-accent-gradient-interactive {
   background-size: 260% 190%;
   background-position: 50% 50%;
-  transition: background-position 0.4s ease-out;
+  /* No transition: the pointer drives background-position directly so the
+     gradient tracks the cursor in real time, like a spotlight. A transition
+     makes it perpetually chase a stale target and only settle once the
+     cursor stops. */
 }
 
 @media (prefers-reduced-motion: reduce) {

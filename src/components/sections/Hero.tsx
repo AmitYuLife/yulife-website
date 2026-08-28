@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import HeroHeadline from "@/components/ui/HeroHeadline";
-import HeroButtons from "@/components/ui/HeroButtons";
+import { Button } from "@/components/ui/Button";
 import TrustRatings from "@/components/ui/TrustRatings";
 import HeroAsset from "@/components/three/HeroAsset";
 import LogoMarquee from "@/components/blocks/LogoMarquee";
@@ -47,6 +47,19 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
   // useGSAP has no deps, so the timeline is built once and isn't disturbed.
   const [coinsArmed, setCoinsArmed] = useState(false);
   const launchCoins = useCallback(() => setCoinsArmed(true), []);
+
+  // The secondary CTA matches the primary's rendered width — Button doesn't
+  // forward a ref, so the primary is measured via its wrapper instead.
+  const primaryCtaRef = useRef<HTMLSpanElement>(null);
+  const [ctaWidth, setCtaWidth] = useState<number>();
+
+  useEffect(() => {
+    const el = primaryCtaRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => setCtaWidth(entry.contentRect.width));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useGSAP(
     () => {
@@ -232,14 +245,30 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
         {variant === "product" && <ProductBackground />}
         {variant === "character" && <CharacterBackground />}
 
-        <div className="page-container relative z-10 flex w-full flex-col items-center pt-24 md:pt-32 lg:pt-36">
+        <div className="page-container relative z-10 flex w-full flex-col items-center pt-[var(--layout-section-y)]">
           {/* The top padding stays outside the collapse so the phone keeps a
               comfortable gap under the nav while the copy is folded away.
               .hero-copy animates height 0 → auto to push the phone + page down. */}
           <div className="hero-copy w-full">
-            <div className="hero-copy-inner flex w-full flex-col items-center gap-flow">
+            <div className="hero-copy-inner mx-auto flex w-full max-w-[904px] flex-col items-center gap-flow">
               <HeroHeadline />
-              <HeroButtons />
+              <div className="hero-cta-row flex flex-col items-center justify-center gap-controls tablet:flex-row">
+                <Button
+                  href="/who-we-help/businesses"
+                  size="lg"
+                  variant="outline"
+                  theme="onDark"
+                  trailingIcon
+                  style={ctaWidth ? { width: ctaWidth } : undefined}
+                >
+                  Who we help
+                </Button>
+                <span ref={primaryCtaRef} className="inline-flex">
+                  <Button href="/contact" size="lg" variant="solid" theme="onDark">
+                    Speak to our team
+                  </Button>
+                </span>
+              </div>
               <TrustRatings />
             </div>
           </div>
