@@ -175,6 +175,7 @@ export default function ChallengeSuccessStage({
 
     const fadeOutStart = TRAIL_DURATION - 0.15;
     batchTimelinesRef.current[nextBatch] = freshEls.map((el, i) => {
+      const isFirst = i === 0;
       const isLast = i === freshEls.length - 1;
       return gsap
         .timeline({ delay: i * TRAIL_STAGGER })
@@ -197,10 +198,17 @@ export default function ChallengeSuccessStage({
         // added* tween — the emerge fade-in above, ending well before the
         // motionPath does — not against the motionPath's own, later end).
         .to(el, { opacity: 0, duration: 0.15, ease: "none" }, fadeOutStart)
+        .call(() => counterRef.current?.pulseCoin())
         .call(() => {
-          if (!isLast || runIdRef.current !== runId) return;
-          applyCoinTotal();
-          scheduleFadeOut();
+          if (runIdRef.current !== runId) return;
+          // The odometer starts counting the instant the *first* coin of the
+          // batch touches down — not after the whole staggered batch has
+          // landed, which read as a laggy pause between the coin arriving
+          // and the number actually moving.
+          if (isFirst) applyCoinTotal();
+          // Fade-out is still timed off the *last* coin, once every coin has
+          // visually finished arriving.
+          if (isLast) scheduleFadeOut();
         });
     });
   };

@@ -11,14 +11,21 @@ gsap.registerPlugin(useGSAP);
 // Generous headroom — each digit column can roll forward through this many
 // single-digit ticks before running out of rendered rows. A v1-accepted
 // limit (see the ChallengeSuccessStage plan notes): far more than a demo
-// session needs, and simpler than an unboundedly-extending strip.
-const STRIP_CYCLES = 10;
+// session needs, and simpler than an unboundedly-extending strip. Sized for
+// the *forced* full lap below (an unchanging column still advances a full
+// 10 rows every collect, not just the occasional real 9-row jump), which is
+// the actual worst case now rather than an edge case.
+const STRIP_CYCLES = 40;
 const STRIP_ROWS = STRIP_CYCLES * 10 + 10;
 // Pixel row height — the roll distance is computed in px, not em, so it
 // can't drift out of sync with the rows' actual `h-[24px]` regardless of
 // their font-size (an earlier em-based version rolled by 1em == 16px per
 // row while each row rendered at 24px tall, misaligning after every tick).
 const ROW_HEIGHT = 24;
+// Overshoot before settling back to 1 — same bounce shape as CollectButton's
+// COIN_SCALE_BOUNCE, triggered per-coin as each trail coin lands instead of
+// once on release.
+const COIN_PULSE_SCALE = 1.3;
 
 function digitsOf(n: number): number[] {
   return String(Math.max(0, Math.trunc(n)))
@@ -29,6 +36,8 @@ function digitsOf(n: number): number[] {
 export interface YuCoinCounterHandle {
   /** Viewport rect of the small coin icon — the trail's landing point. */
   getCoinIconRect(): DOMRect | null;
+  /** Bounces the coin icon — call as each trail coin lands. */
+  pulseCoin(): void;
 }
 
 /**
@@ -56,6 +65,11 @@ const YuCoinCounter = forwardRef<
    * measurement (mount), so the very first digit-count change still has
    * something to animate from. */
   const pillWidthRef = useRef<number | null>(null);
+  /** Skips the force-a-lap behaviour below on the mount-time run, where
+   * `prev` is seeded from `digits` itself — every column already reads as
+   * unchanged, so forcing a lap there would spin the whole counter (hidden,
+   * harmlessly, but pointlessly) before it's ever been shown. */
+  const hasAnimatedRef = useRef(false);
 
   const digits = useMemo(() => digitsOf(value), [value]);
 
@@ -64,6 +78,8 @@ const YuCoinCounter = forwardRef<
       const tracks = gsap.utils.toArray<HTMLElement>("[data-counter-track]", pillRef.current);
       const prev = prevDigitsRef.current;
       const rows = rowsRef.current;
+      const isFirstRun = !hasAnimatedRef.current;
+      hasAnimatedRef.current = true;
 
       // Align from the right — a newly-appeared leading digit (crossing a
       // power of ten, or the very first collect growing from "0") has no
@@ -72,12 +88,21 @@ const YuCoinCounter = forwardRef<
       // instantly (which, for the very first collect — where *every* column
       // but the last is "new" — meant the whole number just jumped with no
       // visible roll at all).
+      //
+      // A column whose digit doesn't change (tens/units sitting on "0" while
+      // only the hundreds column moves, e.g. every collect being a multiple
+      // of 100) would otherwise get a zero delta and never visibly move —
+      // reading as a broken odometer where only the leading digit counts.
+      // Forcing a full lap (a delta of 10 rather than 0) makes every column
+      // roll through its digits and land back where it started, so the whole
+      // number visibly counts up together.
       const nextRows = digits.map((digit, i) => {
         const fromRight = digits.length - i;
         const prevIndex = prev.length - fromRight;
         const prevDigit = prevIndex >= 0 ? prev[prevIndex] : 0;
         const prevRow = prevIndex >= 0 ? (rows[prevIndex] ?? prevDigit) : 0;
-        const delta = (digit - prevDigit + 10) % 10;
+        const rawDelta = (digit - prevDigit + 10) % 10;
+        const delta = !isFirstRun && rawDelta === 0 ? 10 : rawDelta;
         return prevRow + delta;
       });
 
@@ -158,18 +183,30 @@ const YuCoinCounter = forwardRef<
 
   useImperativeHandle(ref, () => ({
     getCoinIconRect: () => coinIconRef.current?.getBoundingClientRect() ?? null,
+    pulseCoin: () => {
+      const el = coinIconRef.current;
+      if (!el) return;
+      if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
+      gsap.killTweensOf(el);
+      gsap
+        .timeline()
+        .to(el, { scale: COIN_PULSE_SCALE, duration: 0.15, ease: "power2.out" })
+        .to(el, { scale: 1, duration: 0.25, ease: "power2.out" });
+    },
   }));
 
   return (
     <div
       ref={pillRef}
-      className={`flex flex-col items-center justify-center gap-[8px] rounded-[8px] border px-[16px] py-[24px] opacity-0 ${className ?? ""}`}
+      className={`flex flex-col items-center justify-center gap-[8px] rounded-[8px] px-[16px] py-[24px] opacity-0 ${className ?? ""}`}
       style={{
         backgroundColor: APP_PALETTE.screenBase,
-        borderColor: APP_PALETTE.textOnDark,
         color: APP_PALETTE.textOnDark,
       }}
     >
+      <span className="yucoin-counter-ring" aria-hidden="true" />
       <div className="flex items-center gap-[8px]">
         <div className="flex items-baseline">
           {digits.map((digit, i) => {
