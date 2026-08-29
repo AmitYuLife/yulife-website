@@ -25,6 +25,14 @@ const FAN_SPREAD = 30;
 const CARD_W = 324; // must match the card's w-[324px]
 const CARD_H = 487; // must match the card's h-[487px]
 
+// Straighten-then-flip sequencing (see the note by the straighten effect and
+// StatFlipCard's STRAIGHTEN_DURATION). On open a card straightens over
+// STRAIGHTEN_DURATION before it flips; on close it flips back first, so the
+// card's re-fan is held for FLIP_CLOSE_DURATION. These must match the flip
+// timing in StatFlipCard (FLIP_OPEN_DURATION 0.38 * 0.9 ≈ 0.34).
+const STRAIGHTEN_DURATION = 0.12;
+const FLIP_CLOSE_DURATION = 0.34;
+
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
@@ -140,6 +148,66 @@ export default function StatCardFan({ stats }: { stats: readonly ProvenRoiStat[]
       });
     },
     { scope: fanRef },
+  );
+
+  // Straighten the opened card by rotating its own `li` to 0 (and back to its
+  // fan angle on close) instead of countering the fan's rotation from inside
+  // StatFlipCard. A `li` with a nonzero rotation, ancestor to the card's
+  // preserve-3d flip, corrupts Chromium's render of the open (rotateY 180)
+  // face — a rounded corner and border streak off diagonally — even once fully
+  // settled. Keeping the fan's rotation and its cancellation on the same
+  // element (rather than split across `li` and the lift wrapper) avoids the
+  // nonzero-rotation-with-3D-descendant combination that triggers it.
+  //
+  // Where a card sits once it straightens open. The fan rotates each `li` about
+  // a pivot FAN_PIVOT below it, which both tilts the card and lifts its ends off
+  // the flat baseline into an arc. When a card straightens (rotation → 0) we
+  // want it to keep its horizontal place in the fan but drop back to that flat
+  // baseline, so whichever card is open lands at the *same* height as the others
+  // rather than low on the arc's shoulders.
+  //   - x: the card's fan slot = spread + the arc's horizontal component. The
+  //     card centre sits directly above the pivot, so that component is a pure
+  //     arm·sin(angle) with no horizontal cross-term (arm = pivot-to-centre).
+  //   - y: 0 — the flat baseline, identical for every card, which is what keeps
+  //     the opened cards in line with one another.
+  const openX = useCallback((angleDeg: number) => {
+    const arm = FAN_PIVOT - CARD_H / 2;
+    return arm * Math.sin((angleDeg * Math.PI) / 180);
+  }, []);
+
+  const prevOpenIndexRef = useRef<number | null>(null);
+  useGSAP(
+    () => {
+      const ul = fanRef.current;
+      const prev = prevOpenIndexRef.current;
+      prevOpenIndexRef.current = openIndex;
+      if (!ul || (prev === null && openIndex === null)) return;
+      const lis = Array.from(ul.children) as HTMLElement[];
+      const reduce = prefersReducedMotion();
+      const indices = new Set<number>();
+      if (prev !== null) indices.add(prev);
+      if (openIndex !== null) indices.add(openIndex);
+      indices.forEach((i) => {
+        const li = lis[i];
+        if (!li) return;
+        const angle = (i - mid) * FAN_ANGLE;
+        const spread = (i - mid) * FAN_SPREAD;
+        const isThisOpen = i === openIndex;
+        // Opening: straighten now. Closing: hold the re-fan until the flip has
+        // turned back, so the card is never re-rotated while still flipped.
+        const delay = !reduce && !isThisOpen ? FLIP_CLOSE_DURATION : 0;
+        gsap.to(li, {
+          rotation: isThisOpen ? 0 : angle,
+          x: isThisOpen ? spread + openX(angle) : spread,
+          y: 0,
+          duration: reduce ? 0 : STRAIGHTEN_DURATION,
+          delay,
+          ease: "power3.out",
+          overwrite: "auto",
+        });
+      });
+    },
+    { dependencies: [openIndex], scope: fanRef },
   );
 
   // Escape, or a click anywhere that is not the open card, closes it.

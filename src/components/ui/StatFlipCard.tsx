@@ -36,8 +36,20 @@ function shortestAngleDelta(from: number, to: number) {
 }
 
 // Flip timing — snappy, and closing runs 10% faster than opening.
-const FLIP_OPEN_DURATION = 0.45;
+const FLIP_OPEN_DURATION = 0.38;
 const FLIP_CLOSE_DURATION = FLIP_OPEN_DURATION * 0.9;
+
+// Straighten-then-flip sequencing. Chromium corrupts the raster of the rounded,
+// bordered flip face whenever the card's fanned `li` ancestor is rotated while
+// the rotateY flip is mid-turn — it shows as a border streaking off the card
+// (the "smear") or a chopped corner. The fix is to never let the two overlap:
+// on open the card first straightens (its `li` rotates to 0 — see StatCardFan),
+// and only then does it flip; so the flip is delayed by the straighten time.
+// (Closing is the mirror — flip back first, then re-fan; that delay lives in
+// StatCardFan.) Kept short — power3.out squares the 10° fan up almost instantly,
+// so the pre-move barely registers and open/close still feels like a single
+// snappy flip. Must match the `li` straighten duration there.
+const STRAIGHTEN_DURATION = 0.12;
 
 function prefersHoverInteraction() {
   return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -202,7 +214,9 @@ export default function StatFlipCard({
       const reduce = prefersReducedMotion();
       let target: gsap.TweenVars;
       if (isOpen) {
-        target = { x: 0, y: -60, scale: 1.06, rotation: -angle };
+        // Rotation to 0 is handled by the parent `li` itself (see StatCardFan),
+        // not by counter-rotating here — see the note by that effect for why.
+        target = { x: 0, y: -60, scale: 1.06, rotation: 0 };
       } else if (isHovered) {
         target = { x: 0, y: -28, scale: 1.04, rotation: 0 };
       } else if (activeIndex !== null) {
@@ -234,14 +248,19 @@ export default function StatFlipCard({
     () => {
       if (!flipRef.current) return;
       const reduce = prefersReducedMotion();
+      // In the fan, wait for the card to straighten before flipping (see
+      // STRAIGHTEN_DURATION) so the flip never turns while the `li` is rotated.
+      // The stack layout has no fan rotation, so it flips immediately.
+      const delay = !reduce && isOpen && layout === "fan" ? STRAIGHTEN_DURATION : 0;
       gsap.to(flipRef.current, {
         rotationY: isOpen ? 180 : 0,
         duration: reduce ? 0 : isOpen ? FLIP_OPEN_DURATION : FLIP_CLOSE_DURATION,
+        delay,
         ease: "power3.inOut",
         overwrite: true,
       });
     },
-    { dependencies: [isOpen], scope: flipRef },
+    { dependencies: [isOpen, layout], scope: flipRef },
   );
 
   const handleEnter = () => {
@@ -313,6 +332,12 @@ export default function StatFlipCard({
         aria-expanded={isOpen}
         aria-label={`${stat.value} ${label}`}
       >
+        {/* NB: no overflow clip here. A rectangular overflow-hidden box would
+            shear the card's leading edge during the flip — under perspective the
+            near vertical edge is magnified and projects past the static box top
+            and bottom. The border artefacts this used to guard against are fixed
+            at the source instead (straightening the fanned `li` before the flip;
+            see StatCardFan) rather than clipped away. */}
         <div className="absolute inset-0 [perspective:1200px]">
           <div ref={flipRef} className="relative h-full w-full will-change-transform [transform-style:preserve-3d]">
             {/* Front */}
