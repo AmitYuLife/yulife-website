@@ -6,40 +6,114 @@ import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 
 /* ------------------------------------------------------------------ */
-/* Geometry — the faceted octahedron diamond                           */
+/* Geometry — the concave superquadric diamond                         */
 /* ------------------------------------------------------------------ */
 
 /**
- * A cut-gem take on the star: six tips at ±1 on each axis (the same 6-point
- * diamond layout as the smooth build), but as a literal octahedron — eight
- * flat triangular facets meeting at hard edges, no curves anywhere.
+ * Concave-faced diamond matching the Yunity mark: six tips at ±1 on each
+ * axis, but instead of the octahedron |x|+|y|+|z| = 1 the surface is the
+ * superquadric |x|^p + |y|^p + |z|^p = 1 with p < 1, so every face bowls
+ * inward and every edge bows toward the centre. The silhouette waist sits at
+ * 2^(1/2 − 1/p); CONCAVE_P is derived from BODY_WAIST, carved a touch
+ * shallower than the production halo's 2D star profile (0.52) — matching it
+ * exactly read as too sharp. Mirrors BODY_WAIST in YunityStar3D.
  *
- * The mesh is deliberately non-indexed: each facet gets its own three
- * vertices, so computeVertexNormals yields one flat normal per face instead
- * of smoothing across edges. The gradient shader is unchanged — its
- * normal-driven lookup offset, fresnel, and speculars all quantise per facet,
- * which is exactly what makes it read as a faceted diamond.
+ * Each of the 8 octant faces is tessellated and its vertices projected onto
+ * the superquadric (closed form: d · Σ|dᵢ|^p ^(−1/p)). Normals are the
+ * analytic gradient p·sᵢ·|xᵢ|^(p−1) — with the sign sᵢ taken from the octant,
+ * not the coordinate, so seam vertices (a coordinate at 0) get that face's
+ * one-sided normal. The mesh stays non-indexed per octant, so duplicated seam
+ * vertices carry different normals and the 8 edges stay razor sharp while
+ * each face shades as one smooth polished surface.
  */
-function buildStarGeometry() {
-  const positions: number[] = [];
+const BODY_WAIST = 0.62; // silhouette radius at the 45° waist — mirrors YunityStar3D
+const CONCAVE_P = 1 / (0.5 - Math.log2(BODY_WAIST)); // ≈ 0.82
 
-  // One facet per octant. Winding parity: the triangle (sx·x̂, sy·ŷ, sz·ẑ)
-  // faces outward when sx·sy·sz is positive; otherwise swap two vertices.
+function buildStarGeometry(segments = 24) {
+  const p = CONCAVE_P;
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const EPS = 1e-4;
+
+  const pushVertex = (dx: number, dy: number, dz: number, s: number[]) => {
+    // Project the octant-plane point onto the superquadric surface.
+    const m =
+      Math.abs(dx) ** p + Math.abs(dy) ** p + Math.abs(dz) ** p || EPS;
+    const t = m ** (-1 / p);
+    const x = dx * t;
+    const y = dy * t;
+    const z = dz * t;
+    positions.push(x, y, z);
+
+    // Analytic gradient of Σ|xᵢ|^p, octant sign, clamped away from the
+    // |xᵢ|^(p−1) blow-up at the seams (the limit there is correct: normals
+    // flip hard across octant edges and lie ⟂ to the axis at the cusp tips).
+    let nx = s[0] * Math.max(Math.abs(x), EPS) ** (p - 1);
+    let ny = s[1] * Math.max(Math.abs(y), EPS) ** (p - 1);
+    let nz = s[2] * Math.max(Math.abs(z), EPS) ** (p - 1);
+    const len = Math.hypot(nx, ny, nz);
+    nx /= len;
+    ny /= len;
+    nz /= len;
+    normals.push(nx, ny, nz);
+  };
+
   for (const sx of [1, -1]) {
     for (const sy of [1, -1]) {
       for (const sz of [1, -1]) {
-        const a = [sx, 0, 0];
-        const b = [0, sy, 0];
-        const c = [0, 0, sz];
-        if (sx * sy * sz > 0) positions.push(...a, ...b, ...c);
-        else positions.push(...a, ...c, ...b);
+        const s = [sx, sy, sz];
+        // Corners of this octant's flat reference triangle; barycentric
+        // point (u, v, w) → u·A + v·B + w·C, then projected onto the surface.
+        const A = [sx, 0, 0];
+        const B = [0, sy, 0];
+        const C = [0, 0, sz];
+        const at = (u: number, v: number) => {
+          const w = 1 - u - v;
+          return [
+            u * A[0] + v * B[0] + w * C[0],
+            u * A[1] + v * B[1] + w * C[1],
+            u * A[2] + v * B[2] + w * C[2],
+          ] as const;
+        };
+
+        // Standard triangle tessellation: rows of small triangles between
+        // barycentric grid lines. Winding parity as before: (A, B, C) faces
+        // outward when sx·sy·sz is positive; otherwise swap two vertices.
+        const outward = sx * sy * sz > 0;
+        const emit = (
+          v0: readonly number[],
+          v1: readonly number[],
+          v2: readonly number[],
+        ) => {
+          pushVertex(v0[0], v0[1], v0[2], s);
+          if (outward) {
+            pushVertex(v1[0], v1[1], v1[2], s);
+            pushVertex(v2[0], v2[1], v2[2], s);
+          } else {
+            pushVertex(v2[0], v2[1], v2[2], s);
+            pushVertex(v1[0], v1[1], v1[2], s);
+          }
+        };
+
+        for (let i = 0; i < segments; i++) {
+          for (let j = 0; j < segments - i; j++) {
+            const u0 = i / segments;
+            const u1 = (i + 1) / segments;
+            const v0 = j / segments;
+            const v1 = (j + 1) / segments;
+            emit(at(u0, v0), at(u1, v0), at(u0, v1));
+            if (j < segments - i - 1) {
+              emit(at(u1, v0), at(u1, v1), at(u0, v1));
+            }
+          }
+        }
       }
     }
   }
 
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.computeVertexNormals(); // non-indexed → flat per-facet normals
+  geo.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
   return geo;
 }
 
@@ -239,8 +313,9 @@ function YunityStar({ spin }: { spin: React.MutableRefObject<SpinState> }) {
 }
 
 /**
- * The Yunity star, faceted-diamond experiment: a hard-edged octahedron in the
- * same translucent iridescent glass, hovering on black with a soft bloom aura.
+ * The Yunity star, concave-diamond experiment: a superquadric with inward-
+ * curving faces in translucent iridescent glass, hovering on black with a
+ * soft bloom aura.
  * Drag anywhere to rotate; release to let it coast.
  */
 export default function StarLab() {
