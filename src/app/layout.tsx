@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
+import IntroFlashGuard from "@/components/layout/IntroFlashGuard";
 import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
 
@@ -45,8 +46,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en-GB"
       className={cn("font-sans", berlingskeSerif.variable, lotaGrotesque.variable)}
+      // IntroFlashGuard adds `js-intro` to this element before hydration;
+      // without this, React logs a className mismatch on every load.
+      suppressHydrationWarning
     >
       <body className="min-h-screen">
+        {/* Must stay the first child of <body>: it hides the hero's intro
+            targets before they can paint. See the component's doc comment. */}
+        <IntroFlashGuard />
         <Header />
         <main>{children}</main>
         <Footer />

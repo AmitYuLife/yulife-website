@@ -171,6 +171,28 @@
      every pointermove and perpetually lag behind a moving target. */
 }
 
+/* Pre-hydration guard for the hero intro. The static export ships the hero
+   fully visible; IntroFlashGuard (inline script, top of <body>) adds
+   `js-intro` to <html> before first paint — motion users only — so the SSR'd
+   hero never flashes visible and then replays. Hero.tsx removes the class
+   once GSAP's own pre-states are applied. The delayed animation is a
+   failsafe: if the bundle never hydrates, everything still fades in at
+   ~3.5s (in the healthy path GSAP has long since written opacity inline). */
+html.js-intro .hero-headline h1,
+html.js-intro .hero-headline p,
+html.js-intro .hero-cta-row,
+html.js-intro .hero-ratings,
+html.js-intro .hero-phone {
+  opacity: 0;
+  animation: introFailsafe 0.6s 3.5s forwards;
+}
+
+@keyframes introFailsafe {
+  to {
+    opacity: 1;
+  }
+}
+
 .final-cta-rocket-drag {
   cursor: grab;
 }

@@ -64,8 +64,7 @@ const CARD_GAP = 32;
 const CARD_SLIDE_DISTANCE = CARD_WIDTH + CARD_GAP;
 /** Default hold for the welcome intro before handing off to the first
  * activity. Overridable per mount via the `introDuration` prop — the homepage
- * hero, for one, syncs it to its own entrance so the Welcome→activity slide
- * lands on the phone's push-down beat. */
+ * hero passes a shorter hold tuned to its copy-first entrance. */
 const INTRO_DURATION = 3;
 
 export interface ChallengeSuccessProps {
