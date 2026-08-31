@@ -398,6 +398,23 @@ export default function ProductShowcase({
     [activeIndex, lastCardIndex, runSwitch, scrollToIndex],
   );
 
+  const nearestIndexToScroll = useCallback(() => {
+    const row = rowRef.current;
+    if (!row) return slotIndex;
+
+    const cards = row.querySelectorAll<HTMLElement>("[data-card-index]");
+    let best = slotIndex;
+    let bestDist = Infinity;
+    cards.forEach((card, i) => {
+      const dist = Math.abs(cardScrollTarget(card) - scrollXRef.current);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
+    });
+    return best;
+  }, [cardScrollTarget, slotIndex]);
+
   const scrollByStep = useCallback(
     (dir: 1 | -1) => {
       const next = slotIndex + dir;
@@ -421,6 +438,37 @@ export default function ProductShowcase({
     onNext: () => scrollByStep(1),
     onDirectionActiveChange: setKeyboardDirection,
   });
+
+  // Trackpad / horizontal-wheel scrolling. Attached manually so the listener
+  // can be non-passive and preventDefault the browser's own scroll. Only
+  // predominantly-horizontal gestures are intercepted, so vertical page
+  // scrolling over the carousel is untouched. The gesture scrolls the row live,
+  // then snaps to the nearest card once it settles — same landing as a drag.
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    let snapTimeout: number | undefined;
+
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      if (dragRef.current.dragging) return;
+
+      applyScrollX(scrollXRef.current + e.deltaX);
+
+      window.clearTimeout(snapTimeout);
+      snapTimeout = window.setTimeout(() => {
+        goToIndex(nearestIndexToScroll());
+      }, 120);
+    };
+
+    track.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      window.clearTimeout(snapTimeout);
+      track.removeEventListener("wheel", onWheel);
+    };
+  }, [applyScrollX, goToIndex, nearestIndexToScroll]);
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     // Ignore secondary buttons; let real clicks through until movement begins.
@@ -542,7 +590,7 @@ export default function ProductShowcase({
 
       {/* Full-bleed scrollport: first card aligns with the page-container left
           edge (via --carousel-inset padding), the rest bleed to the viewport.
-          Drag-to-scroll with snap; wheel/trackpad scrolling is disabled. */}
+          Drag- and horizontal-wheel/trackpad-scroll, both snapping to a card. */}
       <div
         className="product-showcase-shell relative mt-section-gap overflow-visible"
         data-reveal-anchor="carousel"

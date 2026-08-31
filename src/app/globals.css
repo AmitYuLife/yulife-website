@@ -553,8 +553,16 @@ section[aria-labelledby="block-7-label"] h2 {
    smoothly while still tracking in real time — a transition would restart
    on every pointermove and perpetually lag behind a moving target. */
 .stat-card-hatch-band {
+  /* Centred at the corner the hairline arcs themselves converge on (the
+     mask SVG's concentric-arc focus), not the box centre — the two bands
+     share this rule and reach the card's top-left/bottom-right corners via
+     their `rotate-180`/unrotated placement, so the gradient's focus needs
+     to sit at that same local corner to land in the same place. Centring
+     it in the box instead left the colour sweep pinned to the box's
+     midpoint while the arcs it's masked to converged on a corner — visibly
+     rotating around a central axis instead of emanating from it. */
   background: conic-gradient(
-    from var(--hatch-gradient-angle, 0deg) at 50% 50%,
+    from var(--hatch-gradient-angle, 0deg) at 100% 100%,
     var(--purple-600) 0%,
     var(--green-600) 25%,
     var(--blue-600) 50%,

@@ -17,7 +17,16 @@ export default function SimpleHero({ page }: { page: Page }) {
   const group = getNavGroupForPage(page.route);
 
   return (
-    <section {...domSrc("SimpleHero")} className="bg-surface-inverse">
+    <section
+      {...domSrc("SimpleHero")}
+      className="bg-surface-inverse"
+      style={{
+        // Pull the dark canvas up beneath the sticky header so the purple sits
+        // flush behind the nav; padding restores the inner spacing below it.
+        marginTop: "calc(-1 * var(--header-h))",
+        paddingTop: "var(--header-h)",
+      }}
+    >
       <div className="page-container section-y-lg">
         <div className="mx-auto flex max-w-[60ch] flex-col items-center gap-group text-center">
           {group && <p className="type-eyebrow text-accent-green">{group.label}</p>}

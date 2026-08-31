@@ -20,6 +20,9 @@ const PUSH_X = 16; // shift of a neighbour away from the active card, px
 // Pointer tilt — the same lean as the home-page floating cards, without the
 // drop-shadow/sheen (which softened the text and lagged during the flip).
 const TILT_MAX_DEG = 12;
+// Flipped-open cards read the back face's claim text, so the tilt is allowed
+// to lean further without the front face's number/label swimming.
+const TILT_MAX_DEG_OPEN = TILT_MAX_DEG * 1.16;
 
 // Hatch-gradient sweep easing (same fix as HeroHeadline's gradient tracking:
 // ease toward the pointer via rAF, decoupled from pointermove's event rate,
@@ -273,8 +276,9 @@ export default function StatFlipCard({
     const rect = el.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width - 0.5;
     const py = (e.clientY - rect.top) / rect.height - 0.5;
-    el.style.setProperty("--tilt-x", `${(-py * TILT_MAX_DEG).toFixed(2)}deg`);
-    el.style.setProperty("--tilt-y", `${(px * TILT_MAX_DEG).toFixed(2)}deg`);
+    const tiltMax = isOpen ? TILT_MAX_DEG_OPEN : TILT_MAX_DEG;
+    el.style.setProperty("--tilt-x", `${(-py * tiltMax).toFixed(2)}deg`);
+    el.style.setProperty("--tilt-y", `${(px * tiltMax).toFixed(2)}deg`);
     // Sweep the hatch gradient to face the pointer, like foil catching light
     // from that direction (atan2 measured from centre, converted from
     // math convention — 0deg = east — to the conic-gradient convention
