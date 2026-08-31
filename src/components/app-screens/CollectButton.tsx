@@ -72,10 +72,9 @@ export default function CollectButton({
     if (disabled || pressedRef.current) return;
     pressedRef.current = true;
     // Input / Long Press — the hold-to-collect press-down. This is also the
-    // first user gesture, so it's where the audio context gets unlocked for the
-    // later reward chime. `restart` keeps a mashed button crisp rather than
-    // letting overlapping presses stack into a muddy blur.
-    playCue("long-press", { retrigger: "restart" });
+    // first user gesture, so it's where the audio context starts (and both
+    // cues warm) for the later reward chime.
+    playCue("long-press");
     onCollectStart?.();
     const btn = buttonRef.current;
     if (!btn) return;
