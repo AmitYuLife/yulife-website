@@ -4,6 +4,7 @@ import { useRef, type RefObject } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { YuCoinNavIcon } from "./icons";
+import { playCue } from "./uiSfx";
 
 gsap.registerPlugin(useGSAP);
 
@@ -70,6 +71,11 @@ export default function CollectButton({
   const press = () => {
     if (disabled || pressedRef.current) return;
     pressedRef.current = true;
+    // Input / Long Press — the hold-to-collect press-down. This is also the
+    // first user gesture, so it's where the audio context gets unlocked for the
+    // later reward chime. `restart` keeps a mashed button crisp rather than
+    // letting overlapping presses stack into a muddy blur.
+    playCue("long-press", { retrigger: "restart" });
     onCollectStart?.();
     const btn = buttonRef.current;
     if (!btn) return;

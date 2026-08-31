@@ -8,6 +8,7 @@ import YuCoinCounter, { type YuCoinCounterHandle } from "./YuCoinCounter";
 import { YuCoinNavIcon } from "./icons";
 import { buildActivities } from "./activities";
 import { COLLECT_BOUNCE_DURATION } from "./CollectButton";
+import { playCue } from "./uiSfx";
 
 gsap.registerPlugin(MotionPathPlugin);
 
@@ -119,6 +120,9 @@ export default function ChallengeSuccessStage({
     // 800, which is what keeps the counter from growing forever. Every other
     // activity simply adds on top of the running total.
     const applyCoinTotal = () => {
+      // Reward / Reward — fired the instant the odometer starts counting, so
+      // the chime lands with the value change rather than the button press.
+      playCue("reward");
       setCoinTotal((n) => (collectedIndex === 0 ? 0 : n) + coinAmount);
     };
     const advanceActivity = () => {
