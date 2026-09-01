@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -22,25 +22,8 @@ function reduceMotion() {
   );
 }
 
-/** Either the one-time welcome intro or a real activity — the two card
- * slots don't care which they're holding, only how to render it. */
-type SlotContent = { kind: "intro" } | { kind: "activity"; activity: ChallengeActivity };
-
-/** The first-load slide (Figma node 2582:12125) shown in the activity card's
- * slot before the loop starts — same position and width as the card it
- * precedes, so the slide-out/slide-in transition between them is seamless. */
-function WelcomeHeadline() {
-  return (
-    <p
-      className="w-[327px] text-center text-[48px] leading-[48px]"
-      style={{ fontFamily: "var(--font-serif)", color: "var(--app-text-on-dark)" }}
-    >
-      <span style={{ fontWeight: 700, fontStyle: "normal" }}>Welcome to</span>
-      <br />
-      <span style={{ fontWeight: 700, fontStyle: "italic" }}>the Yuniverse</span>
-    </p>
-  );
-}
+/** What a card slot is holding. */
+type SlotContent = { activity: ChallengeActivity };
 
 // Pulls in three.js + @react-three/fiber (~190KB gzipped) — deferred behind a
 // dynamic import, same as the existing hero's HeroCoinField, so that weight
@@ -62,10 +45,6 @@ const CARD_WIDTH = 327;
 /** Breathing room between the outgoing and incoming card mid-slide. */
 const CARD_GAP = 32;
 const CARD_SLIDE_DISTANCE = CARD_WIDTH + CARD_GAP;
-/** Default hold for the welcome intro before handing off to the first
- * activity. Overridable per mount via the `introDuration` prop — the homepage
- * hero passes a shorter hold tuned to its copy-first entrance. */
-const INTRO_DURATION = 3;
 
 export interface ChallengeSuccessProps {
   /** The activity currently on display — advances only once its caller
@@ -75,14 +54,16 @@ export interface ChallengeSuccessProps {
   /** Identifies `activity` so the crossfade only fires on a real change. */
   activityIndex: number;
   coinAmount?: number;
-  /** Seconds the welcome intro holds before handing off to the first
-   * activity. Defaults to `INTRO_DURATION`; a caller can retime it to line the
-   * handoff up with its own choreography (e.g. the hero's push-down). */
+  /** Unused now that the welcome intro is gone — kept so existing callers
+   * (e.g. the homepage hero, mid-redesign) still type-check. */
   introDuration?: number;
   /** Fired once the 3D coin has painted its first frame — lets a host defer
-   * revealing the phone until the coin is actually on screen (no pop-in). Also
-   * gates this screen's own welcome→activity handoff, so the two stay in step. */
+   * revealing the phone until the coin is actually on screen (no pop-in). */
   onCoinReady?: () => void;
+  /** Hand-off: a caller drops a spin angle (radians) here to jump this coin's
+   * rotation to it once — e.g. the hero passes the flying intro coin's angle so
+   * the phone's coin continues from the same position (see SpinningCoin3D). */
+  coinSyncAngleRef?: RefObject<number | null>;
   /** Fires on the collect button click — the YuCoin fountain binds here later. */
   onCollect?: () => void;
   /** Fires the instant the button is pressed down — starts the coin spray. */
@@ -108,23 +89,20 @@ export default function ChallengeSuccess({
   activity,
   activityIndex,
   coinAmount = 200,
-  introDuration = INTRO_DURATION,
   onCoinReady,
+  coinSyncAngleRef,
   onCollect,
   onCollectStart,
   onCollectEnd,
 }: ChallengeSuccessProps) {
   const rootRef = useRef<HTMLDivElement>(null);
-  // Flips true on the coin's first painted frame (or a fallback, so a WebGL
-  // failure can't leave the phone hidden forever). Both the welcome→activity
-  // handoff below and the host's phone reveal wait on this, off the same
-  // moment, so they stay in sync.
-  const [coinReady, setCoinReady] = useState(false);
+  // Fires once on the coin's first painted frame (or a fallback, so a WebGL
+  // failure can't leave the phone hidden forever) — lets the host defer its
+  // own phone reveal until the coin is actually on screen.
   const coinReadyFiredRef = useRef(false);
   const markCoinReady = useCallback(() => {
     if (coinReadyFiredRef.current) return;
     coinReadyFiredRef.current = true;
-    setCoinReady(true);
     onCoinReady?.();
   }, [onCoinReady]);
   useEffect(() => {
@@ -145,11 +123,7 @@ export default function ChallengeSuccess({
   // element the viewer is actually looking at).
   const slotARef = useRef<HTMLDivElement>(null);
   const slotBRef = useRef<HTMLDivElement>(null);
-  // Slot A starts on the welcome intro on every render, server included, so
-  // hydration never mismatches — a reduced-motion visitor jumps straight to
-  // the first activity a moment later in the mount effect below, the same
-  // "swap after mount" trick StatusBar uses for its own SSR placeholder.
-  const [slotAContent, setSlotAContent] = useState<SlotContent>({ kind: "intro" });
+  const [slotAContent, setSlotAContent] = useState<SlotContent>({ activity });
   const [slotBContent, setSlotBContent] = useState<SlotContent | null>(null);
   const [currentSlot, setCurrentSlot] = useState<"a" | "b">("a");
   const [enteringSlot, setEnteringSlot] = useState<"a" | "b" | null>(null);
@@ -172,34 +146,24 @@ export default function ChallengeSuccess({
 
   // A slot only ever wires up the collect handlers while it's the one
   // actually at rest — the other slot (mid-slide, or just parked) renders
-  // read-only, whether it's holding the intro or a stale activity.
-  const renderSlot = (content: SlotContent, isCurrent: boolean) =>
-    content.kind === "intro" ? (
-      <WelcomeHeadline />
-    ) : (
-      <ActivityCard
-        icon={<content.activity.icon className="size-[24px] shrink-0" />}
-        label={content.activity.label}
-        value={content.activity.value}
-        coinAmount={coinAmount}
-        onCollect={isCurrent ? onCollect : undefined}
-        onCollectStart={isCurrent ? handleCollectStart : undefined}
-        onCollectEnd={isCurrent ? handleCollectEnd : undefined}
-        collectDisabled={isCurrent && locked}
-        coinSpinBoostRef={coinSpinBoostRef}
-        coinScaleBoostRef={coinScaleBoostRef}
-      />
-    );
+  // read-only, whether it's current or a stale activity.
+  const renderSlot = (content: SlotContent, isCurrent: boolean) => (
+    <ActivityCard
+      icon={<content.activity.icon className="size-[24px] shrink-0" />}
+      label={content.activity.label}
+      value={content.activity.value}
+      coinAmount={coinAmount}
+      onCollect={isCurrent ? onCollect : undefined}
+      onCollectStart={isCurrent ? handleCollectStart : undefined}
+      onCollectEnd={isCurrent ? handleCollectEnd : undefined}
+      collectDisabled={isCurrent && locked}
+      coinSpinBoostRef={coinSpinBoostRef}
+      coinScaleBoostRef={coinScaleBoostRef}
+    />
+  );
 
   useGSAP(
     () => {
-      // Reduced motion skips the intro outright — it's a decorative beat,
-      // not information, so there's nothing to preserve by staging it.
-      if (reduceMotion()) {
-        setSlotAContent({ kind: "activity", activity });
-        return;
-      }
-
       const mm = gsap.matchMedia();
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
@@ -213,10 +177,6 @@ export default function ChallengeSuccess({
           if (i >= 0) loops.splice(i, 1, next);
           else loops.push(next);
         };
-
-        // ── Welcome intro: the hold + handoff to the first activity lives in
-        // its own coinReady-gated effect below (so it starts when the coin is
-        // actually on screen, in step with the host's phone reveal), not here.
 
         // ── Clownfish traverse the screen right → left (they face left) ──
         gsap.utils.toArray<HTMLElement>("[data-cs-clownfish]").forEach((el, i) => {
@@ -457,26 +417,6 @@ export default function ChallengeSuccess({
     { scope: rootRef },
   );
 
-  // Welcome intro handoff — held out of the main timeline so it only starts
-  // once the coin has painted (coinReady), matching the host's phone reveal.
-  // After `introDuration` it hands the welcome slide off to the first activity
-  // through the same slot slide used between activities. Reduced motion never
-  // shows the intro (the mount effect above swaps straight to the activity),
-  // so this is a no-op there.
-  const introHandedOffRef = useRef(false);
-  useGSAP(
-    () => {
-      if (!coinReady || introHandedOffRef.current || reduceMotion()) return;
-      introHandedOffRef.current = true;
-      const call = gsap.delayedCall(introDuration, () => {
-        setSlotBContent({ kind: "activity", activity });
-        setEnteringSlot("b");
-      });
-      return () => call.kill();
-    },
-    { dependencies: [coinReady], scope: rootRef },
-  );
-
   // Advances the ActivityCard when `activityIndex` changes. That prop only
   // changes once the caller confirms the collect animation has actually
   // finished (see ChallengeSuccessStage's `handleCollectEnd`, gated on the
@@ -490,7 +430,7 @@ export default function ChallengeSuccess({
       if (activityIndex === prevActivityIndexRef.current) return;
       prevActivityIndexRef.current = activityIndex;
 
-      const nextContent: SlotContent = { kind: "activity", activity };
+      const nextContent: SlotContent = { activity };
 
       if (reduceMotion()) {
         if (currentSlot === "a") setSlotAContent(nextContent);
@@ -563,7 +503,7 @@ export default function ChallengeSuccess({
             <StatusBar />
             <YuLogoSquare className="absolute left-1/2 top-[52px] size-[24px] -translate-x-1/2" />
           </div>
-          <div ref={coinWrapRef} className="relative h-[160px] w-[152px] shrink-0">
+          <div ref={coinWrapRef} data-cs-coin-slot="" className="relative h-[160px] w-[152px] shrink-0">
             {/* Painted first (behind the coin) so the coin's own opaque face
                 occludes coins spawning under it — its transparent canvas
                 background lets them show through everywhere else. */}
@@ -582,6 +522,7 @@ export default function ChallengeSuccess({
               className="size-full"
               spinBoostRef={coinSpinBoostRef}
               scaleBoostRef={coinScaleBoostRef}
+              syncAngleRef={coinSyncAngleRef}
               onReady={markCoinReady}
             />
           </div>

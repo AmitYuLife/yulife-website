@@ -1,9 +1,15 @@
 import { assetPath } from "@/lib/assetPath";
 
 export const hero = {
-  h1: "Insurance that inspires life",
-  subheading:
-    "The all-in-one insurance and health benefit for your team. We unify world-class protection with AI-driven engagement to build more resilient, high performance teams.",
+  /** Headline is two sizes: a smaller lead line over a larger italic accent
+   * line (see HeroHeadline). Kept as separate strings so each renders at its
+   * own type scale; screen readers still read them in order as one heading. */
+  h1Lead: "Insurance that",
+  h1Accent: "inspires life",
+  /** Sub-heading leads with a bold sentence, then a regular remainder. */
+  subheadingLead: "The all-in-one insurance and health benefit for your team.",
+  subheadingRest:
+    "We unify world-class protection with AI-driven engagement to build more resilient, high-performance teams.",
   cta: { label: "Request a demo", href: "/contact" },
   ratings: [
     { platform: "Trustpilot", score: "4.9" },

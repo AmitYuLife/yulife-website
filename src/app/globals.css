@@ -149,26 +149,77 @@
   --hero-mist: color-mix(in srgb, var(--text-on-inverse) 6%, transparent);
 }
 
-.hero-accent-gradient {
+/* Accent headline line ("inspires life"). It reads as solid accent-purple at
+   rest; the brand rainbow is revealed only under a soft spotlight that tracks
+   the pointer, like a paintbrush. The gradient lives on an aria-hidden overlay
+   stacked exactly over the base text, clipped to the glyphs, then masked to a
+   blob around the cursor — HeroHeadline eases the blob's centre and radius
+   toward the pointer each frame (--spot-x / --spot-y / --spot-r), so it glides
+   and swells on enter, then retracts on leave. */
+.hero-accent {
+  position: relative;
+  display: block;
+  color: var(--text-accent-purple);
+}
+
+.hero-accent-spotlight {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* The accent line runs a deliberately tight line-height (for the overlap
+     with the line above), so its glyphs spill well outside the line box. A
+     background clipped to text only paints inside the element's own box, so an
+     inset:0 overlay would shear the ascenders/descenders (the reported clip).
+     Grow this overlay 0.4em past the box top and bottom, then push its text
+     back down by the same amount so it still registers exactly over the base
+     line. HeroHeadline measures the cursor against THIS element's box, so the
+     mask lands under the pointer despite the offset. */
+  inset-block: -0.4em;
+  padding-top: 0.4em;
+  pointer-events: none;
+  --spot-x: 50%;
+  --spot-y: 50%;
+  --spot-r: 0px;
+  /* Rainbow reveal, purple dropped — the text is already accent-purple at rest,
+     so the spotlight paints only the green→blue→yellow range over it. */
   background-image: linear-gradient(
     90deg,
-    var(--green-600) 15.87%,
-    var(--blue-600) 38.94%,
-    var(--yellow-600) 58.17%,
-    var(--purple-600) 78.85%
+    var(--green-600) 12%,
+    var(--blue-600) 48%,
+    var(--yellow-600) 88%
   );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-mask-image: radial-gradient(
+    circle var(--spot-r) at var(--spot-x) var(--spot-y),
+    #000 0%,
+    #000 38%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    circle var(--spot-r) at var(--spot-x) var(--spot-y),
+    #000 0%,
+    #000 38%,
+    transparent 72%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  /* Fade the whole reveal in/out on enter/leave; the radius easing (JS) does
+     the rest of the liquid retract. */
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
-.hero-accent-gradient-interactive {
-  background-size: 260% 190%;
-  background-position: 50% 50%;
-  /* No CSS transition: HeroHeadline eases background-position toward the
-     pointer itself via requestAnimationFrame, so it can glide smoothly
-     while still tracking in real time — a transition would restart on
-     every pointermove and perpetually lag behind a moving target. */
+.hero-accent[data-spot="on"] .hero-accent-spotlight {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-accent-spotlight {
+    transition: none;
+  }
 }
 
 /* Pre-hydration guard for the hero intro. The static export ships the hero

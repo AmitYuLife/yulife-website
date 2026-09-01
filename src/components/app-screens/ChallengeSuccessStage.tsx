@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type CSSProperties } from "react";
+import { useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
 import gsap from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import ChallengeSuccess from "./ChallengeSuccess";
@@ -49,6 +49,9 @@ export interface ChallengeSuccessStageProps {
   introDuration?: number;
   /** Bubbled up from `ChallengeSuccess` once the 3D coin has painted. */
   onCoinReady?: () => void;
+  /** Hand-off: passed through to the phone's coin so it can continue from an
+   * externally supplied spin angle (see `ChallengeSuccess.coinSyncAngleRef`). */
+  coinSyncAngleRef?: RefObject<number | null>;
   /** Fires on the collect button click. */
   onCollect?: () => void;
   /** Sizes the phone slot — pass e.g. `{ width }` from a width toggle. */
@@ -74,6 +77,7 @@ export default function ChallengeSuccessStage({
   coinAmount = 200,
   introDuration,
   onCoinReady,
+  coinSyncAngleRef,
   onCollect,
   phoneStyle,
   className,
@@ -226,6 +230,7 @@ export default function ChallengeSuccessStage({
           coinAmount={coinAmount}
           introDuration={introDuration}
           onCoinReady={onCoinReady}
+          coinSyncAngleRef={coinSyncAngleRef}
           onCollect={onCollect}
           onCollectEnd={handleCollectEnd}
         />

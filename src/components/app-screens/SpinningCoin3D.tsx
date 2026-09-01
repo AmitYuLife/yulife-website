@@ -159,11 +159,15 @@ function SpinningGroup({
   paused,
   spinBoostRef,
   scaleBoostRef,
+  syncAngleRef,
+  reportAngleRef,
   onReady,
 }: {
   paused: boolean;
   spinBoostRef: RefObject<number>;
   scaleBoostRef: RefObject<number>;
+  syncAngleRef?: RefObject<number | null>;
+  reportAngleRef?: RefObject<number>;
   onReady?: () => void;
 }) {
   const spin = useRef<THREE.Group>(null);
@@ -183,7 +187,17 @@ function SpinningGroup({
       onReady?.();
     }
     g.scale.setScalar(scaleBoostRef.current);
-    if (!paused) g.rotation.y += Math.min(delta, 0.1) * SPIN_SPEED * spinBoostRef.current;
+    // One-time external rotation sync: a caller drops an angle here (e.g. the
+    // hero hands the flying intro coin's angle to the phone's own coin) so this
+    // coin continues from exactly there rather than blinking to its own angle.
+    if (syncAngleRef && syncAngleRef.current != null) {
+      g.rotation.y = syncAngleRef.current;
+      syncAngleRef.current = null;
+    } else if (!paused) {
+      g.rotation.y += Math.min(delta, 0.1) * SPIN_SPEED * spinBoostRef.current;
+    }
+    // Expose the live angle so a caller can read it (for the hand-off above).
+    if (reportAngleRef) reportAngleRef.current = g.rotation.y;
 
     // Spinning the coin by θ under a fixed camera is the plugin's orbiting
     // camera seen from the coin's frame: drive the streak from that
@@ -228,16 +242,30 @@ export default function SpinningCoin3D({
   className,
   spinBoostRef,
   scaleBoostRef,
+  syncAngleRef,
+  reportAngleRef,
+  alwaysRender = false,
   onReady,
 }: {
   className?: string;
   spinBoostRef?: RefObject<number>;
   scaleBoostRef?: RefObject<number>;
+  /** Drop an angle (radians) here to jump the coin's spin to it once, then it's
+   * consumed (set back to null). Used to hand a spin position between two coin
+   * instances without a visible reset. */
+  syncAngleRef?: RefObject<number | null>;
+  /** The coin writes its live spin angle (radians) here every frame. */
+  reportAngleRef?: RefObject<number>;
+  /** Force the render loop to keep running even while offscreen. The default
+   * pauses offscreen for perf; a caller animating the coin *through* the
+   * viewport edge (e.g. the hero intro flight) needs it to keep spinning. */
+  alwaysRender?: boolean;
   /** Fired once, on the first rendered frame — the coin is now on screen. */
   onReady?: () => void;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const frameloop = useVisibleFrameloop(wrapRef);
+  const visibleFrameloop = useVisibleFrameloop(wrapRef);
+  const frameloop = alwaysRender ? "always" : visibleFrameloop;
   const ownBoostRef = useRef(1);
   const ownScaleRef = useRef(1);
   const reducedMotion = useMemo(
@@ -274,6 +302,8 @@ export default function SpinningCoin3D({
             paused={reducedMotion}
             spinBoostRef={spinBoostRef ?? ownBoostRef}
             scaleBoostRef={scaleBoostRef ?? ownScaleRef}
+            syncAngleRef={syncAngleRef}
+            reportAngleRef={reportAngleRef}
             onReady={onReady}
           />
         </Canvas>
