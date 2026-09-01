@@ -6,6 +6,11 @@ import * as THREE from "three";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { getCoinAssets, COIN_RADIUS } from "@/components/three/yucoin/assets";
+import {
+  buildToonCoinGeometry,
+  makeToonSheenMaterials,
+  TOON_DRIVE_CENTRE_OFFSET,
+} from "@/components/three/yucoin/toonSheen";
 import CoinLighting from "@/components/three/yucoin/CoinLighting";
 import useVisibleFrameloop from "@/components/hooks/useVisibleFrameloop";
 import { assetPath } from "@/lib/assetPath";
@@ -44,6 +49,15 @@ const OMEGA = (2 * Math.PI) / PERIOD;
 const COIN_DIAMETER = 80;
 const DEPTH_K = 0.12; // slight size cue: bigger in front, smaller behind
 const COIN_COUNT = 5;
+/** How far the toon highlight drifts across a coin as it orbits, in face-radius
+ * units along the streak axis — the "moving light". Driven by orbit angle, so
+ * each coin is offset from the next. Tune for a lazier (smaller) or more
+ * travelled (larger) glint. */
+const TOON_SWEEP = 0.55;
+/** Glint sweeps per revolution — the pace of the moving light. 1 = one lazy
+ * sweep per orbit; higher = a livelier glint. Coprime with COIN_COUNT keeps the
+ * coins nicely out of phase. */
+const TOON_SWEEP_CYCLES = 3;
 const BASE_ANGLES = Array.from({ length: COIN_COUNT }, (_, i) => (i * 2 * Math.PI) / COIN_COUNT);
 
 // Moon-locked: each coin keeps its face pointed OUTWARD from the orbit centre,
@@ -59,7 +73,30 @@ const HOVER_SCALE = 1.12;
 const HOVER_TILT = 0.35; // max extra tilt toward the cursor, in radians
 const NO_RAYCAST = () => null;
 
+/** Metallic (default) or the illustrated toon look from the home hero. */
+export type CoinVariant = "metallic" | "toon";
+
 type CoinHover = { hovered: boolean; hoverMix: number; px: number; py: number };
+
+/**
+ * Toon coin geometry, built once and shared by all five coins. Engrave geometry
+ * is the shared singleton from getCoinAssets.
+ */
+function makeToonOrbitGeometry() {
+  const { edges, faceFront, faceBack } = buildToonCoinGeometry();
+  const engrave = getCoinAssets().engraveBoth;
+  return { edges, faceFront, faceBack, engrave };
+}
+type ToonOrbitGeometry = ReturnType<typeof makeToonOrbitGeometry>;
+
+// Oriented-space sheen (see toonSheen.ts): the streak holds a fixed screen
+// direction on every coin regardless of where the orbit carries it or how the
+// moon-lock turns it. On top of that fixed orientation, OrbitController drifts
+// each coin's uDrive by its orbit angle, so the highlight sweeps across the
+// face as the coin travels — a single moving light for the whole orbit, with
+// the coins naturally out of phase. That per-coin drive means each coin needs
+// its own material instance (uniforms can't differ on a shared material).
+type ToonCoinMaterials = ReturnType<typeof makeToonSheenMaterials>;
 
 /** Orbit point for a parametric angle, in canvas px (origin at canvas centre). */
 function orbitPoint(theta: number, pw: number, ph: number, out: THREE.Vector3) {
@@ -123,9 +160,16 @@ function PersonDepthMask({
 function OrbitCoin({
   groupRef,
   hover,
+  toonGeo,
+  toonMats,
 }: {
   groupRef: React.RefObject<THREE.Group | null>;
   hover: CoinHover;
+  /** When both are set, render the toon look instead of the metallic gold coin.
+   * Geometry is shared across coins; materials are this coin's own (its
+   * highlight drifts independently — see OrbitController). */
+  toonGeo?: ToonOrbitGeometry;
+  toonMats?: ToonCoinMaterials;
 }) {
   const a = useMemo(getCoinAssets, []);
   // Moon-locked coins turn fully around, so both faces must be engraved.
@@ -153,15 +197,40 @@ function OrbitCoin({
       >
         <circleGeometry args={[COIN_RADIUS * 1.05, 24]} />
       </mesh>
-      <mesh geometry={a.goldBoth} material={a.gold} raycast={NO_RAYCAST} />
-      <mesh geometry={a.engraveBoth} material={a.goldEngrave} raycast={NO_RAYCAST} />
+      {toonGeo && toonMats ? (
+        <>
+          {toonGeo.edges.map((geometry, i) => (
+            <mesh key={i} geometry={geometry} material={toonMats.edgeMaterial} raycast={NO_RAYCAST} />
+          ))}
+          <mesh geometry={toonGeo.faceFront} material={toonMats.faceMaterial} raycast={NO_RAYCAST} />
+          <mesh geometry={toonGeo.faceBack} material={toonMats.faceMaterial} raycast={NO_RAYCAST} />
+          <mesh geometry={toonGeo.engrave} material={toonMats.engraveMaterial} raycast={NO_RAYCAST} />
+        </>
+      ) : (
+        <>
+          <mesh geometry={a.goldBoth} material={a.gold} raycast={NO_RAYCAST} />
+          <mesh geometry={a.engraveBoth} material={a.goldEngrave} raycast={NO_RAYCAST} />
+        </>
+      )}
     </group>
   );
 }
 
 /** Drives all coins each frame off an absolute clock. */
-function OrbitController() {
+function OrbitController({ variant }: { variant: CoinVariant }) {
   const size = useThree((s) => s.size);
+  const toonGeo = useMemo(
+    () => (variant === "toon" ? makeToonOrbitGeometry() : undefined),
+    [variant],
+  );
+  // One material set per coin, so each coin's highlight can drift independently.
+  const toonMats = useMemo(
+    () =>
+      variant === "toon"
+        ? Array.from({ length: COIN_COUNT }, () => makeToonSheenMaterials("oriented"))
+        : undefined,
+    [variant],
+  );
   const refs = useRef<Array<React.RefObject<THREE.Group | null>>>(
     Array.from({ length: COIN_COUNT }, () => ({ current: null })),
   );
@@ -196,6 +265,19 @@ function OrbitController() {
       const theta = BASE_ANGLES[i] - OMEGA * t; // clockwise on screen
       orbitPoint(theta, pw, ph, pos);
       g.position.copy(pos);
+
+      // Moving light: drift this coin's highlight across its face as it travels
+      // the orbit. Sine of the orbit angle (× TOON_SWEEP_CYCLES) sweeps it out
+      // and back a few times per revolution; each coin sits at a different
+      // angle, so they glint out of phase. Reduced motion freezes t, so the
+      // highlight just holds a fixed, per-coin position.
+      if (toonMats) {
+        const drive = TOON_DRIVE_CENTRE_OFFSET + TOON_SWEEP * Math.sin(TOON_SWEEP_CYCLES * theta);
+        const m = toonMats[i];
+        m.faceMaterial.uniforms.uDrive.value = drive;
+        m.edgeMaterial.uniforms.uDrive.value = drive;
+        m.engraveMaterial.uniforms.uDrive.value = drive;
+      }
       // Moon-lock: face pointed outward from the orbit centre in x/z, but with
       // the vertical component INVERTED — a pure outward lock aims the face
       // downward on the near arc (away from the overhead light). Flipping y
@@ -226,7 +308,13 @@ function OrbitController() {
   return (
     <>
       {refs.current.map((r, i) => (
-        <OrbitCoin key={i} groupRef={r} hover={hovers[i]} />
+        <OrbitCoin
+          key={i}
+          groupRef={r}
+          hover={hovers[i]}
+          toonGeo={toonGeo}
+          toonMats={toonMats?.[i]}
+        />
       ))}
     </>
   );
@@ -255,8 +343,11 @@ function FrustumSync() {
  */
 export default function HeroCoinOrbit({
   personSrc = PERSON_SRC,
+  variant = "metallic",
 }: {
   personSrc?: string;
+  /** "metallic" (default gold) or the illustrated "toon" look from the home hero. */
+  variant?: CoinVariant;
 } = {}) {
   const wrapper = useRef<HTMLDivElement>(null);
   const frameloop = useVisibleFrameloop(wrapper);
@@ -308,9 +399,10 @@ export default function HeroCoinOrbit({
         className="!pointer-events-auto"
       >
         <FrustumSync />
-        <CoinLighting />
+        {/* Toon coins are self-lit by their shader; the rig only matters for metallic. */}
+        {variant === "metallic" && <CoinLighting />}
         <PersonDepthMask onReady={handleMaskReady} personSrc={personSrc} />
-        <OrbitController />
+        <OrbitController variant={variant} />
       </Canvas>
     </div>
   );

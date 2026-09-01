@@ -303,7 +303,7 @@ export default function ImageRightHero({
                 className="relative z-10 block h-auto w-full"
               />
               {visual.kind === "person" && visual.coins !== false && (
-                <HeroCoinOrbit personSrc={visual.src} />
+                <HeroCoinOrbit personSrc={visual.src} variant="toon" />
               )}
             </div>
           </div>
