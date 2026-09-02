@@ -143,24 +143,25 @@ export type ProvenRoiSection = {
   stats: ProvenRoiStat[];
 };
 
-/** One Sense/Interpret/Guide step in the "business pulse" (Yunity) section. */
-export type BusinessPulseStep = {
+/** One Sense/Interpret/Guide step in the Yunity section. */
+export type YunityStep = {
   title: string;
   /** Lowercase, trailing full stop — the card capitalises and trims it. */
   description: string;
 };
 
 /**
- * Bespoke "business pulse" section (Health product page, Figma 2357:1700). The
- * same Yunity block as the homepage — framed lockup card, live star and the
- * three Sense/Interpret/Guide cards joined by animated connecting roots — with
- * health-specific heading and body. Replaces the "Smarter protection" grey-box
- * value section (number 3).
+ * Standalone Yunity section (Figma 1731:2441). The same Yunity block as the
+ * homepage — the framed card with wordmark lockup, heading, body and the three
+ * Sense/Interpret/Guide stat cards joined by the animated connecting roots — but
+ * self-contained, so pages can reuse it with their own copy.
  */
-export type BusinessPulseSection = {
+export type YunitySection = {
   heading: string;
+  /** Word within `heading` to italicise (e.g. "smarter"). Optional. */
+  emphasis?: string;
   body: string;
-  steps: BusinessPulseStep[];
+  steps: YunityStep[];
 };
 
 export type ProductPageData = {
@@ -182,7 +183,7 @@ export type ProductPageData = {
   everydayValue?: EverydayValueSection;
   clinicalExcellence?: ClinicalExcellenceSection;
   provenRoi?: ProvenRoiSection;
-  businessPulse?: BusinessPulseSection;
+  yunitySection?: YunitySection;
   valueSections?: NumberedSection[];
   explainer?: { heading: string; body: string };
   coverage?: {

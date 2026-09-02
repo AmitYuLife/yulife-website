@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -51,6 +51,13 @@ const COIN_BIG_VIEWPORT_FRACTION = 0.34;
  * zoom), so "big" comes from scale. This is that fixed on-screen diameter at
  * scale 1 — measured from SpinningCoin3D's camera (zoom 72, radius ~1). */
 const COIN_NATIVE_DIAMETER = 144;
+/** The intro coin renders at COIN_NATIVE_DIAMETER and is CSS-scaled *up* to its
+ * resting size, so its canvas would be upsampled — soft, visibly low-res on
+ * large/retina screens — until it shrinks into the phone. Oversample the
+ * backing store by the largest resting upscale so it stays crisp for the whole
+ * flight; capped so the (small, short-lived) canvas never gets extravagant. */
+const COIN_MAX_UPSCALE = COIN_BIG_MAX / COIN_NATIVE_DIAMETER;
+const COIN_INTRO_DPR_CAP = 5;
 
 // Beat timing (seconds on the intro timeline).
 const BEAT_COIN_IN = 0;
@@ -98,6 +105,18 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
   // The intro coin exists only for the entrance; it's unmounted once it hands
   // off to the phone's own coin, so it isn't left rendering a hidden canvas.
   const [introCoinMounted, setIntroCoinMounted] = useState(true);
+  // Oversample the intro coin's canvas by its resting upscale × the device
+  // ratio, so the enlarged coin stays crisp (see COIN_MAX_UPSCALE). A fixed
+  // number bypasses R3F's tuple-clamp to the window ratio, which is what leaves
+  // the upscaled canvas soft.
+  const introCoinDpr = useMemo(
+    () =>
+      Math.min(
+        COIN_INTRO_DPR_CAP,
+        (typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1) * COIN_MAX_UPSCALE,
+      ),
+    [],
+  );
 
   // The intro runs only once the coin has painted (so it never fades in a beat
   // before the coin exists), the hero is in view, and the fonts race has
@@ -325,6 +344,7 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
                 spinBoostRef={introSpinBoostRef}
                 reportAngleRef={introAngleRef}
                 alwaysRender
+                dpr={introCoinDpr}
                 onReady={handleCoinReady}
               />
             </div>

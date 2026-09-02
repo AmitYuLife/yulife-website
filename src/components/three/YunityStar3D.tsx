@@ -4,6 +4,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { FLOW_STAGGER } from "@/lib/flowTiming";
+
+// The four signal-dot colours, in the order the dots arrive at the star, so the
+// glow can pulse through the same palette in time with them. CSS vars (set via
+// `style.fill`, which resolves them) so the pulse matches the dots exactly.
+const PULSE_COLORS = [
+  "var(--green-600)",
+  "var(--blue-600)",
+  "var(--yellow-600)",
+  "var(--purple-600)",
+] as const;
 
 /* ------------------------------------------------------------------ */
 /* Geometry — concave superquadric diamond (3D); smooth star profile   */
@@ -285,10 +296,12 @@ type SpinState = {
 function StarScene({
   spin,
   haloRef,
+  pulseRef,
   reduced,
 }: {
   spin: React.MutableRefObject<SpinState>;
   haloRef: React.RefObject<HTMLDivElement | null>;
+  pulseRef: React.RefObject<SVGPathElement | null>;
   reduced: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
@@ -323,12 +336,28 @@ function StarScene({
     // 3D pieces on the page read as one consistent motion language.
     g.position.y = Math.sin(t * 0.85) * 0.065;
 
-    // The star body itself no longer pulses. Instead the halo breathes on its
-    // own gentle one-second cycle, a touch brighter than before. Independent of
-    // the signal dots (which now flow into the star continuously).
-    const glowPulse = 0.5 - 0.5 * Math.cos(t * Math.PI * 2); // 0..1, 1s period
+    // Base aura: a gentle breath so the star always carries a soft glow. Kept
+    // faint so the glow reads as a diffuse halo, not a hard rim.
+    const breath = 0.5 - 0.5 * Math.cos(t * Math.PI * 2); // 0..1, 1s period
     const halo = haloRef.current;
-    if (halo) halo.style.opacity = String(0.34 + 0.14 * glowPulse);
+    if (halo) halo.style.opacity = String(0.24 + 0.07 * breath);
+
+    // Colour pulse: read the SAME flow clock the signal dots use (performance
+    // .now, not the R3F clock) so the glow beats with their arrivals, swelling
+    // through the dot palette — one coloured pulse per dot. The envelope is 0 at
+    // the beat boundaries, where the colour switches, so it cross-fades cleanly
+    // instead of snapping. Screen-blended (see the halo wrapper) so the vibrant
+    // hues read as light against the purple band rather than muddying into it.
+    const pulse = pulseRef.current;
+    if (pulse) {
+      const beat = performance.now() / 1000 / FLOW_STAGGER;
+      const k = Math.floor(beat);
+      const frac = beat - k; // 0 at a dot's arrival → 1 at the next
+      const env = 0.5 - 0.5 * Math.cos(frac * Math.PI * 2); // smooth bump, 0 at ends
+      const n = PULSE_COLORS.length;
+      pulse.style.fill = PULSE_COLORS[((k % n) + n) % n];
+      pulse.style.opacity = String(0.45 * env);
+    }
 
     // Spin: a slow horizontal turntable turn (yaw, about Y); a horizontal drag
     // turns it. Rotation is confined to this one Y axis — the star can never
@@ -395,6 +424,7 @@ export default function YunityStar3D({
   const spin = useRef<SpinState>({ dragging: false, pendingX: 0, velExtra: 0 });
   const lastX = useRef(0);
   const haloRef = useRef<HTMLDivElement>(null);
+  const pulseRef = useRef<SVGPathElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const [reduced, setReduced] = useState(false);
   // Default true so it's already animating the moment it scrolls into place —
@@ -457,7 +487,9 @@ export default function YunityStar3D({
         ref={haloRef}
         aria-hidden="true"
         className="pointer-events-none absolute left-1/2 top-1/2 h-full w-full"
-        style={{ opacity: 0.41, transform: "translate(-50%, -50%)" }}
+        // Screen blend so the glow adds light to the deep-purple band it sits on
+        // (the vibrant hues brighten it) rather than painting over it.
+        style={{ opacity: 0.28, transform: "translate(-50%, -50%)", mixBlendMode: "screen" }}
       >
         <svg viewBox="-1.3 -1.3 2.6 2.6" className="h-full w-full" preserveAspectRatio="xMidYMid meet">
           <defs>
@@ -481,10 +513,16 @@ export default function YunityStar3D({
               <stop offset="0%" stopColor="#547aff" stopOpacity="0.44" />
               <stop offset="100%" stopColor="#547aff" stopOpacity="0" />
             </radialGradient>
-            <filter id="starGlowBlur" x="-60%" y="-60%" width="220%" height="220%">
-              <feGaussianBlur stdDeviation="0.11" />
+            <filter id="starGlowBlur" x="-90%" y="-90%" width="280%" height="280%">
+              <feGaussianBlur stdDeviation="0.16" />
+            </filter>
+            {/* Softer, wider blur for the pulse so it blooms diffusely past the
+                silhouette rather than tracing a sharp coloured edge. */}
+            <filter id="starPulseBlur" x="-120%" y="-120%" width="340%" height="340%">
+              <feGaussianBlur stdDeviation="0.34" />
             </filter>
           </defs>
+          {/* Base multi-hue aura — a steady soft glow, gently breathing. */}
           <g filter="url(#starGlowBlur)">
             <path d={GLOW_PATH_D} fill="url(#starGlowPurple)" />
             <path d={GLOW_PATH_D} fill="url(#starGlowYellow)" />
@@ -492,6 +530,14 @@ export default function YunityStar3D({
             <path d={GLOW_PATH_D} fill="url(#starGlowTeal)" />
             <path d={GLOW_PATH_D} fill="url(#starGlowBlue)" />
           </g>
+          {/* Dot-colour pulse — fill + opacity are driven per frame from the
+              shared flow clock (see useFrame), so it beats in the dots' colours. */}
+          <path
+            ref={pulseRef}
+            d={GLOW_PATH_D}
+            filter="url(#starPulseBlur)"
+            style={{ fill: "var(--green-600)", opacity: 0 }}
+          />
         </svg>
       </div>
       <Canvas
@@ -516,7 +562,7 @@ export default function YunityStar3D({
           camera.lookAt(0, 0, 0);
         }}
       >
-        <StarScene spin={spin} haloRef={haloRef} reduced={reduced} />
+        <StarScene spin={spin} haloRef={haloRef} pulseRef={pulseRef} reduced={reduced} />
       </Canvas>
     </div>
   );

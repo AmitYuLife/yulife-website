@@ -8,7 +8,7 @@ import ConnectingPaths, {
   type Point,
 } from "@/components/ui/ConnectingPaths";
 import { domSrc } from "@/lib/domSrc";
-import type { BusinessPulseSection as BusinessPulseData } from "@/data/pages/types";
+import type { YunitySection as YunityData } from "@/data/pages/types";
 
 // Brand accents for the four descending root-lines — matches PILLAR_COLORS in
 // the homepage TabbedPanel; kept local so this section doesn't pull in the
@@ -36,17 +36,21 @@ type Geometry = {
 const EMPTY: Geometry = { width: 0, height: 0, topPoints: [], star: null, bottomPoints: [] };
 
 /**
- * "Business pulse" section for the Health product page (Figma 2357:1700). The
- * same Yunity block as the homepage — framed lockup card, live star and the
- * three Sense/Interpret/Guide cards joined by the animated connecting roots —
- * but with health-specific copy and, in place of the homepage's capability
- * boxes, four decorative root-points at the top feeding the star. Replaces the
- * "Smarter protection" grey-box value section (number 3).
+ * Standalone Yunity section (Figma 1731:2441). The same Yunity block as the
+ * homepage — the framed card with the wordmark lockup, heading, body and the
+ * three Sense/Interpret/Guide stat cards, with the live star beneath it — but
+ * self-contained: in place of the homepage's capability boxes, four decorative
+ * root-points at the top edge feed the animated connecting roots down into the
+ * star. Copy is passed in, so pages can reuse it with their own wording.
  */
-export default function BusinessPulseSection({ data }: { data: BusinessPulseData }) {
+export default function YunitySection({ data }: { data: YunityData }) {
   const revealScope = useReveal<HTMLElement>();
   const rootRef = useRef<HTMLElement | null>(null);
   const [geo, setGeo] = useState<Geometry>(EMPTY);
+  // Entrance sequence for the connecting graphic: armed when the star scrolls
+  // into view, then the lines draw in and (via onLinesDrawn) the star lights.
+  const [armed, setArmed] = useState(false);
+  const [starLit, setStarLit] = useState(false);
 
   const setRefs = useCallback(
     (node: HTMLElement | null) => {
@@ -91,6 +95,15 @@ export default function BusinessPulseSection({ data }: { data: BusinessPulseData
       star,
       bottomPoints: bottoms.filter(Boolean),
     });
+
+    // Arm the entrance as soon as the Yunity card enters the viewport, so the
+    // draw-in → star → flow sequence plays when the section comes into view.
+    // Driven from this scroll/resize/rAF-fed loop so it fires reliably.
+    const card = root.querySelector("[data-yunity-root]");
+    if (card) {
+      const cr = card.getBoundingClientRect();
+      if (cr.top < window.innerHeight * 0.9 && cr.bottom > 0) setArmed(true);
+    }
   }, []);
 
   useLayoutEffect(() => {
@@ -134,10 +147,10 @@ export default function BusinessPulseSection({ data }: { data: BusinessPulseData
 
   return (
     <section
-      {...domSrc("BusinessPulseSection")}
+      {...domSrc("YunitySection")}
       ref={setRefs}
       className="relative isolate overflow-hidden border-b border-line-emphasis bg-surface-inverse-raised"
-      aria-labelledby="business-pulse-heading"
+      aria-labelledby="yunity-section-heading"
     >
       {/* Live connecting diagram — above the band background, behind content. */}
       <ConnectingPaths
@@ -146,6 +159,8 @@ export default function BusinessPulseSection({ data }: { data: BusinessPulseData
         topPoints={geo.topPoints}
         star={geo.star}
         bottomPoints={geo.bottomPoints}
+        active={armed}
+        onLinesDrawn={() => setStarLit(true)}
       />
 
       {/* Root-origins pinned to the top edge, so the roots descend from the
@@ -166,7 +181,7 @@ export default function BusinessPulseSection({ data }: { data: BusinessPulseData
       </div>
 
       <div className="page-container relative z-10 flex flex-col items-center gap-[var(--layout-section-gap)] py-[var(--layout-section-y)]">
-        <YunityDiagram content={data} headingId="business-pulse-heading" />
+        <YunityDiagram content={data} headingId="yunity-section-heading" starLit={starLit} />
       </div>
     </section>
   );

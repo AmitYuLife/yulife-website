@@ -6,8 +6,17 @@ import { dotState, flowEase } from "@/lib/flowTiming";
 const WAVE_DURATION = 2.2; // seconds for one pulse to travel star → card
 const WAVE_STAGGER = 0.4; // launch offset between the three bottom lines
 
+// Entrance sequence: the lines draw in, then the star is lit (via onLinesDrawn),
+// then — after a short beat so the star reads first — the signal dots start.
+const DRAW_DURATION = 1.1; // seconds for a line to draw from origin to star
+const DRAW_STAGGER = 0.14; // launch offset between the descending lines
+const FLOW_DELAY = 0.5; // gap between lines-drawn and dots starting to flow
+
 export type Point = { x: number; y: number };
 export type ColorPoint = Point & { color: string };
+
+// Draw-in easing — a soft ease-out so each line arrives gently at the star.
+const drawEase = (p: number) => 1 - Math.pow(1 - p, 3);
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -22,21 +31,20 @@ function usePrefersReducedMotion() {
 }
 
 /**
- * The neural "roots" overlay. Signal lines rise from the four capability boxes,
- * converge exactly at the Yunity star, then fan back out to the three outcome
- * cards. Coordinates are supplied in the wrapper's pixel space (measured from
- * the live DOM), so the geometry — including the convergence point behind the
- * star — stays locked at every viewport width. Below the tablet/desktop grid,
- * the capability boxes and outcome cards stack in a single column, so every
- * anchor shares one horizontal centre and the same bezier formula degenerates
+ * The neural "roots" overlay. Signal lines descend from the capability/root
+ * origins and converge exactly on the Yunity star. Coordinates are supplied in
+ * the wrapper's pixel space (measured from the live DOM), so the geometry — the
+ * convergence point behind the star included — stays locked at every viewport
+ * width. Below the tablet/desktop grid the origins stack into a single column,
+ * so every anchor shares one horizontal centre and the same bezier degenerates
  * into a plain straight line — no separate mobile layout needed.
  *
- * Each line carries the brand gradient, and a coloured dot continuously travels
- * down each top line into the star (a flowing-signal effect). Dots are driven
- * in JS from the shared flow clock (flowTiming.ts) — the same clock the star's
- * pulse reads — so each arrival lands exactly on a pulse beat. The bottom
- * lines carry the same idea outward: a bright band slides up each gradient
- * from the card to the star, fading in and out so the loop hides its own seam.
+ * Entrance is orchestrated: when `active` turns true the lines draw in
+ * (animated stroke, staggered); once drawn we call `onLinesDrawn` (the parent
+ * lights the star) and, after a short beat, the coloured signal dots begin
+ * travelling down each line into the star — driven in JS from the shared flow
+ * clock (flowTiming.ts), re-based so they launch from the origins. Honours
+ * reduced motion by drawing everything immediately and parking the dots.
  */
 export default function ConnectingPaths({
   width,
@@ -44,14 +52,21 @@ export default function ConnectingPaths({
   topPoints,
   star,
   bottomPoints,
+  active = true,
+  onLinesDrawn,
 }: {
   width: number;
   height: number;
   topPoints: ColorPoint[];
   star: Point | null;
   bottomPoints: Point[];
+  /** When true, play the draw-in → star → flow entrance. */
+  active?: boolean;
+  /** Fired once, the moment the lines have finished drawing in. */
+  onLinesDrawn?: () => void;
 }) {
   const reduced = usePrefersReducedMotion();
+  const topPathRefs = useRef<(SVGPathElement | null)[]>([]);
   const dotRefs = useRef<(SVGGElement | null)[]>([]);
   const bottomWaveRefs = useRef<(SVGStopElement | null)[]>([]);
 
@@ -63,17 +78,89 @@ export default function ConnectingPaths({
   });
   geom.current = { tops: topPoints, star, bottomCount: bottomPoints.length };
 
+  // Entrance state, held in refs so the single rAF loop can read it without
+  // re-subscribing. phase: 'hidden' → 'drawing' → 'shown'.
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const reducedRef = useRef(reduced);
+  reducedRef.current = reduced;
+  const onDrawnRef = useRef(onLinesDrawn);
+  onDrawnRef.current = onLinesDrawn;
+
+  const phaseRef = useRef<"hidden" | "drawing" | "shown">("hidden");
+  const drawStartRef = useRef(0);
+  const flowStartRef = useRef(0);
+  const drawnFiredRef = useRef(false);
+
   useEffect(() => {
-    if (reduced) return;
+    // Reduced motion: no loop — everything is drawn and parked in the render.
+    if (reduced) {
+      phaseRef.current = "shown";
+      return;
+    }
+
     let raf = 0;
     const tick = () => {
       const { tops, star: s, bottomCount } = geom.current;
+      const paths = topPathRefs.current;
       const now = performance.now() / 1000;
+
+      // Kick the draw once we're active and the geometry is ready.
+      if (phaseRef.current === "hidden" && activeRef.current && s && tops.length) {
+        phaseRef.current = "drawing";
+        drawStartRef.current = now;
+      }
+
+      if (phaseRef.current === "hidden") {
+        // Keep every line hidden until the draw begins (re-applied each frame so
+        // a resize before activation can't reveal a partial stroke).
+        tops.forEach((_, i) => {
+          const path = paths[i];
+          if (!path) return;
+          const len = path.getTotalLength();
+          path.style.strokeDasharray = String(len);
+          path.style.strokeDashoffset = String(len);
+        });
+      } else if (phaseRef.current === "drawing") {
+        let allDone = true;
+        tops.forEach((_, i) => {
+          const path = paths[i];
+          if (!path) return;
+          const len = path.getTotalLength();
+          const raw = (now - drawStartRef.current - i * DRAW_STAGGER) / DRAW_DURATION;
+          const p = Math.max(0, Math.min(1, raw));
+          if (p < 1) allDone = false;
+          path.style.strokeDasharray = String(len);
+          path.style.strokeDashoffset = String(len * (1 - drawEase(p)));
+        });
+        if (allDone) {
+          phaseRef.current = "shown";
+          flowStartRef.current = now + FLOW_DELAY;
+          // Clear the dash so later re-measures render a clean, full line.
+          paths.forEach((path) => {
+            if (!path) return;
+            path.style.strokeDasharray = "";
+            path.style.strokeDashoffset = "";
+          });
+          if (!drawnFiredRef.current) {
+            drawnFiredRef.current = true;
+            onDrawnRef.current?.();
+          }
+        }
+      }
+
+      // Signal dots — only after the star has been lit (flowStart), re-based so
+      // dot 0 launches from its origin the instant the flow begins.
+      const flowing = phaseRef.current === "shown" && now >= flowStartRef.current;
       if (s) {
         tops.forEach((p, i) => {
           const g = dotRefs.current[i];
           if (!g) return;
-          const { u, opacity } = dotState(now, i);
+          if (!flowing) {
+            g.setAttribute("opacity", "0");
+            return;
+          }
+          const { u, opacity } = dotState(now - flowStartRef.current, i);
           // Point on the same cubic the line is drawn with.
           const k = (s.y - p.y) * 0.5;
           const mu = 1 - u;
@@ -89,12 +176,17 @@ export default function ConnectingPaths({
         });
       }
 
-      // Bottom lines: slide the gradient's bright band from each card back up
-      // toward the star, looping. Fading in/out at the ends hides the seam.
+      // Bottom lines (if any): slide the gradient's bright band from each card
+      // back up toward the star, looping. Only once the flow has started.
       for (let i = 0; i < bottomCount; i++) {
         const stop = bottomWaveRefs.current[i];
         if (!stop) continue;
-        const phase = (((now - i * WAVE_STAGGER) % WAVE_DURATION) + WAVE_DURATION) % WAVE_DURATION;
+        if (!flowing) {
+          stop.setAttribute("stop-opacity", "0");
+          continue;
+        }
+        const t = now - flowStartRef.current;
+        const phase = (((t - i * WAVE_STAGGER) % WAVE_DURATION) + WAVE_DURATION) % WAVE_DURATION;
         const p = phase / WAVE_DURATION;
         const eased = flowEase(p);
         const offset = 0.95 - eased * 0.9;
@@ -148,8 +240,7 @@ export default function ConnectingPaths({
           </linearGradient>
         ))}
         {/* Bottom lines: warm gold at the star → green at the cards, with a
-            brighter band that slides along (animated per-frame below; the
-            reduced-motion fallback below leaves it parked at its base 0.5). */}
+            brighter band that slides along (animated per-frame above). */}
         {bottomPoints.map((p, i) => (
           <linearGradient
             key={`gb${i}`}
@@ -179,13 +270,29 @@ export default function ConnectingPaths({
         <path key={`b${i}`} d={fromStar(p)} stroke={`url(#pillars-grad-bot-${i})`} strokeWidth={1.5} fill="none" />
       ))}
 
-      {/* Capability boxes → star */}
+      {/* Capability boxes → star. Hidden until the draw-in begins (unless
+          reduced motion, where they render full immediately). */}
       {topPoints.map((p, i) => (
-        <path key={`t${i}`} d={toStar(p)} stroke={`url(#pillars-grad-top-${i})`} strokeWidth={1.5} fill="none" />
+        <path
+          key={`t${i}`}
+          ref={(el) => {
+            topPathRefs.current[i] = el;
+            // Pin the line hidden on first paint so the draw-in never flashes.
+            if (el && !reducedRef.current && phaseRef.current !== "shown") {
+              const len = el.getTotalLength();
+              el.style.strokeDasharray = String(len);
+              el.style.strokeDashoffset = String(len);
+            }
+          }}
+          d={toStar(p)}
+          stroke={`url(#pillars-grad-top-${i})`}
+          strokeWidth={1.5}
+          fill="none"
+        />
       ))}
 
       {/* Signal dots — travel down each top line into the star, positioned
-          every frame from the shared flow clock. */}
+          every frame from the shared flow clock (once the flow has begun). */}
       {topPoints.map((p, i) => {
         if (reduced) {
           return (

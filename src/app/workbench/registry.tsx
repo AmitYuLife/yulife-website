@@ -25,7 +25,7 @@ import LogoMarquee from "@/components/blocks/LogoMarquee";
 import FaqSection from "@/components/sections/FaqSection";
 import ProvenRoiSection from "@/components/sections/ProvenRoiSection";
 import EverydayValueSection from "@/components/sections/EverydayValueSection";
-import BusinessPulseSection from "@/components/sections/BusinessPulseSection";
+import YunitySection from "@/components/sections/YunitySection";
 import StatCardFan from "@/components/blocks/StatCardFan";
 import ProductLogoBar from "@/components/sections/ProductLogoBar";
 import MarqueeStatsSection from "@/components/sections/MarqueeStatsSection";
@@ -333,14 +333,15 @@ export const sectionSpecs: Spec[] = [
     ),
   },
   {
-    name: "BusinessPulseSection",
-    source: "src/components/sections/BusinessPulseSection.tsx",
+    name: "YunitySection",
+    source: "src/components/sections/YunitySection.tsx",
     note: "R3F star (Yunity) + reveal — live 3D via harness",
     padded: false,
     render: () => (
-      <BusinessPulseSection
+      <YunitySection
         data={{
           heading: "A live pulse on your people",
+          emphasis: "live",
           body: "Yunity turns everyday engagement into anonymised, aggregated insight.",
           steps: [
             { title: "Sense", description: "signals from daily wellbeing activity." },

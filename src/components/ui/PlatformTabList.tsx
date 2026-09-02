@@ -28,15 +28,6 @@ export default function PlatformTabList({
 }) {
   return (
     <div className="relative w-full">
-      <div
-        className="pointer-events-none absolute top-14 z-0 h-px bg-line-emphasis tablet:top-[calc(1px+1.75rem-0.5px)]"
-        style={{
-          left: "50%",
-          width: "100vw",
-          marginLeft: "-50vw",
-        }}
-        aria-hidden="true"
-      />
       <AnimatedTabList
         items={pillars.map((pillar) => ({
           key: pillar.id,

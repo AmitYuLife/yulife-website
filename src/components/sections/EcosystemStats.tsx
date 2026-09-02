@@ -21,7 +21,7 @@ export default function EcosystemStats() {
           data-reveal
           className="mx-auto flex w-full max-w-[1216px] flex-col items-center gap-related text-center"
         >
-          <p className="type-eyebrow uppercase tracking-[0.16em] text-accent-purple">
+          <p className="type-eyebrow uppercase text-accent-purple">
             {ecosystem.eyebrow}
           </p>
           <h2 id="ecosystem-heading" className="type-heading-h2 text-on-inverse">

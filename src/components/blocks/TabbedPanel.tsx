@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { pillars, type PillarVideo } from "@/data/home-content";
 import PillarBox from "@/components/ui/PillarBox";
-import PlatformHeadingMarquee from "@/components/ui/PlatformHeadingMarquee";
 import PlatformTabList from "@/components/ui/PlatformTabList";
+import EngageRewardsPillar from "@/components/ui/EngageRewardsPillar";
 import { PLATFORM_SWITCH_MS, PLATFORM_SWITCH_EASE } from "@/lib/platform-switch";
 import { domSrc } from "@/lib/domSrc";
 
@@ -247,6 +247,24 @@ type FloatingCardConfig = {
 /** Floating cards per pillar id — only pillars with real design assets get
  *  an entry; others render the video hero with no floating cards. */
 const FLOATING_CARDS: Record<string, FloatingCardConfig[]> = {
+  engage: [
+    {
+      key: "challenge",
+      cornerClassName:
+        "absolute -left-[24px] top-[24px] z-10 hidden tablet:block tablet:-left-[32px] desktop:-left-[40px] desktop:top-[40px]",
+      src: "/home/platform/engage-challenge-card.webp",
+      alt: "Challenge select card showing a 10-minute Meditation challenge worth 120 YuCoin",
+      width: 165,
+      height: 212,
+      widthClassName: "w-[120px] tablet:w-[140px] desktop:w-[165px]",
+      // The export already has transparent rounded corners (masked at ~13px @165w),
+      // so this radius doesn't re-cut the image — it clips the hover sheen to the
+      // card's rounded shape. Scaled to the card's rendered width per breakpoint.
+      radiusClassName: "rounded-[11px] desktop:rounded-[13px]",
+      bobDelay: "0.4s",
+      bobDuration: "5s",
+    },
+  ],
   prevent: [
     {
       key: "mood",
@@ -461,18 +479,6 @@ export default function TabbedPanel({
 
       {/* Video / hero placeholder with floating cards */}
       <div className="relative w-full">
-        <div
-          className="pointer-events-none absolute z-0 h-[320px] overflow-hidden tablet:h-[440px] desktop:h-[548px]"
-          style={{
-            left: "50%",
-            width: "100vw",
-            marginLeft: "-50vw",
-          }}
-          aria-hidden
-        >
-          <PlatformHeadingMarquee heading={activePillar.heading} />
-        </div>
-
         <div className="relative z-[2] h-[320px] w-full overflow-hidden rounded-md border border-line-emphasis tablet:h-[440px] desktop:h-[548px]">
           <PlatformVideoStack
             activeIndex={active}
@@ -480,6 +486,7 @@ export default function TabbedPanel({
             exitingVideoId={tabSwitch.exitingVideoId}
             slideVariant={tabSwitch.slideVariant}
           />
+          {activePillar.id === "engage" && <EngageRewardsPillar />}
         </div>
 
         {tabSwitch.exitingFloatingCards?.map(({ key, cornerClassName, ...card }) => (
@@ -504,16 +511,14 @@ export default function TabbedPanel({
         ))}
       </div>
 
-      {/* Capability boxes — pulled down half their height on desktop so they
-          straddle the platform / Yunity divider; -mt-[74px] cancels the extra
-          visual gap the translate adds below the video hero. */}
+      {/* Capability boxes — sit within the platform band below the video (no
+          longer straddling the platform / Yunity divider). */}
       <div
-        className={`relative grid w-full grid-cols-1 overflow-hidden rounded-md border border-line-emphasis bg-surface-inverse-raised tablet:grid-cols-2 desktop:-mt-[74px] desktop:translate-y-1/2 ${desktopCols}`}
+        className={`relative grid w-full grid-cols-1 overflow-hidden rounded-md border border-line-emphasis bg-surface-inverse-raised tablet:grid-cols-2 ${desktopCols}`}
       >
         {boxes.map((box, i) => (
           <PillarBox
             key={`${activePillar.id}-${box.title}`}
-            anchorIndex={i}
             title={box.title}
             description={box.description}
             className={boxBorderClass(i)}

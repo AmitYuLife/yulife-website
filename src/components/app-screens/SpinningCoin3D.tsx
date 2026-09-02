@@ -126,6 +126,7 @@ export default function SpinningCoin3D({
   syncAngleRef,
   reportAngleRef,
   alwaysRender = false,
+  dpr = [1, 2],
   onReady,
 }: {
   className?: string;
@@ -141,6 +142,12 @@ export default function SpinningCoin3D({
    * pauses offscreen for perf; a caller animating the coin *through* the
    * viewport edge (e.g. the hero intro flight) needs it to keep spinning. */
   alwaysRender?: boolean;
+  /** Canvas device-pixel-ratio, passed straight to R3F. Default `[1, 2]` clamps
+   * the backing store to the real device ratio. A caller that CSS-scales this
+   * canvas *up* (e.g. the hero intro coin, enlarged then flown into the phone)
+   * should pass a fixed number that oversamples by that upscale, or the coin
+   * renders soft/low-res at its enlarged size. */
+  dpr?: number | [number, number];
   /** Fired once, on the first rendered frame — the coin is now on screen. */
   onReady?: () => void;
 }) {
@@ -166,7 +173,7 @@ export default function SpinningCoin3D({
         <Canvas
           orthographic
           camera={{ position: [0, 0, 500], near: 0.1, far: 1000, zoom: 72 }}
-          dpr={[1, 2]}
+          dpr={dpr}
           gl={{ alpha: true, antialias: true }}
           frameloop={frameloop}
           style={{ overflow: "visible" }}

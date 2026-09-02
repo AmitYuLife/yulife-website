@@ -96,6 +96,8 @@ export type ProductCardBackground =
 export const products = {
   eyebrow: "A new standard",
   heading: "Protection for today's world",
+  /** Serif-italic fragment inside `heading` (first occurrence wrapped in <em>). */
+  headingAccent: "world",
   intro:
     "YuLife is the centralised one-stop-shop that unifies world-class cover with a digital-first health experience.",
   cards: [
@@ -239,9 +241,25 @@ export const pillars = [
   },
 ] as const;
 
+/** Brand reward tiles for the Engage tab's scrolling rewards pillar, top → bottom
+ *  (Figma node 2699:4551). The pine coupon card is drawn in CSS (.engage-reward-coupon);
+ *  only the white brand logo is an asset — vector where available, otherwise a
+ *  retina WebP. `logoWidth` is the logo's width as a % of the card. The pillar is
+ *  decorative motion, so its container is aria-hidden and the logos carry no alt. */
+export const engageRewardTiles = [
+  { brand: "Airbnb", logo: assetPath("/home/platform/logos/airbnb.svg"), logoWidth: "82%" },
+  { brand: "Amazon", logo: assetPath("/home/platform/logos/amazon.webp"), logoWidth: "78%" },
+  { brand: "Nike", logo: assetPath("/home/platform/logos/nike.webp"), logoWidth: "74%" },
+  { brand: "Garmin", logo: assetPath("/home/platform/logos/garmin.webp"), logoWidth: "82%" },
+  { brand: "Starbucks", logo: assetPath("/home/platform/logos/starbucks.svg"), logoWidth: "44%" },
+  { brand: "Withings", logo: assetPath("/home/platform/logos/withings.webp"), logoWidth: "80%" },
+] as const;
+
 export const yunity = {
   eyebrow: "Powered by",
   heading: "The more your people use it, the smarter it gets",
+  // Word within `heading` rendered in italic serif (Figma 1731:2441).
+  emphasis: "smarter",
   intro:
     "Most platforms tell you what happened last quarter. YuLife tells you what's about to happen next week. Every check-in, every challenge, every consultation adds to a continuously learning picture of your workforce's health.",
   body:
@@ -249,15 +267,15 @@ export const yunity = {
   steps: [
     {
       title: "Sense",
-      description: "capture the real-time lifestyle data traditional models miss.",
+      description: "capture real-time lifestyle data that traditional models miss.",
     },
     {
       title: "Interpret",
-      description: "spot the subtle shifts that signal rising stress or physical risk.",
+      description: "spot the subtle shifts that often signal rising stress or physical risk.",
     },
     {
       title: "Guide",
-      description: "trigger support early, to protect health and prove ROI.",
+      description: "trigger support early, to protect health and prove return on investment.",
     },
   ],
   lockup: "Powered by Yunity",

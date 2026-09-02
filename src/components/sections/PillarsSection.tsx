@@ -10,8 +10,14 @@ import ConnectingPaths, {
   type Point,
 } from "@/components/ui/ConnectingPaths";
 
+// Yunity band entrance: connecting lines draw in → star lights → dots flow.
 const PLATFORM_INTRO =
   "From daily habits to life's hardest moments — every layer of your people's health in one place.";
+
+// Four root-origins pinned to the top edge of the Yunity band — the roots
+// descend from this section's own top into the star, so nothing crosses up into
+// the platform band above. Values are horizontal fractions of the 1216px band.
+const TOP_ROOTS = [0.06, 0.36, 0.64, 0.94] as const;
 
 type Geometry = {
   width: number;
@@ -52,6 +58,10 @@ export default function PillarsSection({
   const rootRef = useRef<HTMLElement | null>(null);
   const [active, setActive] = useState(DEFAULT_ACTIVE_TAB);
   const [geo, setGeo] = useState<Geometry>(EMPTY);
+  // Entrance sequence for the connecting graphic: armed when the star scrolls
+  // into view, then the lines draw in and (via onLinesDrawn) the star lights.
+  const [armed, setArmed] = useState(false);
+  const [starLit, setStarLit] = useState(false);
 
   const setRefs = useCallback(
     (node: HTMLElement | null) => {
@@ -77,7 +87,7 @@ export default function PillarsSection({
       const cx = r.left - rb.left + r.width / 2;
 
       if (node === "top") {
-        tops[index] = { x: cx, y: r.bottom - rb.top, color: PILLAR_COLORS[index % 4] };
+        tops[index] = { x: cx, y: r.top - rb.top + r.height / 2, color: PILLAR_COLORS[index % 4] };
       } else if (node === "star") {
         star = { x: cx, y: r.top - rb.top + r.height / 2 };
       } else if (node === "bottom") {
@@ -92,6 +102,16 @@ export default function PillarsSection({
       star,
       bottomPoints: bottoms.filter(Boolean),
     });
+
+    // Arm the entrance as soon as the Yunity card enters the viewport, so the
+    // draw-in → star → flow sequence plays when the section comes into view
+    // (not only once the star at the very bottom is reached). Driven from this
+    // scroll/resize/rAF-fed loop so it fires reliably.
+    const card = root.querySelector("[data-yunity-root]");
+    if (card) {
+      const cr = card.getBoundingClientRect();
+      if (cr.top < window.innerHeight * 0.9 && cr.bottom > 0) setArmed(true);
+    }
   }, []);
 
   useLayoutEffect(() => {
@@ -144,6 +164,8 @@ export default function PillarsSection({
         topPoints={geo.topPoints}
         star={geo.star}
         bottomPoints={geo.bottomPoints}
+        active={armed}
+        onLinesDrawn={() => setStarLit(true)}
       />
 
       {/* Band 1 — capability platform */}
@@ -152,15 +174,12 @@ export default function PillarsSection({
           firstBand === "inverse-raised" ? "bg-surface-inverse-raised" : "bg-surface-inverse"
         }`}
       >
-        {/* Bottom padding drops to zero at desktop so the capability boxes'
-            natural bottom lands on the divider; the grid itself is then pulled
-            down half its height to straddle it (see TabbedPanel). */}
-        <div className="page-container py-[var(--layout-section-y)] desktop:pb-0 relative z-10 flex flex-col items-center gap-[var(--layout-section-gap)]">
+        <div className="page-container py-[var(--layout-section-y)] relative z-10 flex flex-col items-center gap-[var(--layout-section-gap)]">
           <div className="mx-auto flex w-full max-w-[1216px] flex-col items-center gap-flow text-center">
             <h2 id="platform-heading" data-reveal className="type-heading-h2 text-on-inverse">
               One platform,
               <br />
-              four ways to make an impact
+              four ways to make an <em className="italic">impact</em>
             </h2>
             <p
               data-reveal
@@ -179,21 +198,34 @@ export default function PillarsSection({
         </div>
       </div>
 
-      {/* Band 2 — Yunity diagram. The roots travel down through it from the
-          boxes above to the star. At desktop the capability boxes straddle the
-          divider (overflowing ~74px = half their 148px height into this band), so
-          the top padding adds that 74px back — making the visible gap above the
-          SectionCard match the section-y gap below the outcome cards. */}
+      {/* Band 2 — Yunity diagram. The roots descend from this band's own top
+          edge into the star below the card — never from the platform band above,
+          so the two sections stay separate (Figma 2706:4997, YunityRoots). Uses
+          the larger section-y-lg vertical padding. */}
       <div
-        className={`pointer-events-none relative border-b border-line-emphasis ${
+        className={`relative border-b border-line-emphasis ${
           secondBand === "inverse-raised" ? "bg-surface-inverse-raised" : "bg-surface-inverse"
         }`}
       >
-        {/* Padding-top clears the straddling boxes; pointer-events stay off that
-            spacer so the lower half of each box remains hoverable. */}
-        <div className="page-container py-[var(--layout-section-y)] desktop:pt-[calc(var(--layout-section-y)+74px)]">
-          <div className="pointer-events-auto relative z-10">
-            <YunityDiagram />
+        {/* Root-origins pinned to the top edge of the Yunity band. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 z-0 mx-auto w-full max-w-[1216px]"
+        >
+          {TOP_ROOTS.map((x, i) => (
+            <span
+              key={i}
+              data-pillar-node="top"
+              data-pillar-index={i}
+              className="absolute top-0 size-0"
+              style={{ left: `${x * 100}%` }}
+            />
+          ))}
+        </div>
+
+        <div className="page-container py-[var(--layout-section-y-lg)]">
+          <div className="relative z-10">
+            <YunityDiagram starLit={starLit} />
           </div>
         </div>
       </div>

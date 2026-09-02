@@ -333,7 +333,7 @@ export default function ProductShowcase({
       aria-labelledby="protect-heading"
     >
       <div className="page-container pt-[var(--layout-section-y-lg)]">
-        <div className="grid grid-cols-1 items-start gap-flow xl:grid-cols-[594px_minmax(0,1fr)] xl:items-end xl:gap-block-gap">
+        <div className="grid grid-cols-1 items-start gap-flow desktop:grid-cols-[594px_minmax(0,1fr)] desktop:items-end desktop:gap-block-gap">
           <div className="flex min-w-0 flex-col gap-related">
             <p
               data-reveal
@@ -346,12 +346,22 @@ export default function ProductShowcase({
               data-reveal
               className="type-heading-h2 text-on-inverse"
             >
-              {products.heading}
+              {(() => {
+                const at = products.heading.indexOf(products.headingAccent);
+                if (at === -1) return products.heading;
+                return (
+                  <>
+                    {products.heading.slice(0, at)}
+                    <em className="italic">{products.headingAccent}</em>
+                    {products.heading.slice(at + products.headingAccent.length)}
+                  </>
+                );
+              })()}
             </h2>
           </div>
           <p
             data-reveal
-            className="type-body-lg min-w-0 text-on-inverse xl:pb-[0.06em]"
+            className="type-body-lg min-w-0 text-on-inverse desktop:pb-[0.06em]"
           >
             {products.intro}
           </p>
