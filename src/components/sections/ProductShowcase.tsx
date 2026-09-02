@@ -159,10 +159,8 @@ function ProductCard({
           onFocus={() => onEnter(index)}
           className={[
             CARD_CLASS,
-            "group block border transition-colors duration-200",
-            isActive
-              ? "border-transparent"
-              : "border-line-emphasis bg-surface-inverse-raised",
+            "group block border border-line-emphasis transition-colors duration-200",
+            isActive ? "" : "bg-surface-inverse-raised",
           ].join(" ")}
         >
           {(isActive || isExiting) && (
@@ -250,34 +248,13 @@ export default function ProductShowcase({
     const card = row.querySelector<HTMLElement>(`[data-card-index="${index}"]`);
     if (!card) return;
 
-    track.scrollTo({ left: card.offsetLeft, behavior: "smooth" });
-  }, []);
-
-  // Nearest card to the current scroll position — used only to work out
-  // where a Next/Prev step should start from after a free (unsnapped)
-  // scroll, never to auto-align the scroll position itself. Compares against
-  // each card's *achievable* scroll target (its own offset, clamped to the
-  // browser's max scrollLeft) rather than raw offsetLeft — otherwise, at the
-  // clamped end, the resting position sits between the last two cards'
-  // offsets and lands on the second-to-last one instead of the last.
-  const currentScrollIndex = useCallback(() => {
-    const track = trackRef.current;
-    const row = rowRef.current;
-    if (!track || !row) return 0;
-
-    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
-    const cards = row.querySelectorAll<HTMLElement>("[data-card-index]");
-    let best = 0;
-    let bestDist = Infinity;
-    cards.forEach((card, i) => {
-      const target = Math.min(card.offsetLeft, maxScroll);
-      const dist = Math.abs(target - track.scrollLeft);
-      if (dist < bestDist) {
-        bestDist = dist;
-        best = i;
-      }
-    });
-    return best;
+    // card.offsetLeft is relative to the track's border edge, so it already
+    // includes the track's own left inset padding. scrollLeft's coordinate
+    // space doesn't need that added back in — scrollLeft: 0 already shows
+    // the inset as blank space before the content. Using offsetLeft directly
+    // overshoots every target by exactly the inset amount.
+    const inset = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+    track.scrollTo({ left: card.offsetLeft - inset, behavior: "smooth" });
   }, []);
 
   const runSwitch = useCallback(
@@ -328,21 +305,15 @@ export default function ProductShowcase({
     [activeIndex, lastCardIndex, runSwitch, scrollToIndex],
   );
 
+  // Steps from activeIndex (React state, always in sync immediately on every
+  // click) rather than reading live scrollLeft — a still-in-flight smooth
+  // scroll from the previous click would otherwise read a mid-animation
+  // position and step from the wrong card. goToIndex already wraps.
   const scrollByStep = useCallback(
     (dir: 1 | -1) => {
-      const current = currentScrollIndex();
-      const next = current + dir;
-      if (next < 0) {
-        goToIndex(lastCardIndex);
-        return;
-      }
-      if (next > lastCardIndex) {
-        goToIndex(0);
-        return;
-      }
-      goToIndex(next);
+      goToIndex(activeIndex + dir);
     },
-    [currentScrollIndex, goToIndex, lastCardIndex],
+    [activeIndex, goToIndex],
   );
 
   useCarouselKeyboard({

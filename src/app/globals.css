@@ -523,7 +523,19 @@ section[aria-labelledby="block-7-label"] h2 {
    cycles the list and silently shifts which operator lands on which layer.
    Nesting two single-mask elements sidesteps that entirely: the ring always
    paints a full band, and the parent's conic mask clips it back to whatever
-   angle has been "drawn" so far. */
+   angle has been "drawn" so far.
+
+   The card keeps its plain border-line-emphasis border the whole time —
+   active or not — rather than swapping it to transparent. The ring is a
+   later sibling (paints on top) and exactly overlaps that 1px border, so the
+   gradient draws in over the existing border instead of the border
+   vanishing first and leaving a bare gap ahead of the sweep.
+
+   The spin starts immediately (no delay) rather than only after the draw
+   finishes, so the revealed arc is already shifting hue as it's drawn —
+   makes the sweep read as gradient colour actively travelling from the
+   origin point, not a static rainbow simply wiped into view. Same per-loop
+   speed either way (5s/rev); only the start time moved. */
 @property --ring-angle {
   syntax: "<angle>";
   inherits: false;
@@ -585,7 +597,7 @@ section[aria-labelledby="block-7-label"] h2 {
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   mask-composite: exclude;
-  animation: productRingSpin 5s linear 0.5s infinite;
+  animation: productRingSpin 5s linear infinite;
 }
 
 @keyframes productRingDraw {
