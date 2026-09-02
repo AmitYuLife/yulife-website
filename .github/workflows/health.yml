@@ -1,0 +1,22 @@
+name: Health
+
+# Runs the same checks you'd run locally with `npm run health` — typecheck,
+# lint, and a production build guarded by a per-route bundle-size budget — on
+# every push to main and every pull request. A red ✗ here means something
+# regressed before it reaches the live site.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run health

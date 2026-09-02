@@ -9,6 +9,8 @@
     "start": "next start",
     "clean": "rm -rf .next .next-dev out",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "health": "npm run typecheck && npm run lint && node scripts/check-bundle-size.mjs",
     "gen:map": "node scripts/generate-code-map.mjs",
     "gen:pages": "tsx scripts/generate-pages.mjs",
     "gen:svg": "tsx scripts/generate-sitemap-svg.mjs",
