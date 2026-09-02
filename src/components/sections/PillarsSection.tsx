@@ -74,6 +74,9 @@ export default function PillarsSection({
     const tops: ColorPoint[] = [];
     let star: Point | null = null;
     const bottoms: Point[] = [];
+    // The stat cards are the top anchors; arm the entrance once they scroll into
+    // view (not the heading above them).
+    let cardsInView = false;
 
     root.querySelectorAll<HTMLElement>("[data-pillar-node]").forEach((el) => {
       const r = el.getBoundingClientRect();
@@ -83,6 +86,7 @@ export default function PillarsSection({
 
       if (node === "top") {
         tops[index] = { x: cx, y: r.bottom - rb.top, color: PILLAR_COLORS[index % 4] };
+        if (r.top < window.innerHeight * 0.85 && r.bottom > 0) cardsInView = true;
       } else if (node === "star") {
         star = { x: cx, y: r.top - rb.top + r.height / 2 };
       } else if (node === "bottom") {
@@ -98,15 +102,10 @@ export default function PillarsSection({
       bottomPoints: bottoms.filter(Boolean),
     });
 
-    // Arm the entrance as soon as the Yunity card enters the viewport, so the
-    // draw-in → star → flow sequence plays when the section comes into view
-    // (not only once the star at the very bottom is reached). Driven from this
-    // scroll/resize/rAF-fed loop so it fires reliably.
-    const card = root.querySelector("[data-yunity-root]");
-    if (card) {
-      const cr = card.getBoundingClientRect();
-      if (cr.top < window.innerHeight * 0.9 && cr.bottom > 0) setArmed(true);
-    }
+    // Arm the entrance once the 1/2/3 stat cards scroll into view, so the roots
+    // draw in and the star rises into place right as they're reached. Driven
+    // from this scroll/resize/rAF-fed loop so it fires reliably.
+    if (cardsInView) setArmed(true);
   }, []);
 
   useLayoutEffect(() => {

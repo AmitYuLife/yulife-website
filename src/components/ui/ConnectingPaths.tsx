@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { dotState, flowEase } from "@/lib/flowTiming";
+import { dotState, flowEase, BOB_FREQ } from "@/lib/flowTiming";
 
 const WAVE_DURATION = 2.2; // seconds for one pulse to travel star → card
 const WAVE_STAGGER = 0.4; // launch offset between the three bottom lines
@@ -11,6 +11,25 @@ const WAVE_STAGGER = 0.4; // launch offset between the three bottom lines
 const DRAW_DURATION = 1.1; // seconds for a line to draw from origin to star
 const DRAW_STAGGER = 0.14; // launch offset between the descending lines
 const FLOW_DELAY = 0.5; // gap between lines-drawn and dots starting to flow
+
+// Ripples spreading out from the star's bottom point (Figma 2712:5117). A new
+// ripple is born each time the star bobs down to its lowest point (BOB_FREQ) and
+// expands outward, fading as it grows — like the star tapping the surface on
+// every dip. Four concurrent give the four concentric ovals of the design.
+const RIPPLE_COUNT = 4;
+const RIPPLE_MAX_W = 656; // widest ripple's width, px (outermost design ellipse)
+const RIPPLE_ASPECT = 3.27; // width : height of the flattened (perspective) ovals
+const RIPPLE_BASE = 0.5; // stroke opacity of a fresh ripple (fades to 0 as it grows)
+// Star centre → the diamond's bottom tip at its lowest bob, where the ripples
+// originate so the point looks in contact with them (tuned to the 300px star).
+const RIPPLE_DROP = 113;
+// Static reduced-motion frame: the four design ellipses, brightest (youngest) in.
+const RIPPLE_STILL = [
+  { w: 82, o: 0.5 },
+  { w: 226, o: 0.36 },
+  { w: 388, o: 0.24 },
+  { w: 656, o: 0.16 },
+] as const;
 
 export type Point = { x: number; y: number };
 export type ColorPoint = Point & { color: string };
@@ -68,6 +87,7 @@ export default function ConnectingPaths({
   const reduced = usePrefersReducedMotion();
   const topPathRefs = useRef<(SVGPathElement | null)[]>([]);
   const dotRefs = useRef<(SVGGElement | null)[]>([]);
+  const rippleRefs = useRef<(SVGEllipseElement | null)[]>([]);
   const bottomWaveRefs = useRef<(SVGStopElement | null)[]>([]);
 
   // Latest geometry for the rAF loop, without re-subscribing it every measure.
@@ -174,6 +194,38 @@ export default function ConnectingPaths({
           g.setAttribute("transform", `translate(${x} ${y})`);
           g.setAttribute("opacity", String(Math.max(0, Math.min(1, opacity))));
         });
+
+        // Ripples spreading from the star's bottom tip. A new one is born each
+        // time the star bobs to its lowest point — the same BOB_FREQ clock the
+        // star reads, so the pulse lands exactly on the dip. `frac` is the bob
+        // phase, 0 at a low point (star position ∝ sin, lowest at 3π/2).
+        //
+        // Ring i is `frac + i` dips old. On the first reveal they build up one
+        // at a time: a ring is only shown once its birth dip has actually
+        // happened since the flow began (age ≤ dips elapsed) — so the first
+        // ripple appears alone, then the others follow on later dips.
+        const rcy = s.y + RIPPLE_DROP;
+        const bobPeriod = (2 * Math.PI) / BOB_FREQ;
+        const elapsedDips = (now - flowStartRef.current) / bobPeriod;
+        const lowPhase = (now * BOB_FREQ - 1.5 * Math.PI) / (2 * Math.PI);
+        const frac = lowPhase - Math.floor(lowPhase);
+        for (let i = 0; i < RIPPLE_COUNT; i++) {
+          const el = rippleRefs.current[i];
+          if (!el) continue;
+          const age = frac + i; // ring age in dips (0 = just born)
+          if (!flowing || age > elapsedDips) {
+            el.setAttribute("opacity", "0");
+            continue;
+          }
+          const p = age / RIPPLE_COUNT;
+          const rx = (RIPPLE_MAX_W / 2) * Math.pow(p, 1.5);
+          const fadeIn = p < 0.06 ? p / 0.06 : 1;
+          el.setAttribute("cx", String(s.x));
+          el.setAttribute("cy", String(rcy));
+          el.setAttribute("rx", String(rx));
+          el.setAttribute("ry", String(rx / RIPPLE_ASPECT));
+          el.setAttribute("opacity", String(RIPPLE_BASE * (1 - p) * fadeIn));
+        }
       }
 
       // Bottom lines (if any): slide the gradient's bright band from each card
@@ -264,6 +316,40 @@ export default function ConnectingPaths({
           </linearGradient>
         ))}
       </defs>
+
+      {/* Ripples pulsing outward from the star's bottom point — the lowest
+          layer, behind the roots, dots and star. Sizes/opacity are driven per
+          frame above; reduced motion shows the still design frame. */}
+      {reduced
+        ? RIPPLE_STILL.map((r, i) => (
+            <ellipse
+              key={`rs${i}`}
+              cx={star.x}
+              cy={star.y + RIPPLE_DROP}
+              rx={r.w / 2}
+              ry={r.w / 2 / RIPPLE_ASPECT}
+              stroke="white"
+              strokeWidth={1}
+              fill="none"
+              opacity={r.o}
+            />
+          ))
+        : Array.from({ length: RIPPLE_COUNT }).map((_, i) => (
+            <ellipse
+              key={`r${i}`}
+              ref={(el) => {
+                rippleRefs.current[i] = el;
+              }}
+              cx={star.x}
+              cy={star.y + RIPPLE_DROP}
+              rx={0}
+              ry={0}
+              stroke="white"
+              strokeWidth={1}
+              fill="none"
+              opacity={0}
+            />
+          ))}
 
       {/* Star → outcome cards */}
       {bottomPoints.map((p, i) => (

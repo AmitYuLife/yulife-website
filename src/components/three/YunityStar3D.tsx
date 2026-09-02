@@ -4,7 +4,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { FLOW_STAGGER } from "@/lib/flowTiming";
+import { FLOW_STAGGER, BOB_FREQ } from "@/lib/flowTiming";
+
+const BOB_AMP = 0.065; // world-unit amplitude of the star's hover bob
 
 // The three signal-dot colours, in the order the dots arrive at the star, so
 // the glow can pulse through the same palette in time with them. CSS vars (set
@@ -285,11 +287,15 @@ const FRAGMENT = /* glsl */ `
 
 const IDLE_SPIN = -0.35; // rad/s — slow horizontal spin (yaw) about the Y axis
 const DRAG_RATE = 0.009; // drag px → radians (horizontal drag turns the yaw)
+const REVEAL_SPIN_MULT = 19; // boost 1 → spins 20× the idle rate as it reveals
+const REVEAL_SPIN_DECAY = 2.6; // per-second rate the entrance boost eases to idle
+const REVEAL_RISE = 0.4; // world units the star rises from as it settles in (∝ boost²)
 
 type SpinState = {
   dragging: boolean;
   pendingX: number; // accrued horizontal drag, px, consumed each frame
   velExtra: number; // user-imparted spin on top of the idle rate
+  boost: number; // entrance spin-up, 1 at reveal → 0 (see REVEAL_SPIN_*)
 };
 
 function StarScene({
@@ -331,9 +337,13 @@ function StarScene({
 
     if (reduced) return;
 
-    // Hover bob — same frequency/amplitude as YuCoin's idle float, so the two
-    // 3D pieces on the page read as one consistent motion language.
-    g.position.y = Math.sin(t * 0.85) * 0.065;
+    // Hover bob — a brisk float on the shared BOB_FREQ clock (performance.now, so
+    // ConnectingPaths can emit a ripple exactly when the star reaches its lowest
+    // point). Lowest is sin = −1. On reveal the star also rises up into place —
+    // offset ∝ boost² so it settles faster than the (longer) spin-up eases off.
+    const b = spin.current.boost;
+    const bob = Math.sin((performance.now() / 1000) * BOB_FREQ) * BOB_AMP;
+    g.position.y = bob - REVEAL_RISE * b * b;
 
     // Base aura: a gentle breath so the star always carries a soft glow. Kept
     // faint so the glow reads as a diffuse halo, not a hard rim.
@@ -360,15 +370,19 @@ function StarScene({
 
     // Spin: a slow horizontal turntable turn (yaw, about Y); a horizontal drag
     // turns it. Rotation is confined to this one Y axis — the star can never
-    // tumble (X) or pinwheel (Z), whatever the user does.
+    // tumble (X) or pinwheel (Z), whatever the user does. On reveal it spins up
+    // to ~20× and eases back to idle (boost decays each frame).
     const s = spin.current;
+    if (s.boost > 0.0001) s.boost *= Math.exp(-REVEAL_SPIN_DECAY * dt);
+    else s.boost = 0;
+    const idle = IDLE_SPIN * (1 + REVEAL_SPIN_MULT * s.boost);
     if (s.pendingX !== 0) {
       sp.rotation.y += s.pendingX * DRAG_RATE;
       s.velExtra = (s.pendingX * DRAG_RATE) / dt;
       s.pendingX = 0;
     } else {
       if (!s.dragging) s.velExtra *= Math.exp(-1.6 * dt);
-      sp.rotation.y += (IDLE_SPIN + s.velExtra) * dt;
+      sp.rotation.y += (idle + s.velExtra) * dt;
     }
   });
 
@@ -416,16 +430,26 @@ function StarScene({
 export default function YunityStar3D({
   size = 200,
   className = "",
+  revealed = false,
 }: {
   size?: number;
   className?: string;
+  /** When this flips to true, the star spins up to ~20× and eases back to idle
+   * — the spin-up that pairs with the rise/fade as it settles into place. */
+  revealed?: boolean;
 }) {
-  const spin = useRef<SpinState>({ dragging: false, pendingX: 0, velExtra: 0 });
+  const spin = useRef<SpinState>({ dragging: false, pendingX: 0, velExtra: 0, boost: 0 });
   const lastX = useRef(0);
   const haloRef = useRef<HTMLDivElement>(null);
   const pulseRef = useRef<SVGPathElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const [reduced, setReduced] = useState(false);
+
+  // Kick the entrance spin-up the moment the star is revealed; it eases back to
+  // idle in the frame loop.
+  useEffect(() => {
+    if (revealed) spin.current.boost = 1;
+  }, [revealed]);
   // Default true so it's already animating the moment it scrolls into place —
   // only ever flips to pause a star that's confirmed off-screen.
   const [inView, setInView] = useState(true);

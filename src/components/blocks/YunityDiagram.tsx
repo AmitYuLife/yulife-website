@@ -115,18 +115,18 @@ export default function YunityDiagram({
         ))}
       </div>
 
-      {/* The Yunity star — a live 3D instance beneath the cards. The invisible
-          anchor marks its exact centre, so every connecting root converges into
-          the middle of the star. Lit as the last step of the entrance sequence
-          via opacity only — a CSS scale would change the canvas's measured
-          (getBoundingClientRect) size and knock the 3D star off-centre until the
-          next resize. Reduced motion shows it immediately. */}
+      {/* The Yunity star — a live 3D instance beneath the cards. As the last
+          step of the entrance sequence it fades in (opacity here) while, inside
+          the scene, it rises up into place and spins fast then eases to its
+          normal speed (see YunityStar3D, driven by `revealed`). The fade is
+          opacity-only — a CSS transform would change the canvas's measured size
+          and knock the 3D star off-centre. Reduced motion shows it settled. */}
       <div
         className={`relative aspect-square w-[300px] max-w-full transition-opacity duration-700 ease-out motion-reduce:!opacity-100 motion-reduce:transition-none ${
           starLit ? "opacity-100" : "opacity-0"
         }`}
       >
-        <YunityStar3D size={300} />
+        <YunityStar3D size={300} revealed={starLit} />
         <span
           data-pillar-node="star"
           aria-hidden="true"

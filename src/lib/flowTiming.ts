@@ -13,6 +13,12 @@ export const FLOW_DURATION = 1.5; // seconds for a dot to travel card → star
 export const FLOW_STAGGER = 0.5; // launch offset between the three dots → one arrival every 0.5s
 export const FLOW_DOTS = 3; // one dot per stat card
 
+// The Yunity star's hover-bob frequency (rad/s), read off performance.now() by
+// both the star (its up/down float) and ConnectingPaths (which emits a ripple
+// each time the star reaches its lowest point). One value keeps them locked, and
+// it sets the ripple cadence too (period 2π / BOB_FREQ ≈ 1.7s). Tune to taste.
+export const BOB_FREQ = 3.7;
+
 // cubic-bezier(0.45, 0, 0.25, 1) — the same easing the dots have always used.
 const X1 = 0.45;
 const Y1 = 0;
