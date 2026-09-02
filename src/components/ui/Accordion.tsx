@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, cloneElement, isValidElement, useId, useState, type ReactElement, type ReactNode } from "react";
+import { Children, cloneElement, isValidElement, useId, useState, type ReactNode } from "react";
 
 export type AccordionItemProps = {
   /** Figma: Question */

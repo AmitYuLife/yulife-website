@@ -15,20 +15,21 @@
  * consistent light for the whole orbit. (The ortho camera looks straight down
  * −Z, so world XY = screen XY.)
  */
-export type ToonSheenSpace = "world" | "oriented";
 import * as THREE from "three";
+
+export type ToonSheenSpace = "world" | "oriented";
 
 // ─── Colours ─────────────────────────────────────────────────────────────────
 // Each surface has a base colour and the lighter colour the sheen swaps in; the
 // rim's pair is what makes the streak read as continuing over the coin's edge.
 // Measured directly off the reference illustration (Figma: Illustration
 // Library, node 18205:130).
-export const TOON_FACE_COLOR = "#FFE242";
-export const TOON_FACE_LIT_COLOR = "#FEF399";
-export const TOON_RIM_COLOR = "#F99E02";
-export const TOON_RIM_LIT_COLOR = "#F9B80D";
-export const TOON_LINE_COLOR = "#FA9E00";
-export const TOON_LINE_LIT_COLOR = "#FAC118";
+const TOON_FACE_COLOR = "#FFE242";
+const TOON_FACE_LIT_COLOR = "#FEF399";
+const TOON_RIM_COLOR = "#F99E02";
+const TOON_RIM_LIT_COLOR = "#F9B80D";
+const TOON_LINE_COLOR = "#FA9E00";
+const TOON_LINE_LIT_COLOR = "#FAC118";
 
 // Direction toward the nominal key light.
 export const TOON_LIGHT_DIR = new THREE.Vector3(4, 6, 5).normalize();
@@ -43,17 +44,17 @@ export const TOON_STREAK_AXIS = new THREE.Vector2(
 );
 
 // ─── Geometry cross-section (mirrored from assets.ts) ────────────────────────
-export const COIN_RADIUS = 1;
+const COIN_RADIUS = 1;
 const FACE_Z = 0.12;
 const EDGE_Z = 0.102;
 const SEG = 96;
-export const FACE_RADIUS = 0.96;
+const FACE_RADIUS = 0.96;
 
 // Two parallel bands: wide band, thin unlit gap, narrow band — widths as
 // fractions of the face radius, measured from the reference.
-export const TOON_WIDE_HALF_WIDTH = (0.457 / 2) * FACE_RADIUS;
-export const TOON_NARROW_OFFSET = 0.386 * FACE_RADIUS;
-export const TOON_NARROW_HALF_WIDTH = (0.173 / 2) * FACE_RADIUS;
+const TOON_WIDE_HALF_WIDTH = (0.457 / 2) * FACE_RADIUS;
+const TOON_NARROW_OFFSET = 0.386 * FACE_RADIUS;
+const TOON_NARROW_HALF_WIDTH = (0.173 / 2) * FACE_RADIUS;
 
 // See the plugin for the derivation of these three: they re-zero the
 // light/view half-vector against a head-on view and centre the band pair on
@@ -135,7 +136,7 @@ const sheenFragmentShader = /* glsl */ `
  * @param space "world" for the spinning coin's swept sheen; "oriented" for the
  * orbit, where the streak holds a fixed screen direction on every coin.
  */
-export function makeToonSheenMaterial(
+function makeToonSheenMaterial(
   baseColorHex: string,
   litColorHex: string,
   space: ToonSheenSpace = "world",
