@@ -6,14 +6,13 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { FLOW_STAGGER } from "@/lib/flowTiming";
 
-// The four signal-dot colours, in the order the dots arrive at the star, so the
-// glow can pulse through the same palette in time with them. CSS vars (set via
-// `style.fill`, which resolves them) so the pulse matches the dots exactly.
+// The three signal-dot colours, in the order the dots arrive at the star, so
+// the glow can pulse through the same palette in time with them. CSS vars (set
+// via `style.fill`, which resolves them) so the pulse matches the dots exactly.
 const PULSE_COLORS = [
   "var(--green-600)",
   "var(--blue-600)",
   "var(--yellow-600)",
-  "var(--purple-600)",
 ] as const;
 
 /* ------------------------------------------------------------------ */

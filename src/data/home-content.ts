@@ -258,8 +258,8 @@ export const engageRewardTiles = [
 export const yunity = {
   eyebrow: "Powered by",
   heading: "The more your people use it, the smarter it gets",
-  // Word within `heading` rendered in italic serif (Figma 1731:2441).
-  emphasis: "smarter",
+  // Words within `heading` rendered in italic serif (Figma 2706:4997).
+  emphasis: ["more", "smarter"],
   intro:
     "Most platforms tell you what happened last quarter. YuLife tells you what's about to happen next week. Every check-in, every challenge, every consultation adds to a continuously learning picture of your workforce's health.",
   body:

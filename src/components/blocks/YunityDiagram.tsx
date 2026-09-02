@@ -1,9 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { yunity } from "@/data/home-content";
-import SectionCard from "@/components/ui/SectionCard";
 import YunityWordmark from "@/components/ui/YunityWordmark";
 import { domSrc } from "@/lib/domSrc";
 
@@ -18,39 +17,43 @@ function capitalizeFirst(text: string) {
 }
 
 /**
- * Render a heading, italicising the first occurrence of `emphasis` (Berlingske
- * Serif Bold Italic — the heading is already serif/bold, so the `italic` face
- * is picked up on inherit). Falls back to the plain string when there's no
- * emphasis word or it isn't found.
+ * Render a heading, italicising each `emphasis` word (Berlingske Serif Bold
+ * Italic — the heading is already serif/bold, so the `italic` face is picked up
+ * on inherit). Accepts one word or several; falls back to the plain string.
  */
-function renderHeading(heading: string, emphasis?: string): ReactNode {
-  if (!emphasis) return heading;
-  const at = heading.indexOf(emphasis);
-  if (at === -1) return heading;
-  return (
-    <>
-      {heading.slice(0, at)}
-      <em className="italic">{emphasis}</em>
-      {heading.slice(at + emphasis.length)}
-    </>
+function renderHeading(heading: string, emphasis?: string | readonly string[]): ReactNode {
+  const words = (typeof emphasis === "string" ? [emphasis] : emphasis ? [...emphasis] : []).filter(
+    Boolean,
+  );
+  if (words.length === 0) return heading;
+  const escaped = words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const parts = heading.split(new RegExp(`(${escaped.join("|")})`, "g"));
+  return parts.map((part, i) =>
+    part && words.includes(part) ? (
+      <em key={i} className="italic">
+        {part}
+      </em>
+    ) : (
+      <Fragment key={i}>{part}</Fragment>
+    ),
   );
 }
 
 export type YunityContent = {
   heading: string;
-  /** Word within `heading` to italicise (e.g. "smarter"). Optional. */
-  emphasis?: string;
+  /** Word(s) within `heading` to italicise (e.g. ["more", "smarter"]). Optional. */
+  emphasis?: string | readonly string[];
   body: string;
   steps: readonly { title: string; description: string }[];
 };
 
 /**
- * The Yunity card — wordmark lockup, heading, body and the three
- * Sense/Interpret/Guide stat cards, all inside a single framed SectionCard,
- * with the live star centred beneath it (Figma 1731:2441). Copy defaults to the
- * homepage `yunity` data; pass `content` to reuse the same visual with different
- * copy. The star carries the `data-pillar-node="star"` anchor the parent
- * measures so the connecting roots converge into its centre.
+ * The Yunity content — wordmark lockup, heading, body and the three
+ * Sense/Interpret/Guide stat cards, with the live star centred beneath them
+ * (Figma 2706:4997). No outer frame: everything sits directly on the band. Each
+ * stat card carries a `data-pillar-node="top"` anchor and the star carries
+ * `data-pillar-node="star"`, so the parent measures the roots descending from
+ * the cards into the star. Copy defaults to the homepage `yunity` data.
  */
 export default function YunityDiagram({
   content = yunity,
@@ -71,55 +74,53 @@ export default function YunityDiagram({
     <div
       {...domSrc("YunityDiagram")}
       data-yunity-root
-      className="flex flex-col items-center gap-[var(--layout-section-gap-xl)]"
+      className="flex flex-col items-center gap-[var(--layout-section-y)]"
     >
-      {/* Framed card. It overlays the connecting roots: signal lines enter its
-          top edge and re-emerge below to converge on the star beneath it. */}
-      <SectionCard data-reveal>
-        <div className="flex w-full flex-col items-center gap-[var(--layout-section-gap-xl)]">
-          {/* Lockup + heading + body */}
-          <div className="flex w-full flex-col items-center gap-flow">
-            <div className="flex w-full flex-col items-center gap-stack">
-              <YunityWordmark className="h-[52px] w-auto shrink-0" />
-              <h2 id={headingId} className="type-heading-h3 text-center text-on-inverse">
-                {renderHeading(content.heading, content.emphasis)}
-              </h2>
-            </div>
-            <p className="type-body-lg w-full text-center text-on-inverse">{content.body}</p>
-          </div>
-
-          {/* Three stat cards (Sense / Interpret / Guide). The big number
-              overhangs the top edge of each card. */}
-          <div className="flex w-full flex-col gap-[48px] text-center tablet:flex-row tablet:gap-group">
-            {content.steps.map((step, i) => (
-              <div
-                key={step.title}
-                className="relative flex flex-1 flex-col items-center gap-related rounded-md border border-line-emphasis p-32 tablet:p-40"
-              >
-                <span
-                  aria-hidden="true"
-                  className="type-display-number pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-[64%] text-on-inverse"
-                >
-                  {i + 1}
-                </span>
-                <span className="type-eyebrow uppercase text-accent-purple">{step.title}</span>
-                <p className="type-body-lg text-on-inverse">
-                  {capitalizeFirst(step.description).replace(/\.$/, "")}
-                </p>
-              </div>
-            ))}
-          </div>
+      {/* Lockup + heading + body — directly on the band, no frame. */}
+      <div data-reveal className="flex w-full flex-col items-center gap-flow">
+        <div className="flex w-full flex-col items-center gap-stack">
+          <YunityWordmark className="h-[80px] w-auto shrink-0" />
+          <h2 id={headingId} className="type-heading-h2 text-center text-on-inverse">
+            {renderHeading(content.heading, content.emphasis)}
+          </h2>
         </div>
-      </SectionCard>
+        <p className="type-body-lg w-full text-center text-on-inverse">{content.body}</p>
+      </div>
 
-      {/* The Yunity star — a live 3D instance beneath the card. The invisible
+      {/* Three stat cards (Sense / Interpret / Guide). Each is a root origin —
+          the connecting line descends from its bottom into the star. The big
+          number overhangs the top edge. */}
+      <div
+        data-reveal
+        className="flex w-full flex-col gap-[48px] text-center tablet:flex-row tablet:gap-group"
+      >
+        {content.steps.map((step, i) => (
+          <div
+            key={step.title}
+            data-pillar-node="top"
+            data-pillar-index={i}
+            className="relative flex flex-1 flex-col items-center gap-related rounded-md border border-line-emphasis bg-surface-inverse p-32 tablet:p-40"
+          >
+            <span
+              aria-hidden="true"
+              className="type-display-number pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-[64%] text-on-inverse"
+            >
+              {i + 1}
+            </span>
+            <span className="type-eyebrow uppercase text-accent-purple">{step.title}</span>
+            <p className="type-body-lg text-on-inverse">
+              {capitalizeFirst(step.description).replace(/\.$/, "")}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* The Yunity star — a live 3D instance beneath the cards. The invisible
           anchor marks its exact centre, so every connecting root converges into
-          the middle of the star. aspect-square reserves the full 200×200 before
-          the canvas loads, so the measured convergence point never shifts. Lit
-          as the last step of the entrance sequence via opacity only — a CSS
-          scale would change the canvas's measured (getBoundingClientRect) size
-          and knock the 3D star off-centre until the next resize. Reduced motion
-          shows it immediately (the motion-reduce override wins regardless). */}
+          the middle of the star. Lit as the last step of the entrance sequence
+          via opacity only — a CSS scale would change the canvas's measured
+          (getBoundingClientRect) size and knock the 3D star off-centre until the
+          next resize. Reduced motion shows it immediately. */}
       <div
         className={`relative aspect-square w-[300px] max-w-full transition-opacity duration-700 ease-out motion-reduce:!opacity-100 motion-reduce:transition-none ${
           starLit ? "opacity-100" : "opacity-0"

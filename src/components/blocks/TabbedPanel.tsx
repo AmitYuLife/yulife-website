@@ -477,53 +477,58 @@ export default function TabbedPanel({
     <div {...domSrc("TabbedPanel")} className="flex w-full max-w-[1216px] flex-col items-center gap-flow tablet:gap-group">
       <PlatformTabList active={active} onActiveChange={onActiveChange} />
 
-      {/* Video / hero placeholder with floating cards */}
-      <div className="relative w-full">
-        <div className="relative z-[2] h-[320px] w-full overflow-hidden rounded-md border border-line-emphasis tablet:h-[440px] desktop:h-[548px]">
-          <PlatformVideoStack
-            activeIndex={active}
-            isSwitching={tabSwitch.isSwitching}
-            exitingVideoId={tabSwitch.exitingVideoId}
-            slideVariant={tabSwitch.slideVariant}
-          />
-          {activePillar.id === "engage" && <EngageRewardsPillar />}
+      {/* Video and capability band form one seamless container: the video's top
+          corners round, the band's bottom corners round, and their shared edge
+          reads as a single divider line (Figma 2706:5109, TabVideoCards). */}
+      <div className="flex w-full flex-col">
+        {/* Video / hero placeholder with floating cards */}
+        <div className="relative w-full">
+          <div className="relative z-[2] h-[360px] w-full overflow-hidden rounded-t-md border-x border-t border-line-emphasis tablet:h-[480px] desktop:h-[600px]">
+            <PlatformVideoStack
+              activeIndex={active}
+              isSwitching={tabSwitch.isSwitching}
+              exitingVideoId={tabSwitch.exitingVideoId}
+              slideVariant={tabSwitch.slideVariant}
+            />
+            {activePillar.id === "engage" && <EngageRewardsPillar />}
+          </div>
+
+          {tabSwitch.exitingFloatingCards?.map(({ key, cornerClassName, ...card }) => (
+            <FloatingCardShell
+              key={`exit-${key}`}
+              className={cornerClassName}
+              isEntering={false}
+              isExiting={tabSwitch.isFloatingExiting}
+            >
+              <FloatingTiltCard {...card} />
+            </FloatingCardShell>
+          ))}
+          {tabSwitch.activeFloatingCards?.map(({ key, cornerClassName, ...card }) => (
+            <FloatingCardShell
+              key={`active-${key}`}
+              className={cornerClassName}
+              isEntering={tabSwitch.isFloatingEntering}
+              isExiting={false}
+            >
+              <FloatingTiltCard {...card} />
+            </FloatingCardShell>
+          ))}
         </div>
 
-        {tabSwitch.exitingFloatingCards?.map(({ key, cornerClassName, ...card }) => (
-          <FloatingCardShell
-            key={`exit-${key}`}
-            className={cornerClassName}
-            isEntering={false}
-            isExiting={tabSwitch.isFloatingExiting}
-          >
-            <FloatingTiltCard {...card} />
-          </FloatingCardShell>
-        ))}
-        {tabSwitch.activeFloatingCards?.map(({ key, cornerClassName, ...card }) => (
-          <FloatingCardShell
-            key={`active-${key}`}
-            className={cornerClassName}
-            isEntering={tabSwitch.isFloatingEntering}
-            isExiting={false}
-          >
-            <FloatingTiltCard {...card} />
-          </FloatingCardShell>
-        ))}
-      </div>
-
-      {/* Capability boxes — sit within the platform band below the video (no
-          longer straddling the platform / Yunity divider). */}
-      <div
-        className={`relative grid w-full grid-cols-1 overflow-hidden rounded-md border border-line-emphasis bg-surface-inverse-raised tablet:grid-cols-2 ${desktopCols}`}
-      >
-        {boxes.map((box, i) => (
-          <PillarBox
-            key={`${activePillar.id}-${box.title}`}
-            title={box.title}
-            description={box.description}
-            className={boxBorderClass(i)}
-          />
-        ))}
+        {/* Capability boxes — flush beneath the video; the top border is the
+            divider between the two, the bottom corners close the container. */}
+        <div
+          className={`relative grid w-full grid-cols-1 overflow-hidden rounded-b-md border border-line-emphasis bg-surface-inverse-raised tablet:grid-cols-2 ${desktopCols}`}
+        >
+          {boxes.map((box, i) => (
+            <PillarBox
+              key={`${activePillar.id}-${box.title}`}
+              title={box.title}
+              description={box.description}
+              className={boxBorderClass(i)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -3,15 +3,15 @@
  * Yunity star derive from these constants and `performance.now()`, so their
  * cadence is drift-free.
  *
- * With four dots (one per top line) the launch stagger and travel time are
- * tuned so the four are evenly spaced around the cycle — DURATION = DOTS ×
+ * With three dots (one per stat card) the launch stagger and travel time are
+ * tuned so the three are evenly spaced around the cycle — DURATION = DOTS ×
  * STAGGER — which makes a dot reach the star exactly every STAGGER seconds
  * with no pause between the last arrival and the next.
  */
 
-export const FLOW_DURATION = 2.0; // seconds for a dot to travel box → star
-export const FLOW_STAGGER = 0.5; // launch offset between the four dots → one arrival every 0.5s
-export const FLOW_DOTS = 4; // one dot per top line
+export const FLOW_DURATION = 1.5; // seconds for a dot to travel card → star
+export const FLOW_STAGGER = 0.5; // launch offset between the three dots → one arrival every 0.5s
+export const FLOW_DOTS = 3; // one dot per stat card
 
 // cubic-bezier(0.45, 0, 0.25, 1) — the same easing the dots have always used.
 const X1 = 0.45;

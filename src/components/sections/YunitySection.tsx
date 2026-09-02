@@ -10,20 +10,16 @@ import ConnectingPaths, {
 import { domSrc } from "@/lib/domSrc";
 import type { YunitySection as YunityData } from "@/data/pages/types";
 
-// Brand accents for the four descending root-lines — matches PILLAR_COLORS in
-// the homepage TabbedPanel; kept local so this section doesn't pull in the
-// capability-tabs module.
+// Brand accents for the descending root-lines — matches PILLAR_COLORS in the
+// homepage TabbedPanel; kept local so this section doesn't pull in the
+// capability-tabs module. The roots originate at the three stat cards, so only
+// the first three are used.
 const ROOT_COLORS = [
   "var(--green-600)",
   "var(--blue-600)",
   "var(--yellow-600)",
   "var(--purple-600)",
 ] as const;
-
-// Four root-origins pinned to the top edge of the section — the boundary with
-// the section above — so the roots read as descending from it into the star.
-// Values are horizontal fractions of the 926px anchor band.
-const TOP_ROOTS = [0.05, 0.34, 0.64, 0.95] as const;
 
 type Geometry = {
   width: number;
@@ -78,7 +74,7 @@ export default function YunitySection({ data }: { data: YunityData }) {
       if (node === "top") {
         tops[index] = {
           x: cx,
-          y: r.top - rb.top + r.height / 2,
+          y: r.bottom - rb.top,
           color: ROOT_COLORS[index % ROOT_COLORS.length],
         };
       } else if (node === "star") {
@@ -162,23 +158,6 @@ export default function YunitySection({ data }: { data: YunityData }) {
         active={armed}
         onLinesDrawn={() => setStarLit(true)}
       />
-
-      {/* Root-origins pinned to the top edge, so the roots descend from the
-          section above (Proven ROI) down into the star below. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 z-0 mx-auto w-full max-w-[926px]"
-      >
-        {TOP_ROOTS.map((x, i) => (
-          <span
-            key={i}
-            data-pillar-node="top"
-            data-pillar-index={i}
-            className="absolute top-0 size-0"
-            style={{ left: `${x * 100}%` }}
-          />
-        ))}
-      </div>
 
       <div className="page-container relative z-10 flex flex-col items-center gap-[var(--layout-section-gap)] py-[var(--layout-section-y)]">
         <YunityDiagram content={data} headingId="yunity-section-heading" starLit={starLit} />

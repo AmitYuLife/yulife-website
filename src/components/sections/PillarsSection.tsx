@@ -14,11 +14,6 @@ import ConnectingPaths, {
 const PLATFORM_INTRO =
   "From daily habits to life's hardest moments — every layer of your people's health in one place.";
 
-// Four root-origins pinned to the top edge of the Yunity band — the roots
-// descend from this section's own top into the star, so nothing crosses up into
-// the platform band above. Values are horizontal fractions of the 1216px band.
-const TOP_ROOTS = [0.06, 0.36, 0.64, 0.94] as const;
-
 type Geometry = {
   width: number;
   height: number;
@@ -87,7 +82,7 @@ export default function PillarsSection({
       const cx = r.left - rb.left + r.width / 2;
 
       if (node === "top") {
-        tops[index] = { x: cx, y: r.top - rb.top + r.height / 2, color: PILLAR_COLORS[index % 4] };
+        tops[index] = { x: cx, y: r.bottom - rb.top, color: PILLAR_COLORS[index % 4] };
       } else if (node === "star") {
         star = { x: cx, y: r.top - rb.top + r.height / 2 };
       } else if (node === "bottom") {
@@ -198,32 +193,15 @@ export default function PillarsSection({
         </div>
       </div>
 
-      {/* Band 2 — Yunity diagram. The roots descend from this band's own top
-          edge into the star below the card — never from the platform band above,
-          so the two sections stay separate (Figma 2706:4997, YunityRoots). Uses
-          the larger section-y-lg vertical padding. */}
+      {/* Band 2 — Yunity diagram. The roots descend from the three stat cards
+          into the star below them, staying within this band (Figma 2706:4997,
+          YunityRoots). */}
       <div
         className={`relative border-b border-line-emphasis ${
           secondBand === "inverse-raised" ? "bg-surface-inverse-raised" : "bg-surface-inverse"
         }`}
       >
-        {/* Root-origins pinned to the top edge of the Yunity band. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 z-0 mx-auto w-full max-w-[1216px]"
-        >
-          {TOP_ROOTS.map((x, i) => (
-            <span
-              key={i}
-              data-pillar-node="top"
-              data-pillar-index={i}
-              className="absolute top-0 size-0"
-              style={{ left: `${x * 100}%` }}
-            />
-          ))}
-        </div>
-
-        <div className="page-container py-[var(--layout-section-y-lg)]">
+        <div className="page-container py-[var(--layout-section-y)]">
           <div className="relative z-10">
             <YunityDiagram starLit={starLit} />
           </div>
