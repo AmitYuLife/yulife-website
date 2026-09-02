@@ -1,14 +1,21 @@
 "use client";
 
 import { useRef } from "react";
+import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Button } from "@/components/ui/Button";
 import { TRUST_MARKS } from "@/components/ui/TrustRatings";
-import HeroCoinOrbit from "@/components/three/HeroCoinOrbit";
 import { cn } from "@/lib/utils";
 import { domSrc } from "@/lib/domSrc";
 import type { Cta, Rating } from "@/data/pages/types";
+
+// Deferred so its three.js / R3F weight never lands on the initial bundle —
+// the orbit already fades in after load, so lazy-loading it is invisible.
+// Same treatment as the home hero's SpinningCoin3D.
+const HeroCoinOrbit = dynamic(() => import("@/components/three/HeroCoinOrbit"), {
+  ssr: false,
+});
 
 gsap.registerPlugin(useGSAP);
 
