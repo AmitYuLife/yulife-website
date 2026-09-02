@@ -197,7 +197,6 @@ function FloatingTiltCard({
   width,
   height,
   widthClassName,
-  radiusClassName,
   bobDelay,
   bobDuration,
 }: {
@@ -206,7 +205,6 @@ function FloatingTiltCard({
   width: number;
   height: number;
   widthClassName: string;
-  radiusClassName: string;
   bobDelay: string;
   bobDuration: string;
 }) {
@@ -218,13 +216,28 @@ function FloatingTiltCard({
       style={{ "--bob-delay": bobDelay, "--bob-duration": bobDuration } as React.CSSProperties}
     >
       <div
-        className={`platform-floating-card-tilt overflow-hidden ${radiusClassName} ${widthClassName}`}
+        className={`platform-floating-card-tilt overflow-hidden ${widthClassName}`}
         onPointerMove={handlePointerMove}
         onPointerLeave={handlePointerLeave}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- static export; drop-shadow filter needs the raw element */}
         <img src={src} alt={alt} width={width} height={height} className="h-auto w-full" />
-        <div className="platform-floating-card-sheen" aria-hidden />
+        {/* Sheen is clipped to the card's exact shape by masking it with the card
+            image — every card asset carries its own transparent rounded corners, so
+            this keeps the hover spotlight inside the corner radius at any size (no
+            CSS radius to match, no double-rounding of the image). */}
+        <div
+          className="platform-floating-card-sheen"
+          aria-hidden
+          style={{
+            WebkitMaskImage: `url(${src})`,
+            maskImage: `url(${src})`,
+            WebkitMaskSize: "100% 100%",
+            maskSize: "100% 100%",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+          }}
+        />
       </div>
     </div>
   );
@@ -239,7 +252,6 @@ type FloatingCardConfig = {
   width: number;
   height: number;
   widthClassName: string;
-  radiusClassName: string;
   bobDelay: string;
   bobDuration: string;
 };
@@ -251,16 +263,12 @@ const FLOATING_CARDS: Record<string, FloatingCardConfig[]> = {
     {
       key: "challenge",
       cornerClassName:
-        "absolute -left-[24px] top-[24px] z-10 hidden tablet:block tablet:-left-[32px] desktop:-left-[40px] desktop:top-[40px]",
+        "absolute -left-[24px] top-[80px] z-10 hidden tablet:block tablet:-left-[32px] desktop:-left-[40px]",
       src: "/home/platform/engage-challenge-card.webp",
       alt: "Challenge select card showing a 10-minute Meditation challenge worth 120 YuCoin",
       width: 165,
       height: 212,
       widthClassName: "w-[120px] tablet:w-[140px] desktop:w-[165px]",
-      // The export already has transparent rounded corners (masked at ~13px @165w),
-      // so this radius doesn't re-cut the image — it clips the hover sheen to the
-      // card's rounded shape. Scaled to the card's rendered width per breakpoint.
-      radiusClassName: "rounded-[11px] desktop:rounded-[13px]",
       bobDelay: "0.4s",
       bobDuration: "5s",
     },
@@ -268,29 +276,23 @@ const FLOATING_CARDS: Record<string, FloatingCardConfig[]> = {
   prevent: [
     {
       key: "mood",
-      cornerClassName: "absolute -left-8 bottom-24 z-10 hidden tablet:block desktop:-left-24",
+      cornerClassName: "absolute -left-8 bottom-[80px] z-10 hidden tablet:block desktop:-left-24",
       src: "/home/platform/moodmonitor-card.webp",
       alt: "Your Mood tracker showing a week of mood check-ins",
       width: 368,
       height: 147,
       widthClassName: "w-[220px] tablet:w-[280px] desktop:w-[361px]",
-      // Matches the ~12.7px corner radius baked into the asset itself — the
-      // theme's rounded-md (16px) clipped into the card's own border.
-      radiusClassName: "rounded-[12px]",
       bobDelay: "0s",
       bobDuration: "4.6s",
     },
     {
       key: "challengeselect",
-      cornerClassName: "absolute -right-8 top-24 z-10 hidden tablet:block desktop:-right-24",
+      cornerClassName: "absolute -right-8 top-[80px] z-10 hidden tablet:block desktop:-right-24",
       src: "/home/platform/challengeselect-card.webp",
-      alt: "Challenge select card showing a 10-minute Meditation challenge worth 120 YuCoin",
+      alt: "Challenge select card showing a 5-minute Breathing challenge worth 180 YuCoin",
       width: 166,
-      height: 214,
+      height: 213,
       widthClassName: "w-[120px] tablet:w-[150px] desktop:w-[166px]",
-      // Matches the ~12.7px corner radius baked into the asset itself — the
-      // theme's rounded-lg (24px) clipped into the card's own border.
-      radiusClassName: "rounded-[12px]",
       bobDelay: "0.9s",
       bobDuration: "5.3s",
     },
@@ -298,25 +300,23 @@ const FLOATING_CARDS: Record<string, FloatingCardConfig[]> = {
   empower: [
     {
       key: "nps",
-      cornerClassName: "absolute -left-8 top-24 z-10 hidden tablet:block desktop:-left-24",
-      src: "/home/platform/empower-nps-card.png",
+      cornerClassName: "absolute -left-8 top-[80px] z-10 hidden tablet:block desktop:-left-24",
+      src: "/home/platform/empower-nps-card.webp",
       alt: "Employee NPS score of 72, with a detractors, passives, and promoters breakdown",
-      width: 357,
-      height: 400,
-      widthClassName: "w-[215px] tablet:w-[275px] desktop:w-[357px]",
-      radiusClassName: "rounded-sm",
+      width: 312,
+      height: 304,
+      widthClassName: "w-[200px] tablet:w-[245px] desktop:w-[311px]",
       bobDelay: "0s",
       bobDuration: "4.9s",
     },
     {
       key: "burnout",
-      cornerClassName: "absolute -right-8 bottom-24 z-10 hidden tablet:block desktop:-right-24",
-      src: "/home/platform/empower-burnout-card.png",
+      cornerClassName: "absolute -right-8 bottom-[80px] z-10 hidden tablet:block desktop:-right-24",
+      src: "/home/platform/empower-burnout-card.webp",
       alt: "Burnout risk distribution across high, neutral, and low risk",
-      width: 357,
-      height: 189,
-      widthClassName: "w-[215px] tablet:w-[275px] desktop:w-[357px]",
-      radiusClassName: "rounded-sm",
+      width: 316,
+      height: 144,
+      widthClassName: "w-[205px] tablet:w-[250px] desktop:w-[316px]",
       bobDelay: "1.1s",
       bobDuration: "5.6s",
     },
