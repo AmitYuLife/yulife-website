@@ -470,9 +470,17 @@ section[aria-labelledby="block-7-label"] h2 {
 }
 
 /* Product showcase — carousel scrollport. Spans the full viewport so cards can
-   bleed past both edges unclipped, while the inline padding matches the
-   .page-container inset (centred 1216px + fluid gutters) so the first card
-   lines up with the container's left edge. */
+   bleed past both edges, while the inline padding matches the .page-container
+   inset (centred 1216px + fluid gutters) so the first card lines up with the
+   container's left edge and the last lines up with the right — the browser's
+   own scroll clamping handles that natively, at both ends, for free.
+
+   This is a genuinely native overflow-x scroller (touch swipe, trackpad,
+   wheel, drag-via-scrollbar) rather than a hand-rolled transform+pointer
+   implementation: momentum, edge elasticity/rubber-banding, and touch
+   support all come from the browser, and there is deliberately no JS-driven
+   snapping — it rests wherever a scroll gesture ends. Next/Prev and keyboard
+   navigation move it explicitly via scrollTo(). */
 .product-showcase-shell {
   overflow: visible;
   padding-bottom: 24px;
@@ -487,22 +495,19 @@ section[aria-labelledby="block-7-label"] h2 {
   );
   width: 100%;
   padding-inline: var(--carousel-inset);
-  overflow: visible;
-  touch-action: pan-y;
-  cursor: grab;
-  user-select: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.product-showcase-track::-webkit-scrollbar {
+  display: none;
 }
 
 .product-showcase-row {
   display: flex;
   width: max-content;
   gap: 32px;
-  will-change: transform;
-}
-
-.product-showcase-track.is-dragging {
-  cursor: grabbing;
-  scroll-behavior: auto;
 }
 
 /* Product showcase — animated gradient stroke on the active card

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import gsap from "gsap";
 import { products, type ProductCardBackground } from "@/data/home-content";
 import { useCarouselKeyboard, type CarouselDirection } from "@/hooks/useCarouselKeyboard";
 import { useReveal } from "@/components/hooks/useReveal";
@@ -12,11 +11,6 @@ import { domSrc } from "@/lib/domSrc";
 
 const SWITCH_MS = 300;
 const SWITCH_EASE = "cubic-bezier(0.33, 0, 0.2, 1)";
-const DRAG_START_PX = 3;
-/** px/ms — lower value makes flick-to-next easier */
-const FLICK_VELOCITY = 0.28;
-/** Fraction of a card step required to commit on a slow release */
-const SNAP_BIAS = 0.16;
 
 const CARD_CLASS =
   "relative flex h-[440px] w-[280px] shrink-0 flex-col items-start justify-start overflow-hidden rounded-md p-32 tablet:h-[520px] tablet:w-[380px] desktop:h-[656px] desktop:w-[592px] desktop:p-80";
@@ -233,11 +227,9 @@ export default function ProductShowcase({
   const scope = useReveal<HTMLElement>();
   const trackRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
-  const scrollXRef = useRef(0);
   const switchTimeoutRef = useRef<number>(undefined);
   const [activeIndex, setActiveIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState<number | null>(null);
-  const [slotIndex, setSlotIndex] = useState(0);
   const [isSwitching, setIsSwitching] = useState(false);
   const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
   const [keyboardDirection, setKeyboardDirection] = useState<CarouselDirection | null>(null);
@@ -245,108 +237,48 @@ export default function ProductShowcase({
   const slideVariant = slideDirection > 0 ? "Right" : "Left";
   const lastCardIndex = products.cards.length - 1;
 
-  const dragRef = useRef({
-    dragging: false,
-    startX: 0,
-    startScroll: 0,
-    moved: false,
-    lastX: 0,
-    lastTime: 0,
-    velocity: 0,
-  });
-
-  const cardScrollTarget = useCallback((card: HTMLElement) => card.offsetLeft, []);
-
-  const maxScrollX = useCallback(() => {
+  // Native horizontal scroll on .product-showcase-track (see globals.css)
+  // does the actual scrolling — touch swipe, trackpad, wheel, and edge
+  // elasticity all come from the browser for free, and there is no snap:
+  // it rests wherever the gesture ends. This only drives it explicitly for
+  // Next/Prev and keyboard step navigation.
+  const scrollToIndex = useCallback((index: number) => {
+    const track = trackRef.current;
     const row = rowRef.current;
-    if (!row) return 0;
+    if (!track || !row) return;
 
+    const card = row.querySelector<HTMLElement>(`[data-card-index="${index}"]`);
+    if (!card) return;
+
+    track.scrollTo({ left: card.offsetLeft, behavior: "smooth" });
+  }, []);
+
+  // Nearest card to the current scroll position — used only to work out
+  // where a Next/Prev step should start from after a free (unsnapped)
+  // scroll, never to auto-align the scroll position itself. Compares against
+  // each card's *achievable* scroll target (its own offset, clamped to the
+  // browser's max scrollLeft) rather than raw offsetLeft — otherwise, at the
+  // clamped end, the resting position sits between the last two cards'
+  // offsets and lands on the second-to-last one instead of the last.
+  const currentScrollIndex = useCallback(() => {
+    const track = trackRef.current;
+    const row = rowRef.current;
+    if (!track || !row) return 0;
+
+    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
     const cards = row.querySelectorAll<HTMLElement>("[data-card-index]");
-    const lastCard = cards[cards.length - 1];
-    return lastCard ? cardScrollTarget(lastCard) : 0;
-  }, [cardScrollTarget]);
-
-  const clampScrollX = useCallback(
-    (x: number) => Math.min(maxScrollX(), Math.max(0, x)),
-    [maxScrollX],
-  );
-
-  const applyScrollX = useCallback(
-    (x: number, smooth = false) => {
-      const row = rowRef.current;
-      if (!row) return;
-
-      const clamped = clampScrollX(x);
-      scrollXRef.current = clamped;
-      gsap.killTweensOf(row);
-
-      if (smooth) {
-        gsap.to(row, {
-          x: -clamped,
-          duration: 0.45,
-          ease: "power3.out",
-        });
-      } else {
-        gsap.set(row, { x: -clamped });
+    let best = 0;
+    let bestDist = Infinity;
+    cards.forEach((card, i) => {
+      const target = Math.min(card.offsetLeft, maxScroll);
+      const dist = Math.abs(target - track.scrollLeft);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
       }
-    },
-    [clampScrollX],
-  );
-
-  const scrollToIndex = useCallback(
-    (index: number) => {
-      const row = rowRef.current;
-      if (!row) return;
-
-      const card = row.querySelector<HTMLElement>(
-        `[data-card-index="${index}"]`,
-      );
-      if (!card) return;
-
-      applyScrollX(cardScrollTarget(card), true);
-    },
-    [applyScrollX, cardScrollTarget],
-  );
-
-  const resolveDragTargetIndex = useCallback(() => {
-    const drag = dragRef.current;
-    const row = rowRef.current;
-    if (!row) return slotIndex;
-
-    if (Math.abs(drag.velocity) > FLICK_VELOCITY) {
-      return slotIndex + (drag.velocity < 0 ? 1 : -1);
-    }
-
-    const slotCard = row.querySelector<HTMLElement>(
-      `[data-card-index="${slotIndex}"]`,
-    );
-    if (!slotCard) return slotIndex;
-
-    const slotScroll = cardScrollTarget(slotCard);
-    const offset = scrollXRef.current - slotScroll;
-
-    if (slotIndex < lastCardIndex) {
-      const nextCard = row.querySelector<HTMLElement>(
-        `[data-card-index="${slotIndex + 1}"]`,
-      );
-      if (nextCard) {
-        const step = cardScrollTarget(nextCard) - slotScroll;
-        if (offset > step * SNAP_BIAS) return slotIndex + 1;
-      }
-    }
-
-    if (slotIndex > 0) {
-      const prevCard = row.querySelector<HTMLElement>(
-        `[data-card-index="${slotIndex - 1}"]`,
-      );
-      if (prevCard) {
-        const step = slotScroll - cardScrollTarget(prevCard);
-        if (offset < -step * SNAP_BIAS) return slotIndex - 1;
-      }
-    }
-
-    return slotIndex;
-  }, [cardScrollTarget, lastCardIndex, slotIndex]);
+    });
+    return best;
+  }, []);
 
   const runSwitch = useCallback(
     (index: number, direction: 1 | -1) => {
@@ -368,7 +300,6 @@ export default function ProductShowcase({
 
   const activateIndex = useCallback(
     (index: number) => {
-      if (dragRef.current.dragging) return;
       if (index === activeIndex) return;
       runSwitch(index, index > activeIndex ? 1 : -1);
     },
@@ -392,32 +323,15 @@ export default function ProductShowcase({
         runSwitch(wrapped, direction);
       }
 
-      setSlotIndex(wrapped);
       scrollToIndex(wrapped);
     },
     [activeIndex, lastCardIndex, runSwitch, scrollToIndex],
   );
 
-  const nearestIndexToScroll = useCallback(() => {
-    const row = rowRef.current;
-    if (!row) return slotIndex;
-
-    const cards = row.querySelectorAll<HTMLElement>("[data-card-index]");
-    let best = slotIndex;
-    let bestDist = Infinity;
-    cards.forEach((card, i) => {
-      const dist = Math.abs(cardScrollTarget(card) - scrollXRef.current);
-      if (dist < bestDist) {
-        bestDist = dist;
-        best = i;
-      }
-    });
-    return best;
-  }, [cardScrollTarget, slotIndex]);
-
   const scrollByStep = useCallback(
     (dir: 1 | -1) => {
-      const next = slotIndex + dir;
+      const current = currentScrollIndex();
+      const next = current + dir;
       if (next < 0) {
         goToIndex(lastCardIndex);
         return;
@@ -428,7 +342,7 @@ export default function ProductShowcase({
       }
       goToIndex(next);
     },
-    [goToIndex, lastCardIndex, slotIndex],
+    [currentScrollIndex, goToIndex, lastCardIndex],
   );
 
   useCarouselKeyboard({
@@ -438,121 +352,6 @@ export default function ProductShowcase({
     onNext: () => scrollByStep(1),
     onDirectionActiveChange: setKeyboardDirection,
   });
-
-  // Trackpad / horizontal-wheel scrolling. Attached manually so the listener
-  // can be non-passive and preventDefault the browser's own scroll. Only
-  // predominantly-horizontal gestures are intercepted, so vertical page
-  // scrolling over the carousel is untouched. The gesture scrolls the row live,
-  // then snaps to the nearest card once it settles — same landing as a drag.
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-
-    let snapTimeout: number | undefined;
-
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
-      e.preventDefault();
-      if (dragRef.current.dragging) return;
-
-      applyScrollX(scrollXRef.current + e.deltaX);
-
-      window.clearTimeout(snapTimeout);
-      snapTimeout = window.setTimeout(() => {
-        goToIndex(nearestIndexToScroll());
-      }, 120);
-    };
-
-    track.addEventListener("wheel", onWheel, { passive: false });
-    return () => {
-      window.clearTimeout(snapTimeout);
-      track.removeEventListener("wheel", onWheel);
-    };
-  }, [applyScrollX, goToIndex, nearestIndexToScroll]);
-
-  const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    // Ignore secondary buttons; let real clicks through until movement begins.
-    if (e.button !== 0) return;
-    const track = trackRef.current;
-    const row = rowRef.current;
-    if (!track || !row) return;
-
-    gsap.killTweensOf(row);
-
-    dragRef.current = {
-      dragging: true,
-      startX: e.clientX,
-      startScroll: scrollXRef.current,
-      moved: false,
-      lastX: e.clientX,
-      lastTime: performance.now(),
-      velocity: 0,
-    };
-    track.classList.add("is-dragging");
-  }, []);
-
-  const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    const drag = dragRef.current;
-    if (!drag.dragging) return;
-    const track = trackRef.current;
-    if (!track) return;
-
-    const dx = e.clientX - drag.startX;
-    const now = performance.now();
-
-    if (!drag.moved && Math.abs(dx) > DRAG_START_PX) {
-      drag.moved = true;
-      // Take pointer capture once we know it's a drag, not a click.
-      try {
-        track.setPointerCapture(e.pointerId);
-      } catch {
-        /* no active pointer (e.g. synthetic event) — safe to ignore */
-      }
-    }
-
-    if (drag.moved) {
-      const dt = now - drag.lastTime;
-      if (dt > 0) {
-        const instantVelocity = (e.clientX - drag.lastX) / dt;
-        drag.velocity = drag.velocity * 0.5 + instantVelocity * 0.5;
-      }
-      drag.lastX = e.clientX;
-      drag.lastTime = now;
-      applyScrollX(drag.startScroll - dx);
-    }
-  }, [applyScrollX]);
-
-  const endDrag = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
-      const drag = dragRef.current;
-      if (!drag.dragging) return;
-      const track = trackRef.current;
-
-      drag.dragging = false;
-      track?.classList.remove("is-dragging");
-      try {
-        if (track?.hasPointerCapture(e.pointerId)) {
-          track.releasePointerCapture(e.pointerId);
-        }
-      } catch {
-        /* no active pointer — safe to ignore */
-      }
-
-      if (drag.moved) {
-        goToIndex(resolveDragTargetIndex());
-      }
-    },
-    [goToIndex, resolveDragTargetIndex],
-  );
-
-  // Cancel the navigation click that follows a drag gesture.
-  const onClickCapture = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (dragRef.current.moved) {
-      e.preventDefault();
-      e.stopPropagation();
-      dragRef.current.moved = false;
-    }
-  }, []);
 
   return (
     <section {...domSrc("ProductShowcase")}
@@ -567,7 +366,7 @@ export default function ProductShowcase({
           <div className="flex min-w-0 flex-col gap-related">
             <p
               data-reveal
-              className="type-eyebrow uppercase text-surface-accent-purple"
+              className="type-eyebrow uppercase text-accent-purple"
             >
               {products.eyebrow}
             </p>
@@ -590,19 +389,14 @@ export default function ProductShowcase({
 
       {/* Full-bleed scrollport: first card aligns with the page-container left
           edge (via --carousel-inset padding), the rest bleed to the viewport.
-          Drag- and horizontal-wheel/trackpad-scroll, both snapping to a card. */}
+          Native horizontal scroll (touch, trackpad, wheel) — no custom drag
+          or snap logic; the browser handles elasticity and momentum. */}
       <div
         className="product-showcase-shell relative mt-section-gap overflow-visible"
         data-reveal-anchor="carousel"
       >
         <div
           ref={trackRef}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={endDrag}
-          onPointerCancel={endDrag}
-          onClickCapture={onClickCapture}
-          onDragStart={(e) => e.preventDefault()}
           className="product-showcase-track relative"
         >
           <div ref={rowRef} className="product-showcase-row">

@@ -7,7 +7,8 @@ import { domSrc } from "@/lib/domSrc";
 
 export default function EcosystemStats() {
   const scope = useReveal<HTMLElement>();
-  const [before, after] = ecosystem.heading.split("daily life");
+  const [before, afterRaw] = ecosystem.heading.split("daily life");
+  const [, afterBreak] = afterRaw.split(", ");
 
   return (
     <section {...domSrc("EcosystemStats")}
@@ -25,8 +26,9 @@ export default function EcosystemStats() {
           </p>
           <h2 id="ecosystem-heading" className="type-heading-h2 text-on-inverse">
             {before}
-            <em className="italic">daily life</em>
-            {after}
+            <em className="italic">daily life</em>,
+            <br />
+            {afterBreak}
           </h2>
         </div>
 
