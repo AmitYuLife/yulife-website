@@ -108,6 +108,8 @@ function CardBackground({
   );
 }
 
+// Card titles opt out of the global headline-accent colour (globals.css): the
+// italic keeps the title's own colour, `text-inherit` beating the base-layer rule.
 function ProductCardTitle({ card }: { card: ProductCard }) {
   const rest = card.titleRest.trimStart();
 
@@ -115,7 +117,7 @@ function ProductCardTitle({ card }: { card: ProductCard }) {
     return (
       <h3 className="type-heading-card text-on-inverse">
         <span className="block">
-          <em className="italic">{card.titleEmphasis}</em>
+          <em className="italic text-inherit">{card.titleEmphasis}</em>
         </span>
         {rest ? <span className="block">{rest}</span> : null}
       </h3>
@@ -124,7 +126,7 @@ function ProductCardTitle({ card }: { card: ProductCard }) {
 
   return (
     <h3 className="type-heading-card text-on-inverse">
-      <em className="italic">{card.titleEmphasis}</em>
+      <em className="italic text-inherit">{card.titleEmphasis}</em>
       {card.titleRest}
     </h3>
   );

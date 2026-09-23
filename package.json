@@ -5,10 +5,11 @@
   "description": "YuLife 2026 website redesign. Next.js + Tailwind, no CMS — content edited directly in code.",
   "scripts": {
     "dev": "NEXT_DIST_DIR=.next-dev next dev --turbopack",
-    "build": "rm -rf .next out && next build && { [ \"$GITHUB_PAGES\" = \"true\" ] && rm -rf out/workbench || true; }",
+    "build": "rm -rf .next out && next build && { [ \"$GITHUB_PAGES\" = \"true\" ] && rm -rf out/workbench || true; } && npm run check:surfaces",
     "start": "next start",
     "clean": "rm -rf .next .next-dev out",
     "lint": "next lint",
+    "check:surfaces": "node scripts/check-section-alternation.mjs",
     "typecheck": "tsc --noEmit",
     "health": "npm run typecheck && npm run lint && node scripts/check-bundle-size.mjs",
     "gen:map": "node scripts/generate-code-map.mjs",

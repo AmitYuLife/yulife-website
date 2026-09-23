@@ -43,7 +43,7 @@ export const descriptions: Record<string, string> = {
   "/solutions/employee-engagement":
     "Gamified challenges and rewards that become a daily habit",
   "/solutions/rewards": "Real rewards your people earn for healthy habits",
-  "/solutions/benefit-consolidation":
+  "/solutions/wellbeing-hub":
     "Every benefit in one app your people open daily",
   "/solutions/mental-health-eap":
     "Everyday mental health support, not just the hard days",

@@ -8,7 +8,7 @@ import YuCoinCounter, { type YuCoinCounterHandle } from "./YuCoinCounter";
 import { YuCoinNavIcon } from "./icons";
 import { buildActivities } from "./activities";
 import { COLLECT_BOUNCE_DURATION } from "./CollectButton";
-import { playCue } from "./uiSfx";
+import { playCue } from "./appSounds";
 
 gsap.registerPlugin(MotionPathPlugin);
 
@@ -126,7 +126,7 @@ export default function ChallengeSuccessStage({
     const applyCoinTotal = () => {
       // Reward / Reward — fired the instant the odometer starts counting, so
       // the chime lands with the value change rather than the button press.
-      playCue("reward");
+      playCue("collect");
       setCoinTotal((n) => (collectedIndex === 0 ? 0 : n) + coinAmount);
     };
     const advanceActivity = () => {

@@ -286,9 +286,45 @@ html.js-intro .hero-phone {
   animation-play-state: paused;
 }
 
+/* Idle flame flicker: a very subtle, irregular fade + shrink/grow on the flame
+   artwork only, anchored at the nozzle end (the sprite's round head, top-right)
+   so the tip does the licking. Uses the standalone `scale` and `opacity`
+   properties on their own layer, so it never touches the float bob or the
+   transforms GSAP drives on the drag handle. The two loops run on unrelated
+   durations so the pattern doesn't visibly repeat. Idle only: removed (not
+   frozen mid-flicker) while armed, flying or off-screen. */
+.rocket-slingshot-flame-flicker {
+  transform-origin: 78% 22%;
+  animation:
+    rocketFlameFlickerScale 1.3s ease-in-out infinite,
+    rocketFlameFlickerFade 0.9s ease-in-out infinite;
+}
+
+.rocket-slingshot-canvas[data-paused="true"] .rocket-slingshot-flame-flicker {
+  animation: none;
+}
+
+@keyframes rocketFlameFlickerScale {
+  0%, 100% { scale: 1; }
+  18% { scale: 1.035; }
+  31% { scale: 0.985; }
+  47% { scale: 1.045; }
+  63% { scale: 0.97; }
+  81% { scale: 1.02; }
+}
+
+@keyframes rocketFlameFlickerFade {
+  0%, 100% { opacity: 1; }
+  22% { opacity: 0.9; }
+  38% { opacity: 0.97; }
+  57% { opacity: 0.86; }
+  74% { opacity: 0.95; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rocket-slingshot-float,
-  .rocket-slingshot-float-flame {
+  .rocket-slingshot-float-flame,
+  .rocket-slingshot-flame-flicker {
     animation: none;
   }
 }
@@ -617,7 +653,7 @@ section[aria-labelledby="block-7-label"] h2 {
    whose `from` angle the pointer-tilt handler drives directly.
    No CSS transition: StatFlipCard eases --hatch-gradient-angle toward the
    pointer itself via requestAnimationFrame (same fix as HeroHeadline's
-   gradient — see hero-accent-gradient-interactive below), so it can glide
+   gradient tracking), so it can glide
    smoothly while still tracking in real time — a transition would restart
    on every pointermove and perpetually lag behind a moving target. */
 .stat-card-hatch-band {
@@ -762,26 +798,28 @@ section[aria-labelledby="block-7-label"] h2 {
   }
 }
 
-/* Platform Prevent tab floating cards — rise/fade like useReveal (y: 24 → 0). */
-.platform-floating-layer {
-  will-change: transform, opacity;
-}
-
-@keyframes platformFloatExit {
+/* Column floating cards ("chat log", Figma 2802:8045). Each card fades up in a
+   staggered sequence when its column is selected, then bobs idly. The entrance
+   lives on an outer layer (.platform-float-in) and the bob on an inner one
+   (.platform-floating-card) so the two transforms never fight. */
+@keyframes platformFloatIn {
   from {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-  to {
     opacity: 0;
     transform: translate3d(0, 24px, 0);
   }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
-/* Platform Prevent tab floating cards — idle bob (like the hero YuCoin's
-   sinusoidal drift) plus a pointer-tracked hover tilt with a CSS lighting
-   sheen. The shadow offset is pulled by the same tilt so it reads as one
-   physical object catching the light, not two independent effects. */
+.platform-float-in {
+  animation: platformFloatIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--float-delay, 0ms);
+  will-change: transform, opacity;
+}
+
+/* Idle bob — sinusoidal drift like the hero YuCoin, phase-offset per card. */
 .platform-floating-card {
   animation: platformCardBob var(--bob-duration, 4.6s) ease-in-out infinite;
   animation-delay: var(--bob-delay, 0s);
@@ -797,81 +835,113 @@ section[aria-labelledby="block-7-label"] h2 {
   }
 }
 
-.platform-floating-card-tilt {
-  --tilt-x: 0deg;
-  --tilt-y: 0deg;
-  --shadow-x: 8px;
-  --shadow-y: 8px;
-  --sheen-x: 50%;
-  --sheen-y: 50%;
-  --sheen-opacity: 0;
-  position: relative;
-  transform: perspective(700px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  filter: drop-shadow(var(--shadow-x) var(--shadow-y) 0px rgba(0, 0, 0, 0.12));
-  will-change: transform;
-}
-
-.platform-floating-card-tilt img {
+.platform-floating-card-img {
   display: block;
-  border-radius: inherit;
 }
 
-.platform-floating-card-sheen {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: var(--sheen-opacity);
-  transition: opacity 0.35s ease;
-  background: radial-gradient(
-    circle at var(--sheen-x) var(--sheen-y),
-    rgba(255, 255, 255, 0.6),
-    transparent 55%
-  );
-  mix-blend-mode: overlay;
+/* Hard offset card shadow (Figma Shadow/Card: 8/8 offset, 0 blur) — applied in
+   CSS only for exports that don't already carry the shadow baked in. */
+.platform-floating-card-img--shadow {
+  filter: drop-shadow(8px 8px 0 rgba(0, 0, 0, 0.08));
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .platform-float-in,
   .platform-floating-card {
     animation: none;
   }
+}
 
-  .platform-floating-card-tilt {
+/* Platform Engage tab — the Real-World Rewards two-column band (see RewardsColumns).
+   Each card fades up individually as its column populates (via .platform-float-in,
+   staggered per card), and the opposite-direction scroll loops are driven by GSAP.
+   Each card carries the platform hard offset card shadow (Figma Shadow/Card: 8/8
+   offset, 0 blur — same token as the floating cards). */
+.reward-card {
+  box-shadow: 8px 8px 0 0 rgba(0, 0, 0, 0.08);
+}
+
+/* Platform pillar accordion (see PillarAccordion). The panel eases open via
+   grid-template-rows 0fr → 1fr so it animates to its natural height, on the
+   same duration/curve as the platform tab switch (--switch-ms / --switch-ease,
+   set from src/lib/platform-switch.ts). Body copy is the Label size set in the
+   regular weight (Figma TabColumns). */
+.pillar-accordion-panel {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--switch-ms) var(--switch-ease),
+    opacity var(--switch-ms) var(--switch-ease);
+}
+
+.pillar-accordion-panel[data-open] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.pillar-accordion-body {
+  font-weight: var(--body-md-weight);
+}
+
+/* Gradient stroke over the open item's bottom border: the brand accent
+   gradient (same stops as the product-showcase ring). Fully filled by default
+   (autoplay stopped); while autoplay runs ([data-running]) it is revealed
+   left → right over --countdown-ms across the muted emphasis border. The
+   gradient is fixed to the border and uncovered by clip-path, so it reads as a
+   stroke running across it rather than stretching. */
+.pillar-countdown {
+  background-image: linear-gradient(
+    90deg,
+    var(--green-600),
+    var(--blue-600),
+    var(--yellow-600),
+    var(--purple-600)
+  );
+}
+
+.pillar-countdown[data-running] {
+  clip-path: inset(0 100% 0 0);
+  animation: pillarCountdown var(--countdown-ms, 10000ms) linear forwards;
+}
+
+.pillar-countdown[data-paused] {
+  animation-play-state: paused;
+}
+
+/* Video frame border beside the pillar accordion (TabbedPanel): a 1px ring in
+   the brand accent gradient, drawn and spun exactly like .product-showcase-ring
+   (conic gradient on --ring-angle, same padding + mask-exclude, 5s/rev). */
+.pillar-frame-ring {
+  padding: 1px;
+  background: conic-gradient(
+    from var(--ring-angle),
+    var(--green-600),
+    var(--blue-600),
+    var(--yellow-600),
+    var(--purple-600),
+    var(--green-600)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: productRingSpin 5s linear infinite;
+}
+
+@keyframes pillarCountdown {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pillar-accordion-panel {
     transition: none;
   }
-}
-
-/* Platform Engage tab — rewards pillar fades in when the tab becomes active; the
-   upward scroll loop itself is driven by GSAP (see EngageRewardsPillar). */
-.engage-rewards-pillar {
-  animation: engageRewardsIn 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes engageRewardsIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* The whole pillar tilts 15° (Figma node 2699:4551). Rotation lives on this wrapper
-   so GSAP is free to tween the inner track's translateY along the tilted axis. */
-.engage-rewards-rotor {
-  rotate: 15deg;
-  transform-origin: center;
-}
-
-/* Coupon card. Pine greens (#38be8f / #17926f) are the reward-brand card colours
-   from Figma — not part of the site token scale, so they live here as documented
-   one-offs rather than inline in the component. */
-.engage-reward-coupon {
-  background-color: #38be8f;
-  border: 1px solid #38be8f;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 4px 0 0 #17926f;
 }
 
 /* Platform tab pill indicator. */
@@ -894,18 +964,6 @@ section[aria-labelledby="block-7-label"] h2 {
     animation: none !important;
   }
 
-  .platform-floating-layer {
-    animation: none !important;
-  }
-
-  .engage-rewards-pillar {
-    animation: none !important;
-  }
-
-  .engage-rewards-track {
-    transform: none !important;
-  }
-
   .product-showcase-ring-draw {
     --ring-draw: 1;
     animation: none !important;
@@ -915,7 +973,8 @@ section[aria-labelledby="block-7-label"] h2 {
     animation: none !important;
   }
 
-  .yucoin-counter-ring {
+  .yucoin-counter-ring,
+  .pillar-frame-ring {
     animation: none !important;
   }
 
@@ -966,5 +1025,27 @@ section[aria-labelledby="block-7-label"] h2 {
 
   body {
     @apply bg-surface text-default antialiased;
+  }
+
+  /* Headline accents: an italic word in any heading is set in accent yellow;
+     inside a callout card (the bordered quote / panel boxes, marked
+     `data-callout`) it's accent blue. Keyed on <em>, so the homepage hero —
+     whose italic is its own gradient/spotlight span (HeroHeadline) — is left
+     alone. In the base layer so a colour utility on the <em> itself can still
+     override it (the product carousel's card titles use `text-inherit`).
+
+     line-height: 0 keeps the italic on the baseline without growing the line:
+     Berlingske's italic face has taller vertical metrics than the roman, so an
+     inline <em> at the heading's line-height stretched every line it sat on
+     (~7px at 72px). Its glyphs still paint normally; the heading's own strut
+     sets the line pitch. (`vertical-align: top` hid the stretch but lifted
+     the italic ~7px off the baseline — don't reintroduce it.) */
+  :is(h1, h2, h3, h4, h5, h6) em {
+    color: var(--text-accent-yellow);
+    line-height: 0;
+  }
+
+  [data-callout] :is(h1, h2, h3, h4, h5, h6, blockquote) em {
+    color: var(--text-accent-blue);
   }
 }

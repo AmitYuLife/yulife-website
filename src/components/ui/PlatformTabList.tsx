@@ -3,22 +3,12 @@
 import { pillars } from "@/data/home-content";
 import AnimatedTabList from "./AnimatedTabList";
 
-/** Hairline dividers between the four horizontal tabs (2-col mobile → 4-col
- *  desktop) — borders instead of grid gap so hover state stays continuous. */
-function tabBorderClass(index: number) {
-  const mobileCol = index % 2 === 0 ? "border-r border-line-emphasis" : "";
-  const mobileRow = index < 2 ? "border-b border-line-emphasis" : "";
-
-  return [
-    mobileCol,
-    mobileRow,
-    index > 0 ? "tablet:border-l tablet:border-line-emphasis" : "",
-    "tablet:border-b-0 tablet:border-r-0",
-  ]
-    .filter(Boolean)
-    .join(" ");
-}
-
+/**
+ * The four platform tabs as separate outlined boxes (Figma 2912:57731): the
+ * selected tab takes the darker surface and white label, the rest sit on the
+ * raised surface with the muted label. Each tab paints its own state, so the
+ * sliding indicator is hidden.
+ */
 export default function PlatformTabList({
   active,
   onActiveChange,
@@ -38,13 +28,14 @@ export default function PlatformTabList({
         onActiveChange={onActiveChange}
         ariaLabel="Platform capabilities"
         orientation="horizontal"
-        className="relative z-10 grid w-full grid-cols-2 rounded-md border border-line-emphasis bg-surface-inverse-raised tablet:grid-cols-4"
-        tabClassName="type-label h-14 px-24 text-center"
-        tabClassNameFor={(index, selected) =>
-          `${tabBorderClass(index)} ${
-            selected ? "text-on-inverse" : "text-on-inverse-muted hover:text-on-inverse"
-          }`
+        className="relative z-10 grid w-full grid-cols-2 gap-stack tablet:grid-cols-4"
+        tabClassName="type-heading-h5 rounded-sm border border-line-emphasis px-16 py-16 text-center tablet:px-40"
+        tabClassNameFor={(_, selected) =>
+          selected
+            ? "bg-surface-inverse text-on-inverse"
+            : "bg-surface-inverse-raised text-on-inverse-muted hover:text-on-inverse"
         }
+        indicatorClassName="hidden"
       />
     </div>
   );

@@ -20,26 +20,35 @@ function capitalizeFirst(text: string) {
  * Render a heading, italicising each `emphasis` word (Berlingske Serif Bold
  * Italic — the heading is already serif/bold, so the `italic` face is picked up
  * on inherit). Accepts one word or several; falls back to the plain string.
+ * A `\n` in the heading is a designed line break and renders as `<br />`.
  */
 function renderHeading(heading: string, emphasis?: string | readonly string[]): ReactNode {
   const words = (typeof emphasis === "string" ? [emphasis] : emphasis ? [...emphasis] : []).filter(
     Boolean,
   );
-  if (words.length === 0) return heading;
   const escaped = words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  const parts = heading.split(new RegExp(`(${escaped.join("|")})`, "g"));
-  return parts.map((part, i) =>
-    part && words.includes(part) ? (
-      <em key={i} className="italic">
-        {part}
-      </em>
-    ) : (
-      <Fragment key={i}>{part}</Fragment>
-    ),
-  );
+  const renderLine = (line: string) => {
+    if (words.length === 0) return line;
+    return line.split(new RegExp(`(${escaped.join("|")})`, "g")).map((part, i) =>
+      part && words.includes(part) ? (
+        <em key={i} className="italic">
+          {part}
+        </em>
+      ) : (
+        <Fragment key={i}>{part}</Fragment>
+      ),
+    );
+  };
+  return heading.split("\n").map((line, i) => (
+    <Fragment key={i}>
+      {i > 0 && <br />}
+      {renderLine(line)}
+    </Fragment>
+  ));
 }
 
 export type YunityContent = {
+  /** `\n` marks a designed line break. */
   heading: string;
   /** Word(s) within `heading` to italicise (e.g. ["more", "smarter"]). Optional. */
   emphasis?: string | readonly string[];

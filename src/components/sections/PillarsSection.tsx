@@ -12,7 +12,7 @@ import ConnectingPaths, {
 
 // Yunity band entrance: connecting lines draw in → star lights → dots flow.
 const PLATFORM_INTRO =
-  "From daily habits to life's hardest moments — every layer of your people's health in one place.";
+  "From daily habits to life's hardest moments every layer of your people's health in one place.";
 
 type Geometry = {
   width: number;
@@ -169,17 +169,13 @@ export default function PillarsSection({
         }`}
       >
         <div className="page-container py-[var(--layout-section-y)] relative z-10 flex flex-col items-center gap-[var(--layout-section-gap)]">
-          <div className="mx-auto flex w-full max-w-[1216px] flex-col items-center gap-flow text-center">
+          <div className="mx-auto flex w-full max-w-[1216px] flex-col items-center gap-controls text-center">
             <h2 id="platform-heading" data-reveal className="type-heading-h2 text-on-inverse">
               One platform,
               <br />
               four ways to make an <em className="italic">impact</em>
             </h2>
-            <p
-              data-reveal
-              className="type-body-lg mx-auto max-w-[720px]"
-              style={{ color: "color-mix(in srgb, var(--neutral-white) 85%, transparent)" }}
-            >
+            <p data-reveal className="type-body-lg mx-auto text-on-inverse">
               {PLATFORM_INTRO}
             </p>
           </div>

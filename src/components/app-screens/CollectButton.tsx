@@ -4,7 +4,7 @@ import { useRef, type RefObject } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { YuCoinNavIcon } from "./icons";
-import { playCue } from "./uiSfx";
+import { playCue } from "./appSounds";
 
 gsap.registerPlugin(useGSAP);
 
@@ -74,7 +74,7 @@ export default function CollectButton({
     // Input / Long Press — the hold-to-collect press-down. This is also the
     // first user gesture, so it's where the audio context starts (and both
     // cues warm) for the later reward chime.
-    playCue("long-press");
+    playCue("press");
     onCollectStart?.();
     const btn = buttonRef.current;
     if (!btn) return;

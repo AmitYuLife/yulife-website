@@ -64,6 +64,11 @@ render from data through `SectionBlock` — don't "improve" their styling unless
 `var(--layout-section-gap)`. Primitives (`--purple-700` etc.) live only in
 `design-tokens/theme.css` layer 1 and are aliased, never used directly in components.
 
+**Headline accents are automatic.** An `<em>` in any heading renders accent yellow;
+inside a callout card (bordered quote / panel boxes) it's accent blue — mark the card
+root `data-callout`. Rule lives in `globals.css` (base layer); the homepage hero is
+exempt because it uses its own gradient spans, not `<em>`. Don't colour accents by hand.
+
 **Layout width** comes from `.page-container` (centred 1216px + fluid gutters).
 
 **Scroll reveals** go through `useReveal()` (`src/components/hooks/useReveal.ts`):

@@ -8,7 +8,9 @@ import StatColumn from "@/components/ui/StatColumn";
 import type { StatsColumnItem } from "@/components/ui/statsTypes";
 import TrustRatings from "@/components/ui/TrustRatings";
 import SectionCard from "@/components/ui/SectionCard";
-import PillarBox from "@/components/ui/PillarBox";
+import PillarBoxGroupDemo from "./PillarBoxGroupDemo";
+import PillarAccordionDemo from "./PillarAccordionDemo";
+import PlatformTabListDemo from "./PlatformTabListDemo";
 import YunityDiagram from "@/components/blocks/YunityDiagram";
 import StatFlipCardDemo from "./StatFlipCardDemo";
 import QuoteBlockDemo from "./QuoteBlockDemo";
@@ -26,6 +28,7 @@ import FaqSection from "@/components/sections/FaqSection";
 import ProvenRoiSection from "@/components/sections/ProvenRoiSection";
 import EverydayValueSection from "@/components/sections/EverydayValueSection";
 import YunitySection from "@/components/sections/YunitySection";
+import PillarsSection from "@/components/sections/PillarsSection";
 import StatCardFan from "@/components/blocks/StatCardFan";
 import ProductLogoBar from "@/components/sections/ProductLogoBar";
 import MarqueeStatsSection from "@/components/sections/MarqueeStatsSection";
@@ -136,18 +139,25 @@ export const componentSpecs: Spec[] = [
     ),
   },
   {
+    name: "PillarAccordion",
+    source: "src/components/ui/PillarAccordion.tsx",
+    note: "platform capabilities · one item open · 10s gradient countdown on the open item's border advances and loops · opening an item stops it and the stroke shows fully filled",
+    tone: "dark",
+    render: () => <PillarAccordionDemo />,
+  },
+  {
+    name: "PlatformTabList",
+    source: "src/components/ui/PlatformTabList.tsx",
+    note: "four outlined platform tabs · selected = dark surface + white label, others raised + muted",
+    tone: "dark",
+    render: () => <PlatformTabListDemo />,
+  },
+  {
     name: "PillarBox",
     source: "src/components/ui/PillarBox.tsx",
-    note: "one capability box · hover / tap to reveal description",
+    note: "capability-box group (no longer on the homepage) · first selected by default · click/tap sets the active column (last-clicked wins) · hover reveals the description without changing selection",
     tone: "dark",
-    render: () => (
-      <div className="mx-auto w-[280px]">
-        <PillarBox
-          title="Move"
-          description="Earn YuCoin for every walk, run and ride — converted into real rewards."
-        />
-      </div>
-    ),
+    render: () => <PillarBoxGroupDemo />,
   },
   {
     name: "TrustRatings",
@@ -351,6 +361,13 @@ export const sectionSpecs: Spec[] = [
         }}
       />
     ),
+  },
+  {
+    name: "PillarsSection",
+    source: "src/components/sections/PillarsSection.tsx",
+    note: "two bands: platform tabs + capability accordion beside the video (accordion borders meet the gradient-bordered video frame; 10s countdown per item, loops within the tab; opening an item stops it, a new tab restarts it; floating cards always top-right) and the Yunity diagram · connecting paths + R3F star resolved by harness · repeated across the site",
+    padded: false,
+    render: () => <PillarsSection />,
   },
   {
     name: "StatCountCards",

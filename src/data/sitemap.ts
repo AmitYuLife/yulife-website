@@ -125,12 +125,12 @@ export const navGroups: NavGroup[] = [
         copySource: "Incentives & Rewards",
       },
       {
-        label: "Benefit Consolidation",
-        route: "/solutions/benefit-consolidation",
+        label: "Wellbeing Hub",
+        route: "/solutions/wellbeing-hub",
         purpose:
           "How YuLife brings an employee's benefits together in one place rather than scattered across providers — driving higher engagement across every benefit. Addresses an HR pain point and gives advisers a simplicity story.",
         copyStatus: "approved",
-        copySource: "Benefit Consolidation",
+        copySource: "Wellbeing Hub",
       },
       {
         label: "Mental Health & EAP",

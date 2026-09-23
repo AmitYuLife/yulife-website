@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { pillars, type PillarVideo } from "@/data/home-content";
-import PillarBox from "@/components/ui/PillarBox";
+import PillarAccordion from "@/components/ui/PillarAccordion";
 import PlatformTabList from "@/components/ui/PlatformTabList";
-import EngageRewardsPillar from "@/components/ui/EngageRewardsPillar";
+import RewardsColumns from "@/components/ui/RewardsColumns";
 import { PLATFORM_SWITCH_MS, PLATFORM_SWITCH_EASE } from "@/lib/platform-switch";
+import { assetPath } from "@/lib/assetPath";
 import { domSrc } from "@/lib/domSrc";
 
 /** Accent per capability box / start-node, left → right. */
@@ -27,10 +28,8 @@ const PILLARS_WITH_VIDEO = pillars.filter(
 /** Match ProductShowcase card background transitions. */
 const SWITCH_MS = PLATFORM_SWITCH_MS;
 const SWITCH_EASE = PLATFORM_SWITCH_EASE;
-/** Floating cards — rise/fade like useReveal; enter is reversed exit with ease-in. */
-const FLOATING_REVEAL_MS = 550;
-const FLOATING_REVEAL_EASE_OUT = "cubic-bezier(0.22, 1, 0.36, 1)";
-const FLOATING_REVEAL_EASE_IN = "cubic-bezier(0.64, 0, 0.78, 0)";
+/** Delay between each floating card's fade-up — the chat-log stagger. */
+const FLOATING_STAGGER_MS = 130;
 
 function usePlatformTabSwitch(activeIndex: number) {
   const prevActiveIndexRef = useRef(activeIndex);
@@ -60,268 +59,166 @@ function usePlatformTabSwitch(activeIndex: number) {
 
   const slideVariant: "Left" | "Right" = slideDirection > 0 ? "Right" : "Left";
 
-  const activePillarId = pillars[activeIndex]?.id;
-  const exitingPillarId = exitingIndex != null ? pillars[exitingIndex]?.id : undefined;
-  const activeFloatingCards = activePillarId ? FLOATING_CARDS[activePillarId] : undefined;
-  const exitingFloatingCards = exitingPillarId ? FLOATING_CARDS[exitingPillarId] : undefined;
-  const isFloatingEntering = isSwitching && !!activeFloatingCards;
-  const isFloatingExiting = isSwitching && !!exitingFloatingCards;
-
   const exitingPillar = exitingIndex != null ? pillars[exitingIndex] : undefined;
   const exitingVideoId =
     exitingPillar && "video" in exitingPillar && exitingPillar.video
       ? exitingPillar.id
       : null;
 
-  return {
-    isSwitching,
-    slideVariant,
-    activeFloatingCards,
-    exitingFloatingCards,
-    isFloatingEntering,
-    isFloatingExiting,
-    exitingVideoId,
-  };
+  return { isSwitching, slideVariant, exitingVideoId };
 }
 
-function FloatingCardShell({
-  children,
-  className,
-  isEntering,
-  isExiting,
-}: {
-  children: ReactNode;
-  className: string;
-  isEntering: boolean;
-  isExiting: boolean;
-}) {
-  const [enterActive, setEnterActive] = useState(false);
-
-  useEffect(() => {
-    if (isExiting) {
-      setEnterActive(false);
-      return;
-    }
-    if (!isEntering) return;
-
-    setEnterActive(true);
-    const timer = window.setTimeout(() => setEnterActive(false), FLOATING_REVEAL_MS);
-    return () => window.clearTimeout(timer);
-  }, [isEntering, isExiting]);
-
-  const layerAnimation = isExiting
-    ? `platformFloatExit ${FLOATING_REVEAL_MS}ms ${FLOATING_REVEAL_EASE_OUT} both`
-    : enterActive
-      ? `platformFloatExit ${FLOATING_REVEAL_MS}ms ${FLOATING_REVEAL_EASE_IN} reverse both`
-      : undefined;
-
-  return (
-    <div
-      className={`platform-floating-layer ${className}`}
-      style={layerAnimation ? { animation: layerAnimation } : undefined}
-    >
-      {children}
-    </div>
-  );
-}
-
-function splitBullet(bullet: string) {
-  const idx = bullet.indexOf(":");
-  if (idx === -1) return { title: bullet.trim(), description: "" };
-  return {
-    title: bullet.slice(0, idx).trim(),
-    description: bullet.slice(idx + 1).trim(),
-  };
-}
-
-/** Hairline dividers between boxes — borders instead of grid gap so pointer
- *  events stay continuous when moving across four desktop columns. */
-function boxBorderClass(index: number) {
-  if (index === 0) return "";
-  const classes = ["border-t border-line-emphasis"];
-  if (index % 2 === 1) classes.push("tablet:border-l");
-  if (index >= 2) classes.push("tablet:border-t");
-  classes.push("desktop:border-t-0");
-  if (index % 4 !== 0) classes.push("desktop:border-l");
-  return classes.join(" ");
-}
-
-/** Hover tilt tuning — subtle, like the hero YuCoin's pointer response. */
-const TILT_MAX_DEG = 13;
-const SHADOW_BASE_PX = 8;
-const SHADOW_RANGE_PX = 8;
-
-/** Imperative CSS-var updates (no re-render) driving `.platform-floating-card-tilt`:
- *  rotateX/Y for the tilt, a shifted drop-shadow so it reads as one lit object
- *  rather than a tilt effect plus a static shadow, and a pointer-tracked sheen. */
-function useCardTiltHandlers() {
-  const reducedMotionRef = useRef(false);
-
-  useEffect(() => {
-    reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  }, []);
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (reducedMotionRef.current) return;
-    const el = e.currentTarget;
-    const rect = el.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width - 0.5;
-    const py = (e.clientY - rect.top) / rect.height - 0.5;
-
-    el.style.setProperty("--tilt-x", `${(-py * TILT_MAX_DEG).toFixed(2)}deg`);
-    el.style.setProperty("--tilt-y", `${(px * TILT_MAX_DEG).toFixed(2)}deg`);
-    el.style.setProperty("--shadow-x", `${(SHADOW_BASE_PX - px * SHADOW_RANGE_PX).toFixed(2)}px`);
-    el.style.setProperty("--shadow-y", `${(SHADOW_BASE_PX - py * SHADOW_RANGE_PX).toFixed(2)}px`);
-    el.style.setProperty("--sheen-x", `${((px + 0.5) * 100).toFixed(1)}%`);
-    el.style.setProperty("--sheen-y", `${((py + 0.5) * 100).toFixed(1)}%`);
-    el.style.setProperty("--sheen-opacity", "1");
-  };
-
-  const handlePointerLeave = (e: React.PointerEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    el.style.setProperty("--tilt-x", "0deg");
-    el.style.setProperty("--tilt-y", "0deg");
-    el.style.setProperty("--shadow-x", `${SHADOW_BASE_PX}px`);
-    el.style.setProperty("--shadow-y", `${SHADOW_BASE_PX}px`);
-    el.style.setProperty("--sheen-opacity", "0");
-  };
-
-  return { handlePointerMove, handlePointerLeave };
-}
-
-/** A floating card image: idle bob (own animation layer, phase-offset per
- *  card like the hero coins) + hover tilt/lighting (pointer-driven layer). */
-function FloatingTiltCard({
-  src,
-  alt,
-  width,
-  height,
-  widthClassName,
-  bobDelay,
-  bobDuration,
-}: {
+type FloatingCard = {
+  key: string;
   src: string;
   alt: string;
+  /** Intrinsic pixel size (the 4x export) — sets the aspect ratio. */
   width: number;
   height: number;
-  widthClassName: string;
+  /** Desktop display width in px; the whole log scales down below desktop. */
+  w: number;
+  /** Extra layout on the card's wrapper — its top gap and any chat indent. */
+  itemClassName?: string;
   bobDelay: string;
   bobDuration: string;
-}) {
-  const { handlePointerMove, handlePointerLeave } = useCardTiltHandlers();
+  /** Shadow already in the image (or intentionally none) — skip the CSS one. */
+  bakedShadow?: boolean;
+};
+
+type FloatingLogConfig = {
+  /** Desktop log width in px (the widest card, including any indent). */
+  width: number;
+  cards: FloatingCard[];
+};
+
+/**
+ * Floating "chat log" per pillar id → column index. Each card is an exported
+ * image (4x → webp; the cards are pixel-faithful product UI, never rebuilt in
+ * markup) laid out per the Figma "Log". Only designed columns have an entry;
+ * every other column renders nothing.
+ * (Figma 2802:8047 · 2813:10605 · 2813:10630 · 2813:10659 · 2847:9559.)
+ */
+const FLOATING_LOGS: Record<string, Record<number, FloatingLogConfig>> = {
+  prevent: {
+    // Daily Reflections — greeting, week's mood log, rested prompt, YuCoin reward.
+    0: {
+      width: 370,
+      cards: [
+        { key: "checkin-greeting", src: assetPath("/home/platform/prevent-checkin-greeting-card.webp"), alt: "App check-in greeting — how are you feeling today? — with a row of mood emojis", width: 1480, height: 568, w: 370, bobDelay: "0s", bobDuration: "4.8s" },
+        { key: "mood-week", src: assetPath("/home/platform/prevent-mood-week-card.webp"), alt: "A look at your mood this week, showing a daily mood check-in for each day", width: 1480, height: 528, w: 370, itemClassName: "mt-[16px]", bobDelay: "0.5s", bobDuration: "5.1s" },
+        { key: "rested", src: assetPath("/home/platform/prevent-rested-card.webp"), alt: "A how-well-rested-are-you scale from less than usual to more than usual", width: 1480, height: 408, w: 370, itemClassName: "mt-[16px]", bobDelay: "1s", bobDuration: "4.6s" },
+        { key: "yucoin-reward", src: assetPath("/home/platform/prevent-yucoin-card.webp"), alt: "Reward notice: you earned 200 YuCoin for checking in with yourself", width: 1480, height: 304, w: 370, itemClassName: "mt-[16px]", bobDelay: "1.4s", bobDuration: "5.4s" },
+      ],
+    },
+    // 24/7 Virtual GP — an incoming chat message, an indented reply, then the
+    // booked-appointment card (Figma 2813:10605).
+    1: {
+      width: 370,
+      cards: [
+        { key: "vgp-chat1", src: assetPath("/home/platform/prevent-vgp-chat1.webp"), alt: "Chat message: I'm worried about a medical issue, but my doctor has no availability", width: 1384, height: 344, w: 346, bobDelay: "0s", bobDuration: "4.7s", bakedShadow: true },
+        { key: "vgp-chat2", src: assetPath("/home/platform/prevent-vgp-chat2.webp"), alt: "Chat reply: should we book in a video call appointment to discuss more?", width: 1384, height: 344, w: 346, itemClassName: "mt-[16px] ml-[24px]", bobDelay: "0.5s", bobDuration: "5.2s", bakedShadow: true },
+        { key: "vgp-appointment", src: assetPath("/home/platform/prevent-vgp-appointment.webp"), alt: "Booked Virtual GP video call with Dr. Tan, tomorrow at 1pm", width: 1480, height: 344, w: 370, itemClassName: "mt-[24px]", bobDelay: "1s", bobDuration: "4.9s", bakedShadow: true },
+      ],
+    },
+    // Comprehensive EAP — an active counselling call, then a row of resources.
+    2: {
+      width: 370,
+      cards: [
+        { key: "eap-call", src: assetPath("/home/platform/prevent-eap-call.webp"), alt: "Active call with the Employee Counselling Line", width: 1480, height: 376, w: 370, bobDelay: "0s", bobDuration: "4.8s", bakedShadow: true },
+        { key: "eap-resources", src: assetPath("/home/platform/prevent-eap-resources.webp"), alt: "Mental-health resources: restful routines, mental-health awareness, mindful moments", width: 1480, height: 984, w: 370, itemClassName: "mt-[24px]", bobDelay: "0.6s", bobDuration: "5.3s", bakedShadow: true },
+      ],
+    },
+    // Centralised Benefits Hub — a single quick-access card of wellbeing benefits.
+    3: {
+      width: 378,
+      cards: [
+        { key: "benefits-hub", src: assetPath("/home/platform/prevent-benefits-hub.webp"), alt: "Benefits hub: a welcome message and a list of the company's wellbeing benefits", width: 1512, height: 1544, w: 378, bobDelay: "0s", bobDuration: "5s", bakedShadow: true },
+      ],
+    },
+  },
+  engage: {
+    // Daily Health Challenges — a stack of daily challenge cards (Figma 2818:7845).
+    // Exports are the card only (transparent rounded corners, 4x); the hard offset
+    // shadow is added in CSS.
+    0: {
+      width: 274,
+      cards: [
+        { key: "eng-meditation", src: assetPath("/home/platform/engage-challenge-meditation.webp"), alt: "Meditation challenge — 5 minutes, 160 YuCoin", width: 1096, height: 416, w: 274, bobDelay: "0s", bobDuration: "4.8s" },
+        { key: "eng-workout", src: assetPath("/home/platform/engage-challenge-workout.webp"), alt: "Workout challenge — 30 minutes, 240 YuCoin", width: 1096, height: 416, w: 274, itemClassName: "mt-[16px]", bobDelay: "0.4s", bobDuration: "5.1s" },
+        { key: "eng-yudoku", src: assetPath("/home/platform/engage-challenge-yudoku.webp"), alt: "Daily Yudoku challenge — 120 YuCoin", width: 1096, height: 416, w: 274, itemClassName: "mt-[16px]", bobDelay: "0.8s", bobDuration: "4.6s" },
+        { key: "eng-longwalk", src: assetPath("/home/platform/engage-challenge-longwalk.webp"), alt: "Long walk challenge — 30 minutes, 240 YuCoin", width: 1096, height: 416, w: 274, itemClassName: "mt-[16px]", bobDelay: "1.2s", bobDuration: "5.4s" },
+      ],
+    },
+    // Seamless Connectivity — a stack of "integration connected" cards, one per
+    // wearable, each with its brand toggle switched on (Figma 2847:9559). The
+    // exports are the card only (transparent rounded corners, 4x); the hard offset
+    // shadow is added in CSS, so the stack pitch is one card height plus the 16px
+    // gap (mt-[16px]).
+    1: {
+      width: 362,
+      cards: [
+        { key: "connect-fitbit", src: assetPath("/home/platform/engage-connect-fitbit.webp"), alt: "Fitbit — connected", width: 1448, height: 288, w: 362, bobDelay: "0s", bobDuration: "4.8s" },
+        { key: "connect-garmin", src: assetPath("/home/platform/engage-connect-garmin.webp"), alt: "Garmin Connect — connected", width: 1448, height: 288, w: 362, itemClassName: "mt-[16px]", bobDelay: "0.45s", bobDuration: "5.1s" },
+        { key: "connect-strava", src: assetPath("/home/platform/engage-connect-strava.webp"), alt: "Strava — connected", width: 1448, height: 288, w: 362, itemClassName: "mt-[16px]", bobDelay: "0.9s", bobDuration: "4.6s" },
+        { key: "connect-withings", src: assetPath("/home/platform/engage-connect-withings.webp"), alt: "Withings — connected", width: 1448, height: 288, w: 362, itemClassName: "mt-[16px]", bobDelay: "1.3s", bobDuration: "5.4s" },
+      ],
+    },
+  },
+};
+
+/**
+ * The right-side floating "chat log" for the selected column: exported card
+ * images stacked per the Figma layout. The log remounts on every column/pillar
+ * change — keyed on `${pillarId}-${column}` — so each card replays its
+ * staggered fade-up, then bobs idly. It always sits top-right of the video,
+ * scales down on tablet and is hidden on mobile.
+ */
+function FloatingLog({ pillarId, column }: { pillarId: string; column: number }) {
+  const log = FLOATING_LOGS[pillarId]?.[column];
+  if (!log) return null;
 
   return (
     <div
-      className="platform-floating-card"
-      style={{ "--bob-delay": bobDelay, "--bob-duration": bobDuration } as React.CSSProperties}
+      key={`${pillarId}-${column}`}
+      className="pointer-events-none absolute right-[16px] top-[16px] z-10 hidden origin-top-right tablet:right-[28px] tablet:top-[32px] tablet:block tablet:scale-[0.8] desktop:right-40 desktop:top-40 desktop:scale-100"
+      style={{ width: log.width }}
+      aria-hidden
     >
-      <div
-        className={`platform-floating-card-tilt overflow-hidden ${widthClassName}`}
-        onPointerMove={handlePointerMove}
-        onPointerLeave={handlePointerLeave}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element -- static export; drop-shadow filter needs the raw element */}
-        <img src={src} alt={alt} width={width} height={height} className="h-auto w-full" />
-        {/* Sheen is clipped to the card's exact shape by masking it with the card
-            image — every card asset carries its own transparent rounded corners, so
-            this keeps the hover spotlight inside the corner radius at any size (no
-            CSS radius to match, no double-rounding of the image). */}
-        <div
-          className="platform-floating-card-sheen"
-          aria-hidden
-          style={{
-            WebkitMaskImage: `url(${src})`,
-            maskImage: `url(${src})`,
-            WebkitMaskSize: "100% 100%",
-            maskSize: "100% 100%",
-            WebkitMaskRepeat: "no-repeat",
-            maskRepeat: "no-repeat",
-          }}
-        />
+      <div className="flex flex-col items-end">
+        {log.cards.map((card, i) => (
+          <div
+            key={card.key}
+            className={`platform-float-in ${card.itemClassName ?? ""}`}
+            style={
+              { "--float-delay": `${i * FLOATING_STAGGER_MS}ms`, width: card.w } as React.CSSProperties
+            }
+          >
+            <div
+              className="platform-floating-card"
+              style={
+                {
+                  "--bob-delay": card.bobDelay,
+                  "--bob-duration": card.bobDuration,
+                } as React.CSSProperties
+              }
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- static export; drop-shadow filter needs the raw element */}
+              <img
+                src={card.src}
+                alt={card.alt}
+                width={card.width}
+                height={card.height}
+                className={`platform-floating-card-img block h-auto w-full ${
+                  card.bakedShadow ? "" : "platform-floating-card-img--shadow"
+                }`}
+              />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
-
-type FloatingCardConfig = {
-  key: string;
-  /** Absolute positioning classes — which corner the card floats in. */
-  cornerClassName: string;
-  src: string;
-  alt: string;
-  width: number;
-  height: number;
-  widthClassName: string;
-  bobDelay: string;
-  bobDuration: string;
-};
-
-/** Floating cards per pillar id — only pillars with real design assets get
- *  an entry; others render the video hero with no floating cards. */
-const FLOATING_CARDS: Record<string, FloatingCardConfig[]> = {
-  engage: [
-    {
-      key: "challenge",
-      cornerClassName:
-        "absolute -left-[24px] top-[80px] z-10 hidden tablet:block tablet:-left-[32px] desktop:-left-[40px]",
-      src: "/home/platform/engage-challenge-card.webp",
-      alt: "Challenge select card showing a 10-minute Meditation challenge worth 120 YuCoin",
-      width: 165,
-      height: 212,
-      widthClassName: "w-[120px] tablet:w-[140px] desktop:w-[165px]",
-      bobDelay: "0.4s",
-      bobDuration: "5s",
-    },
-  ],
-  prevent: [
-    {
-      key: "mood",
-      cornerClassName: "absolute -left-8 bottom-[80px] z-10 hidden tablet:block desktop:-left-24",
-      src: "/home/platform/moodmonitor-card.webp",
-      alt: "Your Mood tracker showing a week of mood check-ins",
-      width: 368,
-      height: 147,
-      widthClassName: "w-[220px] tablet:w-[280px] desktop:w-[361px]",
-      bobDelay: "0s",
-      bobDuration: "4.6s",
-    },
-    {
-      key: "challengeselect",
-      cornerClassName: "absolute -right-8 top-[80px] z-10 hidden tablet:block desktop:-right-24",
-      src: "/home/platform/challengeselect-card.webp",
-      alt: "Challenge select card showing a 5-minute Breathing challenge worth 180 YuCoin",
-      width: 166,
-      height: 213,
-      widthClassName: "w-[120px] tablet:w-[150px] desktop:w-[166px]",
-      bobDelay: "0.9s",
-      bobDuration: "5.3s",
-    },
-  ],
-  empower: [
-    {
-      key: "nps",
-      cornerClassName: "absolute -left-8 top-[80px] z-10 hidden tablet:block desktop:-left-24",
-      src: "/home/platform/empower-nps-card.webp",
-      alt: "Employee NPS score of 72, with a detractors, passives, and promoters breakdown",
-      width: 312,
-      height: 304,
-      widthClassName: "w-[200px] tablet:w-[245px] desktop:w-[311px]",
-      bobDelay: "0s",
-      bobDuration: "4.9s",
-    },
-    {
-      key: "burnout",
-      cornerClassName: "absolute -right-8 bottom-[80px] z-10 hidden tablet:block desktop:-right-24",
-      src: "/home/platform/empower-burnout-card.webp",
-      alt: "Burnout risk distribution across high, neutral, and low risk",
-      width: 316,
-      height: 144,
-      widthClassName: "w-[205px] tablet:w-[250px] desktop:w-[316px]",
-      bobDelay: "1.1s",
-      bobDuration: "5.6s",
-    },
-  ],
-};
 
 function PlatformVideoStack({
   activeIndex,
@@ -400,7 +297,8 @@ function PlatformVideoStack({
                 if (el) videoRefs.current.set(id, el);
                 else videoRefs.current.delete(id);
               }}
-              className="absolute inset-0 block h-full w-full object-cover"
+              className="absolute inset-0 block h-full w-full object-cover object-[var(--video-focus-x)_50%] tablet:object-right"
+              style={{ "--video-focus-x": video.focusX } as React.CSSProperties}
               src={video.mp4}
               width={1600}
               height={900}
@@ -460,6 +358,50 @@ function VideoPlaceholder({ built }: { built: boolean }) {
 
 export const DEFAULT_ACTIVE_TAB = DEFAULT_TAB;
 
+/** How long each accordion item stays open before autoplay advances. */
+const SLIDE_MS = 10_000;
+
+/**
+ * Autoplay gate for the pillar accordion. Opening an accordion item stops it;
+ * picking a different tab starts it again on the new tab's content. It is
+ * disabled under reduced motion, and pauses (without resetting) while the
+ * panel is off-screen or the page is hidden.
+ */
+function usePillarAutoplay(rootRef: React.RefObject<HTMLElement | null>) {
+  const [enabled, setEnabled] = useState(true);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [inView, setInView] = useState(false);
+  const [pageVisible, setPageVisible] = useState(true);
+
+  useEffect(() => {
+    setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+    const onVisibility = () => setPageVisible(document.visibilityState === "visible");
+    onVisibility();
+    document.addEventListener("visibilitychange", onVisibility);
+
+    const root = rootRef.current;
+    const io = root
+      ? new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
+          threshold: 0.35,
+        })
+      : null;
+    if (root) io?.observe(root);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      io?.disconnect();
+    };
+  }, [rootRef]);
+
+  return {
+    running: enabled && !reducedMotion,
+    paused: !inView || !pageVisible,
+    stop: () => setEnabled(false),
+    start: () => setEnabled(true),
+  };
+}
+
 export default function TabbedPanel({
   active,
   onActiveChange,
@@ -467,67 +409,88 @@ export default function TabbedPanel({
   active: number;
   onActiveChange: (index: number) => void;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const activePillar = pillars[active];
   const tabSwitch = usePlatformTabSwitch(active);
-  const boxes = activePillar.bullets.slice(0, 4).map(splitBullet);
-  const desktopCols =
-    boxes.length >= 4 ? "desktop:grid-cols-4" : "desktop:grid-cols-3";
+  const items = activePillar.bullets.slice(0, 4);
+  const autoplay = usePillarAutoplay(rootRef);
+
+  // One accordion item is open at a time, and every top-tab switch resets it to
+  // the first item — including returning to a tab left on a later item. Reset
+  // during render (not in an effect) so the new tab never paints a stale item.
+  // The open item also drives the floating cards.
+  const [itemActive, setItemActive] = useState(0);
+  const [itemTab, setItemTab] = useState(active);
+  if (itemTab !== active) {
+    setItemTab(active);
+    setItemActive(0);
+  }
+
+  // Autoplay: each item stays open for SLIDE_MS, then the next opens, looping
+  // within the current tab.
+  const advance = () => setItemActive((itemActive + 1) % items.length);
 
   return (
-    <div {...domSrc("TabbedPanel")} className="flex w-full max-w-[1216px] flex-col items-center gap-flow tablet:gap-group">
-      <PlatformTabList active={active} onActiveChange={onActiveChange} />
+    <div
+      {...domSrc("TabbedPanel")}
+      ref={rootRef}
+      className="flex w-full max-w-[1216px] flex-col items-center gap-[var(--layout-section-gap)]"
+    >
+      <PlatformTabList
+        active={active}
+        onActiveChange={(index) => {
+          if (index === active) return;
+          // A new tab restarts the countdown on its first item (the accordion
+          // remounts per tab), even if an earlier interaction had stopped it.
+          autoplay.start();
+          onActiveChange(index);
+        }}
+      />
 
-      {/* Video and capability band form one seamless container: the video's top
-          corners round, the band's bottom corners round, and their shared edge
-          reads as a single divider line (Figma 2706:5109, TabVideoCards). */}
-      <div className="flex w-full flex-col">
-        {/* Video / hero placeholder with floating cards */}
-        <div className="relative w-full">
-          <div className="relative z-[2] h-[360px] w-full overflow-hidden rounded-t-md border-x border-t border-line-emphasis tablet:h-[480px] desktop:h-[600px]">
+      {/* Accordion left, video right (Figma 2912:57740, ContentVideo). Tabs and
+          this row are siblings in the section, a section gap apart. On desktop
+          the accordion takes the remaining width with no gap, so its item
+          borders run into the video frame. Stacks below desktop, accordion
+          first. */}
+      <div className="flex w-full flex-col gap-flow desktop:flex-row desktop:items-center desktop:gap-0">
+        <div className="w-full desktop:min-w-0 desktop:flex-1">
+          <PillarAccordion
+            key={activePillar.id}
+            items={items}
+            active={itemActive}
+            onSelect={(index) => {
+              autoplay.stop();
+              setItemActive(index);
+            }}
+            countdown={
+              autoplay.running
+                ? { durationMs: SLIDE_MS, paused: autoplay.paused, onEnd: advance }
+                : undefined
+            }
+          />
+        </div>
+
+        {/* Video with the open item's floating cards */}
+        <div className="relative w-full min-w-0 desktop:w-[748px] desktop:shrink-0">
+          <div className="relative z-[2] h-[360px] w-full overflow-hidden rounded-md border border-transparent tablet:h-[480px] desktop:h-[600px]">
             <PlatformVideoStack
               activeIndex={active}
               isSwitching={tabSwitch.isSwitching}
               exitingVideoId={tabSwitch.exitingVideoId}
               slideVariant={tabSwitch.slideVariant}
             />
-            {activePillar.id === "engage" && <EngageRewardsPillar />}
           </div>
 
-          {tabSwitch.exitingFloatingCards?.map(({ key, cornerClassName, ...card }) => (
-            <FloatingCardShell
-              key={`exit-${key}`}
-              className={cornerClassName}
-              isEntering={false}
-              isExiting={tabSwitch.isFloatingExiting}
-            >
-              <FloatingTiltCard {...card} />
-            </FloatingCardShell>
-          ))}
-          {tabSwitch.activeFloatingCards?.map(({ key, cornerClassName, ...card }) => (
-            <FloatingCardShell
-              key={`active-${key}`}
-              className={cornerClassName}
-              isEntering={tabSwitch.isFloatingEntering}
-              isExiting={false}
-            >
-              <FloatingTiltCard {...card} />
-            </FloatingCardShell>
-          ))}
-        </div>
+          {activePillar.id === "engage" &&
+          items[itemActive]?.title === "Real-World Rewards" ? (
+            <RewardsColumns key={`rewards-${active}`} />
+          ) : (
+            <FloatingLog pillarId={activePillar.id} column={itemActive} />
+          )}
 
-        {/* Capability boxes — flush beneath the video; the top border is the
-            divider between the two, the bottom corners close the container. */}
-        <div
-          className={`relative grid w-full grid-cols-1 overflow-hidden rounded-b-md border border-line-emphasis bg-surface-inverse-raised tablet:grid-cols-2 ${desktopCols}`}
-        >
-          {boxes.map((box, i) => (
-            <PillarBox
-              key={`${activePillar.id}-${box.title}`}
-              title={box.title}
-              description={box.description}
-              className={boxBorderClass(i)}
-            />
-          ))}
+          {/* Brand-gradient frame border, painted over the transparent 1px
+              border above so it also sits over the floating cards' clip. */}
+          <div aria-hidden className="pillar-frame-ring pointer-events-none absolute inset-0 z-20 rounded-md" />
         </div>
       </div>
     </div>

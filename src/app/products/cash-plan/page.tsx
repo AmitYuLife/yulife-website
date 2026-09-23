@@ -1,39 +1,44 @@
 import type { Metadata } from "next";
 import ImageRightHero, { type ImageRightHeroContent } from "@/components/sections/ImageRightHero";
-import MarqueeStatsSection, {
-  type MarqueeStatsContent,
-} from "@/components/sections/MarqueeStatsSection";
+import MarqueeStatsSection from "@/components/sections/MarqueeStatsSection";
 import EverydayValueSection, {
   QuoteBlock,
   type CarrierLogo,
 } from "@/components/sections/EverydayValueSection";
 import ClinicalExcellenceSection from "@/components/sections/ClinicalExcellenceSection";
+import StatCardFan from "@/components/blocks/StatCardFan";
 import FaqSection from "@/components/sections/FaqSection";
 import JoinMissionCard from "@/components/sections/JoinMissionCard";
 import type {
   Cta,
   Quote,
   FaqEntry,
+  ProvenRoiStat,
   EverydayValueSection as EverydayValueData,
+  EverydayValuePanel,
   ClinicalExcellenceSection as ClinicalExcellenceData,
 } from "@/data/pages/types";
 import { assetPath } from "@/lib/assetPath";
 
 /*
   Health Cash Plan — bespoke product page assembled from existing section
-  components (Figma node 2520:10230, YuLife Website Design System). Replaces the
-  plain ProductPage-template render on this route. Copy is transcribed verbatim
-  from the design (the source of truth over the copy doc) EXCEPT:
-    · The nine benefit-card body lines, the section-4 supporting sentence and the
-      two eyebrow kickers ("The problem", "What's included") are authored to
-      YuLife tone of voice — the design shows icon+title only. Marked below.
-    · The three trust stats sit as odometer cards under the logo marquee (one
-      MarqueeStatsSection band), the Businesses treatment, rather than a
-      standalone stats section.
-    · Section-3's quote is the shared QuoteBlock card (with the Bupa mark), sitting
-      at the foot of the "What is a Health Cash Plan?" section as in the design.
-    · Section-5's benefit icons reuse existing /products illustrations as
-      placeholders (the design's own grid uses a repeated placeholder glyph).
+  components (Figma node 2520:10230, YuLife Website Design System). Copy is
+  transcribed verbatim from the design (the source of truth over the copy doc);
+  the three stat-fan hover notes are authored to YuLife tone of voice (the
+  design shows the card fronts only) over the copy doc's approved sources.
+
+  Section order (top → bottom), each keyed to its Figma node:
+    · Hero (2520:10233) — eyebrow + italic-accent headline, Bupa lockup, ratings.
+    · Logo marquee (logos only; the trust stats moved down into the fan below).
+    · "What is a Health Cash Plan?" (2520:10937) — two-col header, the Dan
+      Sullivan carrier quote, a two-col follow-on, and the three trust stats as
+      a StatCardFan.
+    · "Help your people take charge of their health" (2520:10321) — the shared
+      scroll-scrollytelling EverydayValueSection, closing on the "One benefit
+      story" panel.
+    · "Everyday health, all in one place" (2520:10351) — the RevealCardGrid in
+      its static (icon+title only) state, via ClinicalExcellenceSection.
+    · FAQs and Join-the-mission — unchanged.
   CTA hrefs aren't in the design; buttons read "Speak to our team" → /contact.
 */
 
@@ -45,11 +50,16 @@ export const metadata: Metadata = {
 
 const speakToTeam: Cta = { label: "Speak to our team", href: "/contact" };
 
-// § Hero — headline, body, carrier lockup and ratings verbatim from the design.
+const bupaLogo: CarrierLogo = { src: "/logos/carriers/bupa.svg", alt: "Bupa" };
+
+// § Hero (2520:10233) — eyebrow + headline with the italic "everyday" falling
+// mid-phrase (lead + accent + trail). Body, Bupa lockup and ratings verbatim.
 const hero: ImageRightHeroContent = {
+  eyebrow: "Health cash plan",
   headline: {
-    lead: "Game-changing cash plan designed for ",
-    accent: "every day use",
+    lead: "Trusted cover for ",
+    accent: "everyday",
+    trail: " health expenses",
   },
   body:
     "We’re bringing together Bupa’s trusted insurance expertise and care " +
@@ -66,8 +76,8 @@ const hero: ImageRightHeroContent = {
     { platform: "Capterra", score: "4.8" },
     { platform: "App Store", score: "4.9" },
   ],
-  // The design's hero phone (node 2520:10234), exported from Figma: the Bupa ×
-  // YuLife Health Cash Plan app screen. Device mockup, no orbiting coins.
+  // The design's hero phone (node 2520:10234): the Bupa × YuLife Health Cash
+  // Plan app screen. Device mockup, no orbiting coins.
   visual: {
     kind: "device",
     src: assetPath("/products/hero-cash-plan-phone.png"),
@@ -76,154 +86,143 @@ const hero: ImageRightHeroContent = {
   },
 };
 
-// § "What is a Health Cash Plan?" — four explainer paragraphs, verbatim.
-const introParagraphs: readonly string[] = [
-  "A health cash plan pays your employees money back on everyday healthcare " +
-    "costs they would otherwise pay for themselves. Dental check-ups, new " +
-    "glasses, physiotherapy, prescriptions.",
-  "They pay the bill, claim it back, and are reimbursed up to an annual " +
-    "allowance for each category. No referral needed.",
-  "It isn’t private medical insurance. A cash plan covers routine, everyday " +
-    "care rather than the diagnosis and treatment of new conditions, which " +
-    "makes it a lower-cost way to give your whole team something they will use " +
-    "several times a year. All pre-existing conditions are covered, across " +
-    "every benefit.",
-  "YuLife’s health cash plan is underwritten by Bupa. Bupa provides the cover " +
-    "and pays the claims. YuLife adds the daily wellbeing experience, the " +
-    "rewards, and the insight on top.",
+// § "What is a Health Cash Plan?" (2520:10937) — the two intro paragraphs that
+// sit right of the heading, then the two that follow the quote. All verbatim.
+const whatIsIntro: readonly string[] = [
+  "Money back on the everyday health costs your employees would otherwise pay " +
+    "themselves. Dental check-up, covered.",
+  "New glasses, claim it back. Physio for a bad back, sorted. They pay, they " +
+    "claim, they’re reimbursed up to an annual limit for each benefit. No " +
+    "referral needed.",
 ];
 
-// § Carrier quote — verbatim; Richard Norris headshot already in /public. Sits
-// as a QuoteBlock card at the foot of the "What is a Health Cash Plan?" section,
-// with the Bupa mark, exactly as the design places it.
+const whatIsOutro: readonly string[] = [
+  "It isn’t private medical insurance. It’s the routine care your whole team " +
+    "will use several times a year, which is why it costs less.",
+  "And it doesn’t sit in a drawer until something goes wrong. Daily challenges " +
+    "and rewards build healthier habits, and your portal shows you how your " +
+    "workforce is really doing.",
+];
+
+// Carrier quote — Dan Sullivan, verbatim from the design; headshot already in
+// /public. Rendered as the shared QuoteBlock with the Bupa mark.
 const carrierQuote: Quote = {
   text:
-    "This partnership will help more people to take charge of their everyday " +
-    "health and wellbeing, while also offering reassurance that high-quality " +
-    "healthcare is there when it’s needed.",
-  author: "Richard Norris",
-  role: "General Manager for Business & Specialist Products",
-  avatar: "/people/richard-norris.jpg",
+    "Employers are looking for solutions that not only support people when they " +
+    "become unwell, but help them stay healthy in the first place.",
+  author: "Dan Sullivan",
+  role: "Director of Product and Proposition",
+  avatar: "/people/dan-sullivan.jpg",
 };
 
-const bupaLogo: CarrierLogo = { src: "/logos/carriers/bupa.svg", alt: "Bupa" };
+// Trust stats — the three ROI figures, now a StatCardFan at the foot of the
+// "What is a Health Cash Plan?" section (they used to be an odometer row under
+// the logo marquee). Values/labels from the design; the visible 12% follows the
+// Figma over the copy doc's 11.5%. Sources are the copy doc's; the hover notes
+// are authored to ToV.
+const trustStats: readonly ProvenRoiStat[] = [
+  {
+    value: "1 in 2",
+    label: "members engage daily",
+    note:
+      "Half your team opens YuLife every day — walking, meditating, earning " +
+      "rewards. Not once. As a habit that sticks.",
+    source: "YuLife internal data, 2025",
+  },
+  {
+    value: "4x",
+    label: "increase in EAP utilisation",
+    note:
+      "When support is part of daily life, people actually reach for it — EAP " +
+      "use runs at four times the industry norm.",
+    source: "YuLife internal data against industry benchmarks",
+  },
+  {
+    value: "12%",
+    label: "reduction in absenteeism",
+    note:
+      "When wellbeing is part of every day, fewer sick days follow — not just " +
+      "on the day a claim is made.",
+    source: "Forrester Total Economic Impact of YuLife, 2022",
+  },
+];
 
-// § "What we solve for" — heading/lead and the three problem blocks verbatim.
-// The `eyebrow` kicker and the second header sentence (`body`) are authored to ToV.
-const solveFor: EverydayValueData = {
-  eyebrow: "The problem",
-  heading: "What we solve for",
-  lead: "Health benefits only work if people use them.",
+// § "Help your people take charge of their health" (2520:10321) — the shared
+// scroll-scrollytelling section: two-col header, a pinned illustration stepping
+// through three value blocks, closing on the "One benefit story" panel. Copy
+// verbatim from the design; illustrations reuse the /products/everyday spots.
+const takeCharge: EverydayValueData = {
+  eyebrow: "Everyday health",
+  heading: "Help your people take charge of their health",
+  accent: "take charge",
+  lead:
+    "Dental, optical, physiotherapy and other everyday healthcare expenses can " +
+    "add up.",
   body:
-    "Most cover only proves its worth at the point of claim. Everyday health " +
-    "is where a benefit is felt, or forgotten.",
+    "A Health Cash Plan helps employees claim money back towards the costs that " +
+    "keep them healthy and feeling their best.",
   blocks: [
     {
-      title: "Everyday health costs land on employees",
+      title: "Make treatment easier to access",
       body:
-        "Dental, optical, and physiotherapy sit outside private medical cover, " +
-        "so people either absorb the cost or put the treatment off.",
+        "Employees can get treatment without a referral for most benefits, then " +
+        "claim back their eligible benefit allowance afterwards, helping save " +
+        "time and money.",
       image: "/products/everyday/video-call.png",
       alt: "",
     },
     {
-      title: "The tools people already have go unused",
+      title: "Affordable support for your whole team",
       body:
-        "Under 2% current utilisation of intervention tools, EAP, and " +
-        "telemedicine across the industry.¹",
-      image: "/products/everyday/thought-bubble.png",
+        "A Health Cash Plan is a simple, affordable way to support employee " +
+        "health and wellbeing, with flexible levels of cover to suit different " +
+        "needs.",
+      image: "/products/everyday/medikit.png",
       alt: "",
     },
     {
-      title: "Benefits budgets are under pressure",
+      title: "A benefit they use every day",
       body:
-        "Rising costs mean everyday support has to be affordable enough to " +
-        "offer everyone, not just a few.",
-      image: "/products/everyday/tooth.png",
+        "Every plan comes with the YuLife app. Daily challenges build healthier " +
+        "habits, so this is a benefit your people open all year, not just at " +
+        "claim time.",
+      image: "/products/everyday/thought-bubble.png",
       alt: "",
     },
   ],
 };
 
-// Closing callout card for the "What we solve for" section (design: heading +
-// button, no supporting paragraph).
-const solveForPanel = {
-  heading: "Let’s make every day health happen.",
-  paragraphs: [] as readonly string[],
+// Closing panel for the section (design: heading + body + button).
+const takeChargePanel: EverydayValuePanel = {
+  heading: "One benefit story. Simply told.",
+  paragraphs: [
+    "Whether you’re an HR leader juggling providers or an adviser building a " +
+      "recommendation, YuLife turns a complicated benefits stack into one clear, " +
+      "engaging offer.",
+  ],
   cta: speakToTeam,
 };
 
-// § "What you get" — titles verbatim; body lines authored to ToV. Icons reuse
-// existing /products illustrations as placeholders (cycled), matching the
-// placeholder state of the design's own grid.
-const benefitIcons = [
-  "/products/everyday/medikit.png",
-  "/products/everyday/video-call.png",
-  "/products/everyday/tooth.png",
-  "/products/everyday/thought-bubble.png",
-] as const;
-
-const benefitTitles: readonly [string, string][] = [
-  [
-    "Money back on everyday health costs",
-    "Dental, optical, physiotherapy, prescriptions and more, reimbursed up to a yearly allowance for each category.",
-  ],
-  [
-    "Therapies, consultations and diagnostics",
-    "Physiotherapy, osteopathy, acupuncture, specialist consultations and diagnostic scans, all without a referral.",
-  ],
-  [
-    "Hospital and Bupa health benefits",
-    "Cash towards hospital stays, plus a Bupa allowance for clinics, health assessments and targeted health plans.",
-  ],
-  [
-    "Pre-existing conditions covered",
-    "Every benefit covers pre-existing conditions from day one, with nothing excluded and no waiting period.",
-  ],
-  [
-    "Cover for the whole family",
-    "Add a partner and up to four children to the age of 24, each with their own full benefit allowance.",
-  ],
-  [
-    "24/7 support as standard",
-    "A confidential EAP helpline for emotional, financial and family matters, there whenever your people need it.",
-  ],
-  [
-    "Digital care in the app",
-    "A 24/7 digital GP, digital physiotherapy and mental health support, all a tap away inside YuLife.",
-  ],
-  [
-    "A benefit they open every day",
-    "Rewards for healthy habits turn the plan into something your team uses daily, not only when they claim.",
-  ],
-  [
-    "Wellbeing insights in your Employer Portal",
-    "See engagement and wellbeing trends across your team, always anonymised and never individual.",
-  ],
-];
-
-const whatYouGet: ClinicalExcellenceData = {
-  eyebrow: "What’s included",
-  heading: "What you get with your Health Cash Plan",
+// § "Everyday health, all in one place" (2520:10351) — a 3×3 grid of
+// icon+title callouts (no body, no reveal), via ClinicalExcellenceSection over
+// the static RevealCardGrid. Titles verbatim; icons reuse the four
+// /products/everyday spots as placeholders, as the design's own grid does.
+const benefitGrid: ClinicalExcellenceData = {
+  heading: "Everyday health, all in one place",
+  accent: "one place",
   body:
     "A cost-effective way to deliver meaningful engagement, everyday support, " +
     "seamless access, and measurable impact.",
-  cards: benefitTitles.map(([title, body], i) => ({
-    icon: benefitIcons[i % benefitIcons.length],
-    alt: "",
-    title,
-    body,
-  })),
-};
-
-// § Trust stats — the three ROI figures, shown as odometer cards beneath the
-// logo marquee (one band), the same treatment as the Businesses page.
-const marqueeStats: MarqueeStatsContent = {
-  cardsClassName: "max-w-[912px] desktop:grid-cols-3",
-  stats: [
-    { id: "engage", value: "1 in 2", label: "members engage daily" },
-    { id: "eap", value: "4X", label: "increase in EAP utilisation" },
-    { id: "absence", value: "12%", label: "reduction in absenteeism" },
+  cards: [
+    { icon: "/products/everyday/video-call.png", alt: "", title: "Money back on everyday health costs" },
+    { icon: "/products/everyday/medikit.png", alt: "", title: "Therapies, consultations and diagnostics" },
+    { icon: "/products/everyday/thought-bubble.png", alt: "", title: "Hospital and Bupa health benefits" },
+    { icon: "/products/everyday/tooth.png", alt: "", title: "Pre-existing conditions covered" },
+    { icon: "/products/everyday/thought-bubble.png", alt: "", title: "Cover for the whole family" },
+    { icon: "/products/everyday/medikit.png", alt: "", title: "24/7 support as standard" },
+    { icon: "/products/everyday/video-call.png", alt: "", title: "Digital care in the app" },
+    { icon: "/products/everyday/thought-bubble.png", alt: "", title: "A benefit they open every day" },
+    { icon: "/products/everyday/medikit.png", alt: "", title: "Wellbeing insights in your Employer Portal" },
   ],
 };
 
@@ -271,39 +270,62 @@ export default function Page() {
   return (
     <>
       <ImageRightHero {...hero} />
-      <MarqueeStatsSection {...marqueeStats} />
+      {/* Logo-only marquee — the trust stats now live in the fan below. */}
+      <MarqueeStatsSection />
 
-      {/* § What is a Health Cash Plan? — heading over a two-column explainer,
-          closing on the carrier QuoteBlock card (with the Bupa mark). */}
-      <section className="border-b border-line-emphasis bg-surface-inverse">
-        <div className="page-container-wide section-y-lg flex flex-col gap-section-gap">
-          <h2 className="type-heading-h2 max-w-[20ch] text-on-inverse">
-            What is a Health Cash Plan?
-          </h2>
-          <div className="grid gap-flow desktop:grid-cols-2 desktop:gap-x-section-gap">
-            <div className="flex flex-col gap-flow type-body-lg text-on-inverse">
-              <p>{introParagraphs[0]}</p>
-              <p>{introParagraphs[1]}</p>
+      {/* § What is a Health Cash Plan? (2520:10937) — the four groups stack
+          centred with the design's 120px rhythm (section-gap-xl) inside the
+          200px band (section-y-lg). Header + quote span the full 1216 band; the
+          follow-on paragraphs and the stat fan are the design's narrower 902px,
+          centred. */}
+      <section
+        data-surface="inverse"
+        className="border-b border-line-emphasis bg-surface-inverse"
+      >
+        <div className="page-container-wide section-y-lg flex flex-col items-center gap-[var(--layout-section-gap-xl)]">
+          {/* TwoCol — 747px heading column + intro, 32px gutter; the intro is
+              nudged down 48px and both columns centre against each other. */}
+          <header className="grid w-full gap-flow desktop:grid-cols-[747px_minmax(0,1fr)] desktop:items-center desktop:gap-x-controls">
+            <div className="flex flex-col gap-related">
+              <p className="type-eyebrow uppercase text-accent-purple">
+                What is a Health Cash Plan?
+              </p>
+              <h2 className="type-heading-h2 text-on-inverse">
+                What is a Health Cash Plan?
+              </h2>
             </div>
-            <div className="flex flex-col gap-flow type-body-lg text-on-inverse">
-              <p>{introParagraphs[2]}</p>
-              <p>{introParagraphs[3]}</p>
+            <div className="flex flex-col gap-flow type-body-lg text-on-inverse desktop:pt-block-gap">
+              <p>{whatIsIntro[0]}</p>
+              <p>{whatIsIntro[1]}</p>
             </div>
-          </div>
+          </header>
+
           <QuoteBlock quote={carrierQuote} carrierLogo={bupaLogo} />
+
+          {/* Follow-on — two 902px columns with the design's 120px gutter. */}
+          <div className="mx-auto grid w-full max-w-[902px] gap-flow type-body-lg text-on-inverse desktop:grid-cols-2 desktop:gap-x-[var(--layout-section-gap-xl)]">
+            <p>{whatIsOutro[0]}</p>
+            <p>{whatIsOutro[1]}</p>
+          </div>
+
+          <div className="mx-auto w-full max-w-[902px]">
+            <StatCardFan stats={trustStats} />
+          </div>
         </div>
       </section>
 
       <EverydayValueSection
-        data={solveFor}
-        panel={solveForPanel}
+        data={takeCharge}
+        panel={takeChargePanel}
         surface="inverse-raised"
       />
 
-      <ClinicalExcellenceSection data={whatYouGet} />
+      <ClinicalExcellenceSection data={benefitGrid} surface="inverse" />
 
-      <FaqSection faqs={faqs} />
-      <JoinMissionCard />
+      {/* Keep the dark/raised alternation running to the foot of the page:
+          grid (inverse) → FAQ (raised) → Join-mission (inverse). */}
+      <FaqSection faqs={faqs} surface="inverse-raised" />
+      <JoinMissionCard surface="inverse" />
     </>
   );
 }

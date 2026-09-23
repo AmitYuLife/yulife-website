@@ -2,6 +2,7 @@
 
 import { useReveal } from "@/components/hooks/useReveal";
 import { domSrc } from "@/lib/domSrc";
+import { surfaceData } from "@/lib/surface";
 import Accordion, { AccordionItem } from "@/components/ui/Accordion";
 import { Button } from "@/components/ui/Button";
 import type { Cta, FaqEntry } from "@/data/pages/types";
@@ -33,19 +34,27 @@ export default function FaqSection({
   heading = "FAQs",
   intro = DEFAULT_INTRO,
   cta = DEFAULT_CTA,
+  surface = "inverse",
 }: {
   faqs: readonly FaqEntry[];
   heading?: string;
   intro?: string;
   cta?: Cta;
+  /** Section background. Defaults to dark; the Health page runs it raised to keep
+   *  the page's dark/raised alternation correct. The accordion is bordered, so it
+   *  reads on either band. */
+  surface?: "inverse" | "inverse-raised";
 }) {
   const scope = useReveal<HTMLElement>();
 
   return (
     <section
       {...domSrc("FaqSection")}
+      {...surfaceData(surface)}
       ref={scope}
-      className="relative isolate border-b border-line-emphasis bg-surface-inverse"
+      className={`relative isolate border-b border-line-emphasis ${
+        surface === "inverse-raised" ? "bg-surface-inverse-raised" : "bg-surface-inverse"
+      }`}
       aria-labelledby="faq-heading"
     >
       <div className="page-container section-y grid gap-section-gap desktop:grid-cols-[minmax(0,1fr)_minmax(0,748px)] desktop:items-start desktop:gap-x-section-gap">

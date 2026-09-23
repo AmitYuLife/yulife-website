@@ -7,9 +7,13 @@ import { useGSAP } from "@gsap/react";
 import { Button } from "@/components/ui/Button";
 import { assetPath } from "@/lib/assetPath";
 import { domSrc } from "@/lib/domSrc";
+import { surfaceData } from "@/lib/surface";
 import type {
   EverydayValueSection as EverydayValueData,
+  EverydayValueBlock,
+  EverydayValueLayer,
   EverydayValuePanel,
+  EverydayValueWindow,
   Quote,
 } from "@/data/pages/types";
 
@@ -21,6 +25,11 @@ export type CarrierLogo = { src: string; alt: string };
 /** Matches the `desktop` breakpoint (1280px) — the sticky interaction only runs above it. */
 const DESKTOP_QUERY = "(min-width: 1280px)";
 const DIM_OPACITY = 0.35;
+
+/** Windowed visual: directional fade distance and per-layer stagger, matching
+ *  the platform floating cards' fade-up (24px, 130ms). */
+const LAYER_SHIFT = 24;
+const LAYER_STAGGER = 0.13;
 
 /** Distance from the section's content right edge to the divider line (px). */
 const RAIL_RIGHT = 624;
@@ -60,19 +69,24 @@ function roundedBorderPath(
 }
 
 /**
- * The trailing accent fragment is set in italic serif, matching the hero
- * headline. Defaults to "every day" (the Health page) when no accent is given.
+ * The `accent` fragment is set in italic serif, matching the hero headline. It is
+ * italicised wherever it falls in the heading — trailing ("engineered for
+ * *every day*") or mid-phrase ("Help your people *take charge* of their
+ * health") — so the split isn't limited to the end. Defaults to "every day"
+ * (the Health page) when no accent is given.
  */
 function Heading({ text, accent = "every day" }: { text: string; accent?: string }) {
-  if (accent && text.endsWith(` ${accent}`)) {
+  const at = accent ? text.indexOf(accent) : -1;
+  if (at !== -1) {
     return (
-      <h2 className="type-display text-on-inverse">
-        {text.slice(0, text.length - accent.length)}
+      <h2 className="type-heading-h2 whitespace-pre-line text-on-inverse">
+        {text.slice(0, at)}
         <em className="italic">{accent}</em>
+        {text.slice(at + accent.length)}
       </h2>
     );
   }
-  return <h2 className="type-display text-on-inverse">{text}</h2>;
+  return <h2 className="type-heading-h2 whitespace-pre-line text-on-inverse">{text}</h2>;
 }
 
 /**
@@ -113,11 +127,141 @@ function GradientBorderTrace() {
   );
 }
 
+/** Text with an optional italic `accent` fragment wherever it falls. */
+function WithAccent({ text, accent }: { text: string; accent?: string }) {
+  const at = accent ? text.indexOf(accent) : -1;
+  if (!accent || at === -1) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, at)}
+      <em className="italic">{accent}</em>
+      {text.slice(at + accent.length)}
+    </>
+  );
+}
+
+/** One exported foreground asset, positioned in window px as percentages so it
+ *  scales with the window. */
+function WindowLayer({
+  layer,
+  size,
+  animated,
+  hidden,
+}: {
+  layer: EverydayValueLayer;
+  size: number;
+  animated?: boolean;
+  /** Start hidden (non-first blocks in the sticky window); GSAP reveals it. */
+  hidden?: boolean;
+}) {
+  const pct = (v: number) => `${(v / size) * 100}%`;
+  return (
+    /* eslint-disable-next-line @next/next/no-img-element -- static export; drop-shadow filter needs the raw element */
+    <img
+      data-ev-layer={animated ? "" : undefined}
+      src={assetPath(layer.src)}
+      alt={layer.alt ?? ""}
+      width={layer.width}
+      height={layer.height}
+      // maxWidth inline: `max-w-none` computes to 0px in this theme.
+      className={`absolute block h-auto ${
+        layer.shadow ? "platform-floating-card-img--shadow" : ""
+      }`}
+      style={{
+        left: pct(layer.x),
+        top: pct(layer.y),
+        width: pct(layer.w),
+        maxWidth: "none",
+        ...(hidden ? { opacity: 0, visibility: "hidden" as const } : null),
+      }}
+      loading="lazy"
+      draggable={false}
+    />
+  );
+}
+
+/**
+ * The windowed visual's frame: a rounded, clipped square holding the
+ * background (full opacity; the design's 40% fade was dropped) and whatever
+ * foreground is passed.
+ * `bgOffset` (0–1) sets how far down the background the window starts, used by
+ * the static (collapsed-layout) copies; the sticky one is driven by GSAP.
+ */
+function WindowFrame({
+  win,
+  bgOffset = 0,
+  className = "",
+  children,
+}: {
+  win: EverydayValueWindow;
+  bgOffset?: number;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const bgPct = (win.backgroundHeight / win.size) * 100;
+  const travel = ((win.backgroundHeight - win.size) / win.backgroundHeight) * 100;
+  return (
+    <div
+      className={`relative aspect-square w-full max-w-[400px] overflow-hidden rounded-[var(--radius-md)] ${className}`}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element -- static export */}
+      <img
+        data-ev-window-bg
+        src={assetPath(win.background.src)}
+        alt=""
+        width={win.background.width}
+        height={win.background.height}
+        className="absolute left-0 top-0 block w-full"
+        style={{
+          maxWidth: "none",
+          height: `${bgPct}%`,
+          transform: bgOffset ? `translateY(-${bgOffset * travel}%)` : undefined,
+        }}
+        loading="lazy"
+        draggable={false}
+      />
+      {children}
+    </div>
+  );
+}
+
+/** Collapsed-layout copy of the window for one block: background parked at that
+ *  block's share of the pan, with its assets shown statically. */
+function InlineWindow({
+  win,
+  block,
+  index,
+  count,
+}: {
+  win: EverydayValueWindow;
+  block: EverydayValueBlock;
+  index: number;
+  count: number;
+}) {
+  return (
+    <WindowFrame
+      win={win}
+      bgOffset={count > 1 ? index / (count - 1) : 0}
+      className="mb-stack desktop:hidden"
+    >
+      {block.layers?.map((layer) => (
+        <WindowLayer key={layer.src} layer={layer} size={win.size} />
+      ))}
+    </WindowFrame>
+  );
+}
+
 /** A block's body — one paragraph, or several stacked <p>s. */
-function BlockBody({ body }: { body: string | readonly string[] }) {
+function BlockBody({
+  body,
+  gapClass = "gap-flow",
+}: {
+  body: string | readonly string[];
+  gapClass?: string;
+}) {
   const paragraphs = Array.isArray(body) ? body : [body as string];
   return (
-    <div className="flex flex-col gap-flow">
+    <div className={`flex flex-col ${gapClass}`}>
       {paragraphs.map((paragraph, index) => (
         <p key={index} className="type-body-lg text-on-inverse">
           {paragraph}
@@ -134,19 +278,30 @@ function BlockBody({ body }: { body: string | readonly string[] }) {
  * gradient border laps it exactly as it does the quote card.
  */
 function PanelBlock({ panel }: { panel: EverydayValuePanel }) {
+  const centred = panel.align === "center";
   return (
     <div
       data-ev-quote
-      className="relative flex w-full flex-col gap-block-gap rounded-[var(--radius-sm)] border border-line-emphasis bg-surface-inverse p-section-gap"
+      data-callout
+      {...surfaceData("inverse")}
+      className={`relative flex w-full flex-col gap-block-gap rounded-[var(--radius-sm)] border border-line-emphasis bg-surface-inverse p-section-gap ${
+        // Centred card (Figma QuoteBlock 2896:14773): 906px wide, space/80
+        // padding, copy held to a 592px centred column.
+        centred ? "mx-auto max-w-[906px] items-center text-center desktop:p-80" : ""
+      }`}
     >
       <GradientBorderTrace />
-      <h3 className="type-heading-h3 text-on-inverse">{panel.heading}</h3>
+      <div className={centred ? "flex max-w-[592px] flex-col gap-24" : "contents"}>
+      <h3 className="type-heading-h3 whitespace-pre-line text-on-inverse">
+        <WithAccent text={panel.heading} accent={panel.accent} />
+      </h3>
       <div className="flex flex-col gap-flow">
         {panel.paragraphs.map((paragraph, index) => (
           <p key={index} className="type-body-lg text-on-inverse">
             {paragraph}
           </p>
         ))}
+      </div>
       </div>
       {panel.cta && (
         <div>
@@ -178,6 +333,8 @@ export function QuoteBlock({
   return (
     <figure
       data-ev-quote
+      data-callout
+      {...surfaceData("inverse-raised")}
       className="relative flex w-full flex-col gap-flow rounded-[var(--radius-md)] border border-line-emphasis bg-surface-inverse-raised p-[var(--gap-group)]"
     >
       <GradientBorderTrace />
@@ -257,7 +414,7 @@ export default function EverydayValueSection({
   surface?: "inverse" | "inverse-raised";
 }) {
   const root = useRef<HTMLDivElement>(null);
-  const { eyebrow, heading, accent, lead, body, blocks } = data;
+  const { eyebrow, heading, accent, lead, body, blocks, window: win } = data;
   const sectionBgClass =
     surface === "inverse-raised" ? "bg-surface-inverse-raised" : "bg-surface-inverse";
 
@@ -270,6 +427,19 @@ export default function EverydayValueSection({
       mm.add(DESKTOP_QUERY, () => {
         const blockEls = gsap.utils.toArray<HTMLElement>("[data-ev-block]", el);
         const imageEls = gsap.utils.toArray<HTMLElement>("[data-ev-image]", el);
+        // Windowed visual: one layer group per block, plus the panning background.
+        const layerGroups = gsap.utils.toArray<HTMLElement>("[data-ev-layers]", el);
+        const windowBg = el.querySelector<HTMLElement>(
+          "[data-ev-sticky-window] [data-ev-window-bg]",
+        );
+        const layersOf = (i: number) =>
+          layerGroups[i]
+            ? Array.from(layerGroups[i].querySelectorAll<HTMLElement>("[data-ev-layer]"))
+            : [];
+        const bgTravel = () =>
+          windowBg?.parentElement
+            ? windowBg.offsetHeight - windowBg.parentElement.offsetHeight
+            : 0;
         if (!blockEls.length) return;
 
         // Reduced-motion visitors still get the scroll-driven highlight (it is
@@ -293,6 +463,50 @@ export default function EverydayValueSection({
               overwrite: true,
             }),
           );
+
+          // Windowed visual: the outgoing block's assets fade out the way you're
+          // scrolling and the incoming ones fade in from the opposite side,
+          // staggered like the platform floating cards — rising from below on
+          // the way down, dropping in from above on the way back up.
+          if (layerGroups.length) {
+            if (prev < 0 || reduce) {
+              layerGroups.forEach((_, i) =>
+                gsap.set(layersOf(i), { autoAlpha: i === index ? 1 : 0, y: 0 }),
+              );
+              // Reduced motion: no scrubbed pan — step the background instead.
+              if (reduce && windowBg && blockEls.length > 1) {
+                gsap.set(windowBg, {
+                  y: -(bgTravel() * index) / (blockEls.length - 1),
+                });
+              }
+              return;
+            }
+            const dir = index > prev ? 1 : -1;
+            layerGroups.forEach((_, i) => {
+              if (i !== prev && i !== index) gsap.set(layersOf(i), { autoAlpha: 0, y: 0 });
+            });
+            gsap.to(layersOf(prev), {
+              autoAlpha: 0,
+              y: -LAYER_SHIFT * dir,
+              duration: dur * 0.6,
+              ease: "power2.in",
+              overwrite: true,
+            });
+            gsap.fromTo(
+              layersOf(index),
+              { autoAlpha: 0, y: LAYER_SHIFT * dir },
+              {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.52,
+                ease: "power3.out",
+                delay: dur * 0.3,
+                stagger: { each: LAYER_STAGGER, from: dir > 0 ? "start" : "end" },
+                overwrite: true,
+              },
+            );
+            return;
+          }
 
           // First paint (and reduced motion): swap instantly, no flip.
           if (prev < 0 || reduce) {
@@ -325,6 +539,26 @@ export default function EverydayValueSection({
             .to(incoming, { rotateY: 0, duration: half, ease: "power2.out" }, half);
         };
         setActive(0);
+
+        // Windowed parallax: the background pans through its full height as
+        // the blocks pass the viewport centre — top of the image on the first
+        // block, bottom on the last (Figma offsets 0 → −234 → −466 in a 400px
+        // window) — and reverses on the way back up. Scrubbed, so position-driven.
+        let parallax: gsap.core.Tween | null = null;
+        if (windowBg && !reduce && blockEls.length > 1) {
+          parallax = gsap.to(windowBg, {
+            y: () => -bgTravel(),
+            ease: "none",
+            scrollTrigger: {
+              trigger: blockEls[0],
+              start: "center center",
+              endTrigger: blockEls[blockEls.length - 1],
+              end: "center center",
+              scrub: true,
+              invalidateOnRefresh: true,
+            },
+          });
+        }
 
         // One trigger per block: it owns "active" for the whole stretch its box
         // straddles the viewport centre. In the gaps between blocks the last
@@ -375,8 +609,11 @@ export default function EverydayValueSection({
               (w - 2 * inset) / 2,
               (h - 2 * inset) / 2,
             );
-            // Where the straight rail meets the block's top edge.
-            const junctionX = Math.min(Math.max(w - RAIL_RIGHT, r), w - r);
+            // Where the straight rail meets the block's top edge. The rail sits
+            // RAIL_RIGHT in from the wrapper's right edge; measure from the
+            // card's own left so a narrower, centred card still meets it.
+            const railX = (railWrap?.offsetWidth ?? w) - RAIL_RIGHT - quoteEl.offsetLeft;
+            const junctionX = Math.min(Math.max(railX, r), w - r);
             svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
             path.setAttribute("d", roundedBorderPath(w, h, r, inset, junctionX));
           }
@@ -454,6 +691,8 @@ export default function EverydayValueSection({
         return () => {
           triggers.forEach((t) => t.kill());
           railTriggers.forEach((t) => t.kill());
+          parallax?.scrollTrigger?.kill();
+          parallax?.kill();
           ro?.disconnect();
           ScrollTrigger.removeEventListener("refresh", measure);
         };
@@ -467,9 +706,17 @@ export default function EverydayValueSection({
   return (
     <section
       {...domSrc("EverydayValueSection")}
-      className={`section-y border-b border-line-emphasis ${sectionBgClass}`}
+      {...surfaceData(surface)}
+      className={`${win ? "section-y-lg" : "section-y"} border-b border-line-emphasis ${sectionBgClass}`}
     >
-      <div ref={root} className="page-container-wide flex flex-col gap-section-gap">
+      {/* Windowed variant (Figma 2896:14747): layout/section-y-lg padding and
+          a 120px (--layout-section-gap-xl) gap from the header to the scroll. */}
+      <div
+        ref={root}
+        className={`page-container-wide flex flex-col ${
+          win ? "gap-[var(--layout-section-gap-xl)]" : "gap-section-gap"
+        }`}
+      >
         {/* Header — display headline (left) + supporting copy (bottom-aligned
             right). The copy column is a fixed 440px flush to the right edge, so
             it shares an edge with the scroll section's text column below. */}
@@ -480,14 +727,19 @@ export default function EverydayValueSection({
           </div>
           <div className="flex flex-col gap-flow">
             <p className="type-body-lg text-on-inverse">{lead}</p>
-            <p className="type-body-lg text-on-inverse">{body}</p>
+            {body && <p className="type-body-lg text-on-inverse">{body}</p>}
           </div>
         </header>
 
         {/* Rail wrapper — spans the scroll feature and the quote block so the
             continuous emphasis line and its comet can run from the first block
             all the way down to the quote block's top border. */}
-        <div data-ev-railwrap className="relative flex flex-col gap-section-gap">
+        {/* Windowed variant: the closing card follows the last row's 80px
+            bottom pad directly, as the design's spacer row does. */}
+        <div
+          data-ev-railwrap
+          className={`relative flex flex-col gap-section-gap ${win ? "desktop:gap-0" : ""}`}
+        >
           {/* Persistent emphasis line — faint, full length. Height is set at
               runtime to reach the quote block's top edge. Inset 5rem at the top
               to line up with the first block. */}
@@ -516,7 +768,35 @@ export default function EverydayValueSection({
               copy column above. Left column = 1216 − 184 gap − 440 = 592, the
               design's image-container width. */}
           <div className="relative grid w-full gap-flow desktop:grid-cols-[minmax(0,1fr)_440px] desktop:items-stretch desktop:gap-x-[184px] desktop:py-[5rem]">
-            {/* Image column (left): sticky, crossfading illustration. */}
+            {/* Image column (left): the sticky parallax window, or the sticky,
+                crossfading illustration. */}
+            {win ? (
+              // Inset the sticky range by half the row/window difference
+              // ((600 − 400) / 2) so the window starts centred on the first
+              // row and stops centred on the last, never beyond either.
+              <div className="hidden desktop:block desktop:py-[calc((600px-400px)/2)]">
+                <div
+                  data-ev-sticky-window
+                  className="sticky top-[calc(50vh-200px)] flex justify-center"
+                >
+                  <WindowFrame win={win}>
+                    {blocks.map((block, i) => (
+                      <div key={block.title} data-ev-layers className="absolute inset-0">
+                        {block.layers?.map((layer) => (
+                          <WindowLayer
+                            key={layer.src}
+                            layer={layer}
+                            size={win.size}
+                            animated
+                            hidden={i !== 0}
+                          />
+                        ))}
+                      </div>
+                    ))}
+                  </WindowFrame>
+                </div>
+              </div>
+            ) : (
             <div className="hidden desktop:block">
               <div className="sticky top-[calc(50vh-218px)] relative h-[436px] w-full [perspective:1000px]">
                 {/* Crossfading illustration, centred in the container */}
@@ -524,8 +804,8 @@ export default function EverydayValueSection({
                   <img
                     key={block.title}
                     data-ev-image
-                    src={assetPath(block.image)}
-                    alt={block.alt}
+                    src={assetPath(block.image ?? "")}
+                    alt={block.alt ?? ""}
                     width={480}
                     height={480}
                     className="absolute inset-0 m-auto size-60 object-contain [backface-visibility:hidden]"
@@ -535,26 +815,38 @@ export default function EverydayValueSection({
                 ))}
               </div>
             </div>
+            )}
 
             {/* Text column (right) — aligns with the header copy column */}
             <ol className="flex flex-col gap-flow desktop:gap-0">
-              {blocks.map((block) => (
+              {blocks.map((block, i) => (
                 <li
                   key={block.title}
                   data-ev-block
-                  className="flex flex-col gap-related desktop:min-h-[436px] desktop:justify-center"
+                  // Windowed rows are the design's 600px ScrollRow, title → body
+                  // space/24; the illustration rows keep the 436px card height.
+                  className={`flex flex-col desktop:justify-center ${
+                    win ? "gap-24 desktop:min-h-[600px]" : "gap-related desktop:min-h-[436px]"
+                  }`}
                 >
-                  {/* Inline illustration — collapsed (mobile) layout only */}
-                  <img
-                    src={assetPath(block.image)}
-                    alt={block.alt}
-                    width={96}
-                    height={96}
-                    className="size-20 object-contain desktop:hidden"
-                    loading="lazy"
-                  />
+                  {/* Inline visual — collapsed (mobile) layout only */}
+                  {win ? (
+                    <InlineWindow win={win} block={block} index={i} count={blocks.length} />
+                  ) : (
+                    block.image && (
+                      <img
+                        src={assetPath(block.image)}
+                        alt={block.alt ?? ""}
+                        width={96}
+                        height={96}
+                        className="size-20 object-contain desktop:hidden"
+                        loading="lazy"
+                      />
+                    )
+                  )}
                   <h3 className="type-heading-h4 text-on-inverse">{block.title}</h3>
-                  <BlockBody body={block.body} />
+                  {/* Windowed design separates paragraphs by one 32px line. */}
+                  <BlockBody body={block.body} gapClass={win ? "gap-32" : undefined} />
                 </li>
               ))}
             </ol>

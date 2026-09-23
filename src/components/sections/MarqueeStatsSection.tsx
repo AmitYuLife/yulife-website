@@ -3,9 +3,11 @@ import StatCountCards, {
   type StatCountCardItem,
 } from "@/components/sections/StatCountCards";
 import { domSrc } from "@/lib/domSrc";
+import { surfaceData } from "@/lib/surface";
 
 export type MarqueeStatsContent = {
-  stats: readonly StatCountCardItem[];
+  /** Odometer stat cards under the marquee. Omit for a logo-only band. */
+  stats?: readonly StatCountCardItem[];
   /** Override the card grid, e.g. `desktop:grid-cols-3` for a three-stat row. */
   cardsClassName?: string;
 };
@@ -23,14 +25,17 @@ export default function MarqueeStatsSection({
   return (
     <section
       {...domSrc("MarqueeStatsSection")}
+      {...surfaceData("inverse-raised")}
       className="border-b border-line-emphasis bg-surface-inverse-raised"
       aria-label="Trusted by leading organisations"
     >
       <div className="flex flex-col items-center gap-block-gap pb-section-gap">
         <LogoMarquee />
-        <div className="page-container flex w-full justify-center">
-          <StatCountCards stats={stats} className={cardsClassName} />
-        </div>
+        {stats && stats.length > 0 && (
+          <div className="page-container flex w-full justify-center">
+            <StatCountCards stats={stats} className={cardsClassName} />
+          </div>
+        )}
       </div>
     </section>
   );

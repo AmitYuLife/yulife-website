@@ -58,13 +58,51 @@ export type ContentSection = {
 };
 
 /** One highlight in the scroll-driven "everyday value" section. */
+/**
+ * One exported foreground asset inside the windowed visual (see
+ * `EverydayValueWindow`). Positions are in the design's window coordinates
+ * (px within the square window, e.g. 400×400), so they scale with the window.
+ */
+export type EverydayValueLayer = {
+  /** Path under /public. */
+  src: string;
+  alt?: string;
+  /** Intrinsic pixel size of the exported image (e.g. its 4x export). */
+  width: number;
+  height: number;
+  /** Top-left position and rendered width in window px. */
+  x: number;
+  y: number;
+  w: number;
+  /** Add the Shadow/Card offset shadow in CSS (for exports without it baked in). */
+  shadow?: boolean;
+};
+
 export type EverydayValueBlock = {
   title: string;
   /** One paragraph, or several rendered as stacked <p>s. */
   body: string | readonly string[];
-  /** Spot illustration shown in the card while this block is active; path under /public. */
-  image: string;
-  alt: string;
+  /**
+   * Spot illustration shown in the card while this block is active; path under
+   * /public. Unused when the section has a `window` visual.
+   */
+  image?: string;
+  alt?: string;
+  /** Windowed visual only: the exported assets shown while this block is active. */
+  layers?: readonly EverydayValueLayer[];
+};
+
+/**
+ * Windowed visual for `EverydayValueSection`: a sticky rounded window holding a
+ * tall background that pans with scroll (parallax) behind each block's
+ * exported foreground `layers`, which fade in from the scroll direction.
+ */
+export type EverydayValueWindow = {
+  /** Window edge in design px (it's square). */
+  size: number;
+  background: { src: string; width: number; height: number };
+  /** Background height in window px (e.g. 868 in a 400 window). */
+  backgroundHeight: number;
 };
 
 /**
@@ -82,8 +120,11 @@ export type EverydayValueSection = {
   accent?: string;
   /** Bold lead line above the supporting paragraph. */
   lead: string;
-  body: string;
+  /** Supporting paragraph. Omit when the header has a single paragraph. */
+  body?: string;
   blocks: EverydayValueBlock[];
+  /** Replace the flipping spot illustration with the windowed parallax visual. */
+  window?: EverydayValueWindow;
 };
 
 /**
@@ -92,6 +133,10 @@ export type EverydayValueSection = {
  */
 export type EverydayValuePanel = {
   heading: string;
+  /** Fragment of `heading` set in italic serif. */
+  accent?: string;
+  /** "center" = the narrower, centred card (Wellbeing Hub). Defaults to left. */
+  align?: "left" | "center";
   paragraphs: readonly string[];
   /** Optional button rendered beneath the paragraphs. */
   cta?: Cta;
@@ -103,8 +148,11 @@ export type ClinicalExcellenceCard = {
   icon: string;
   alt: string;
   title: string;
-  /** May contain unicode superscripts (¹²³*) tying into the section footnote. */
-  body: string;
+  /**
+   * May contain unicode superscripts (¹²³*) tying into the section footnote.
+   * Omit for an icon+title-only card with no hover reveal (the Cash Plan grid).
+   */
+  body?: string;
 };
 
 /**
@@ -114,8 +162,11 @@ export type ClinicalExcellenceCard = {
  * section, the same way `everydayValue` replaces its grey-box equivalent.
  */
 export type ClinicalExcellenceSection = {
-  eyebrow: string;
+  /** Optional overline; omit for a heading-only header (the Cash Plan grid). */
+  eyebrow?: string;
   heading: string;
+  /** Fragment of `heading` set in italic serif (trailing or mid-phrase). */
+  accent?: string;
   body: string;
   cards: ClinicalExcellenceCard[];
   footnote?: string;
@@ -139,6 +190,8 @@ export type ProvenRoiStat = {
 export type ProvenRoiSection = {
   eyebrow: string;
   heading: string;
+  /** Word(s) within `heading` to italicise (e.g. "wellbeing"). Optional. */
+  emphasis?: string | readonly string[];
   body: string;
   stats: ProvenRoiStat[];
 };
@@ -158,8 +211,11 @@ export type YunityStep = {
  */
 export type YunitySection = {
   heading: string;
-  /** Word within `heading` to italicise (e.g. "smarter"). Optional. */
-  emphasis?: string;
+  /**
+   * Word(s) within `heading` to italicise (e.g. "smarter", or
+   * ["more", "smarter"]). Matches `YunityContent`'s emphasis. Optional.
+   */
+  emphasis?: string | readonly string[];
   body: string;
   steps: YunityStep[];
 };

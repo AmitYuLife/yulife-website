@@ -39,7 +39,16 @@ const EMPTY: Geometry = { width: 0, height: 0, topPoints: [], star: null, bottom
  * root-points at the top edge feed the animated connecting roots down into the
  * star. Copy is passed in, so pages can reuse it with their own wording.
  */
-export default function YunitySection({ data }: { data: YunityData }) {
+export default function YunitySection({
+  data,
+  surface = "inverse-raised",
+}: {
+  data: YunityData;
+  /** Section background. Defaults to raised; the Health page runs it dark to keep
+   *  the page's dark/raised alternation correct. The stat cards are bordered and
+   *  sit on `surface-inverse`, so they read on either band. */
+  surface?: "inverse" | "inverse-raised";
+}) {
   const revealScope = useReveal<HTMLElement>();
   const rootRef = useRef<HTMLElement | null>(null);
   const [geo, setGeo] = useState<Geometry>(EMPTY);
@@ -144,7 +153,9 @@ export default function YunitySection({ data }: { data: YunityData }) {
     <section
       {...domSrc("YunitySection")}
       ref={setRefs}
-      className="relative isolate overflow-hidden border-b border-line-emphasis bg-surface-inverse-raised"
+      className={`relative isolate overflow-hidden border-b border-line-emphasis ${
+        surface === "inverse-raised" ? "bg-surface-inverse-raised" : "bg-surface-inverse"
+      }`}
       aria-labelledby="yunity-section-heading"
     >
       {/* Live connecting diagram — above the band background, behind content. */}

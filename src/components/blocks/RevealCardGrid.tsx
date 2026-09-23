@@ -13,8 +13,32 @@ export type RevealCardGridItem = {
   icon: string;
   alt: string;
   title: string;
-  body: string;
+  /** Copy revealed on hover/tap. Omit for a static icon+title cell (no reveal). */
+  body?: string;
 };
+
+/**
+ * Static cell — icon + title only, no reveal. Used when a card carries no body
+ * copy (e.g. the Cash Plan "Everyday health, all in one place" grid, which is
+ * the Callout in its closed state with nothing behind it to turn to).
+ */
+function StaticCard({ item }: { item: RevealCardGridItem }) {
+  return (
+    <li
+      className={`flex ${CELL_HEIGHT} flex-col items-center justify-center gap-group bg-surface-inverse-raised p-32 text-center tablet:p-40`}
+    >
+      <img
+        src={assetPath(item.icon)}
+        alt=""
+        width={120}
+        height={120}
+        className="h-120 w-auto object-contain"
+        loading="lazy"
+      />
+      <span className="type-heading-h4 text-on-inverse">{item.title}</span>
+    </li>
+  );
+}
 
 function prefersHoverInteraction() {
   return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -173,9 +197,13 @@ export default function RevealCardGrid({
         columns === 3 ? "lg:grid-cols-3" : ""
       } ${className}`}
     >
-      {items.map((item) => (
-        <RevealCard key={item.title} item={item} />
-      ))}
+      {items.map((item) =>
+        item.body ? (
+          <RevealCard key={item.title} item={item} />
+        ) : (
+          <StaticCard key={item.title} item={item} />
+        ),
+      )}
     </ul>
   );
 }

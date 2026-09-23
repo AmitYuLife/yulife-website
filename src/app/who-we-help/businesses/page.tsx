@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import ImageRightHero, { type ImageRightHeroContent } from "@/components/sections/ImageRightHero";
-import MarqueeStatsSection, {
-  type MarqueeStatsContent,
-} from "@/components/sections/MarqueeStatsSection";
-import IntroSection, {
-  type IntroSectionContent,
-} from "@/components/sections/IntroSection";
+import LogoMarquee from "@/components/blocks/LogoMarquee";
+import ProvenRoiSection from "@/components/sections/ProvenRoiSection";
 import LaunchStepsSection, {
   type LaunchStepsContent,
 } from "@/components/sections/LaunchStepsSection";
@@ -14,7 +10,7 @@ import PillarsSection from "@/components/sections/PillarsSection";
 import TrustedSection from "@/components/sections/TrustedSection";
 import JoinMissionCard from "@/components/sections/JoinMissionCard";
 import FaqSection from "@/components/sections/FaqSection";
-import type { FaqEntry } from "@/data/pages/types";
+import type { FaqEntry, ProvenRoiSection as ProvenRoiData } from "@/data/pages/types";
 import { getPageByRoute } from "@/data/sitemap";
 import { assetPath } from "@/lib/assetPath";
 
@@ -55,25 +51,48 @@ const hero: ImageRightHeroContent = {
   },
 };
 
-// Stats + intro copy from the Figma design (nodes 2495:7526, 2495:7539). Verify
-// against the approved copy doc — and confirm the four figures are cleared for
-// the employer audience — before launch.
-const marqueeStats: MarqueeStatsContent = {
-  stats: [
-    { id: "covered", value: "1m+", label: "employees covered globally" },
-    { id: "risk", value: "25%", label: "lower risk" },
-    { id: "adoption", value: "80%", label: "adoption" },
-    { id: "sick-days", value: "12%", label: "fewer sick days" },
-  ],
-};
-
-const intro: IntroSectionContent = {
+// "The proof" intro (Figma node 2495:7539) — eyebrow, serif heading and body
+// over a fan of four stat cards. Copy transcribed from the design; the four
+// figures are the same set previously shown as odometer cards under the logo
+// marquee, now the StatCardFan. Card notes reuse the approved homepage
+// `ecosystem` copy for the three shared figures; the "1m+" note is authored to
+// ToV (⚑) as the design/doc give only value + label. Sources from the copy doc.
+const provenRoi: ProvenRoiData = {
+  eyebrow: "The proof",
   heading: "Where insurance meets wellbeing",
-  paragraphs: [
-    "We bring group insurance, everyday wellbeing and real rewards into one " +
-      "experience, so your people get value from their cover long before they " +
-      "ever need to claim.",
-    "The result: healthier employees, a business that runs better, lower insurance risk.",
+  emphasis: "wellbeing",
+  body:
+    "YuLife is an AI-forward insurtech and an employee benefit. We bring group " +
+    "insurance, everyday wellbeing and real rewards into one experience, so your " +
+    "people get value from their cover long before they ever need to claim. The " +
+    "result is a healthier business, healthier team and lower insurance risk.",
+  stats: [
+    {
+      value: "1m+",
+      label: "employees covered globally",
+      // ⚑ Authored to ToV — design/doc give only the figure and label.
+      note:
+        "One of the UK’s most widely held employee benefits, trusted by teams " +
+        "from startups to global enterprises.",
+      source: "YuLife internal data, 2026",
+    },
+    {
+      value: "25%",
+      label: "lower risk",
+      note: "Our model reaches the people other platforms miss, ensuring your investment works for the whole workforce.",
+    },
+    {
+      value: "80%",
+      label: "adoption",
+      note: "Engaged YuLife users have significantly fewer claims, supporting more sustainable premiums over time.",
+      source: "YuLife internal data, 2026",
+    },
+    {
+      value: "12%",
+      label: "fewer sick days",
+      note: "Active prevention and daily engagement build healthier teams with fewer sick days.",
+      source: "Forrester Consulting, The Total Economic Impact of YuLife, 2023",
+    },
   ],
 };
 
@@ -172,8 +191,18 @@ export default function Page() {
   return (
     <>
       <ImageRightHero {...hero} />
-      <MarqueeStatsSection {...marqueeStats} />
-      <IntroSection {...intro} />
+
+      {/* Client logo marquee — logos only (the stats moved into the "proof"
+          section below). LogoMarquee carries its own vertical padding, so no
+          extra wrapper spacing. */}
+      <section
+        className="border-b border-line-emphasis bg-surface-inverse-raised"
+        aria-label="Trusted by leading organisations"
+      >
+        <LogoMarquee />
+      </section>
+
+      <ProvenRoiSection data={provenRoi} />
       <LaunchStepsSection content={launchSteps} />
       {/*
         Below here mirrors the home page (Figma node 1479:2532) — same

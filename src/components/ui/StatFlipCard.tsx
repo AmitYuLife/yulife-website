@@ -26,7 +26,7 @@ const TILT_MAX_DEG_OPEN = TILT_MAX_DEG * 1.16;
 
 // Hatch-gradient sweep easing (same fix as HeroHeadline's gradient tracking:
 // ease toward the pointer via rAF, decoupled from pointermove's event rate,
-// instead of a CSS transition — see hero-accent-gradient-interactive).
+// instead of a CSS transition — see HeroHeadline).
 const HATCH_EASE_FACTOR = 0.25; // share of the remaining distance closed each frame
 const HATCH_SETTLE_THRESHOLD_DEG = 0.5; // stop the rAF loop once this close to target
 

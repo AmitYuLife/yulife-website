@@ -15,7 +15,8 @@ import {
 gsap.registerPlugin(useGSAP);
 
 const LOGO_HEIGHT_PX = 34;
-const LOGO_GAP_PX = 56;
+// Figma LogoItems gap (space/64); kept numeric because the loop maths needs it.
+const LOGO_GAP_PX = 64;
 const LOGO_SLOT_MAX_PX = 132;
 /** Scroll speed — keeps loop duration proportional to track width. */
 const PIXELS_PER_SECOND = 24;
@@ -158,8 +159,9 @@ function MarqueeRow({
     { dependencies: [direction, copyCount] },
   );
 
+  // Figma LogoBar rows are 40px tall (space/40) with the logos centred in them.
   return (
-    <div ref={containerRef} className="overflow-hidden py-2.5">
+    <div ref={containerRef} className="flex h-40 items-center overflow-hidden">
       <div
         ref={trackRef}
         className="flex w-max will-change-transform"
@@ -184,7 +186,7 @@ function MarqueeRow({
  */
 export default function LogoMarquee({ rowCount = 2 }: { rowCount?: 1 | 2 } = {}) {
   return (
-    <div {...domSrc("LogoMarquee")} className="hero-marquee w-full py-14 md:py-20">
+    <div {...domSrc("LogoMarquee")} className="hero-marquee w-full py-48 tablet:py-80">
       <div
         className="relative flex flex-col gap-flow"
         style={{

@@ -76,11 +76,17 @@ const SLAM_DURATION = 0.1;
 // canvas-diagonals per second so it reads identically at every breakpoint.
 const BURST_SPEED_MIN = 1.45;
 const BURST_SPEED_MAX = 5.5;
-// `power1.out` covers its distance in `2 * distance / v0` (GSAP's power1 is
-// quadratic — power2 is cubic and would start 1.5x faster for the same
-// duration), so the flight time follows from the speed the pull earned.
-const BURST_EASE = "power1.out";
-const BURST_VELOCITY_FACTOR = 2;
+// The burst thrusts rather than coasts: it leaves at the speed the pull earned
+// and keeps accelerating until it clears the card. (`power1.out` decelerated
+// the whole way — the rocket was braking as it left, down to ~40% of its
+// launch speed at the card edge, which read as sluggish.) The ease is
+// k·p + (1−k)·p²: its slope starts at k and ends at 2−k, so with k = 0.6 the
+// rocket exits ~2.3x faster than it launched. Starting velocity is
+// k·distance/duration, so duration = k·distance/v0.
+const BURST_THRUST_K = 0.6;
+const BURST_EASE = (p: number) =>
+  BURST_THRUST_K * p + (1 - BURST_THRUST_K) * p * p;
+const BURST_VELOCITY_FACTOR = BURST_THRUST_K;
 // Stretch added along the rocket's axis at full pull (weak pulls barely any).
 const BURST_STRETCH = 0.3;
 
@@ -487,14 +493,15 @@ export default function RocketSlingshot() {
         const loadY = -Math.sin(rad) * load;
 
         // Speed comes from the pull, and is the velocity on the launch's very
-        // first frame because the ease is front-loaded. (`power2.in` here would
-        // instead start at zero velocity, which made the release feel like a
-        // delay rather than a launch.)
+        // first frame — the thrust ease starts with real velocity and only
+        // builds from there. (`power2.in` here would instead start at zero
+        // velocity, which made the release feel like a delay rather than a
+        // launch.) The clamp only guards against extreme exit distances.
         const speed =
           diag * (BURST_SPEED_MIN + power * (BURST_SPEED_MAX - BURST_SPEED_MIN));
         const burstDuration = gsap.utils.clamp(
-          0.25,
-          1,
+          0.1,
+          0.6,
           (BURST_VELOCITY_FACTOR * travel) / speed,
         );
         const stretch = 1 + power * BURST_STRETCH;
@@ -788,7 +795,7 @@ export default function RocketSlingshot() {
           }}
         >
           <div className="rocket-slingshot-float-flame size-full">
-            <picture className="size-full">
+            <picture className="rocket-slingshot-flame-flicker block size-full">
               <source srcSet={assetPath("/home/flame.webp")} type="image/webp" />
               <img
                 src={assetPath("/home/flame.png")}

@@ -34,6 +34,7 @@ export default function QuoteBlock({
   return (
     <figure
       {...domSrc("QuoteBlock")}
+      data-callout
       className={cn(
         "flex w-full flex-col gap-flow rounded-[var(--radius-sm)] border border-line-emphasis bg-surface-inverse-raised p-32 tablet:p-40 desktop:p-80",
         className,

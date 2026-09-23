@@ -102,6 +102,35 @@ export default function FoundationsPage() {
         </div>
       </section>
 
+      {/* Headline accents */}
+      <section>
+        <SectionHeading
+          title="Headline accents"
+          subtitle="An italic word (<em>) in any heading is accent yellow; inside a callout card (data-callout — the bordered quote / panel boxes) it's accent blue. The homepage hero keeps its own gradient. Set globally in globals.css, so specimens below are live."
+        />
+        <div className="flex flex-col gap-flow rounded-md bg-surface-inverse p-40">
+          <div className="flex flex-col gap-inline">
+            <h2 className="type-heading-h2 text-on-inverse">
+              Benefits people can <em className="italic">find</em>
+            </h2>
+            <code className="type-caption text-on-inverse">
+              h1–h6 em · --text-accent-yellow
+            </code>
+          </div>
+          <div
+            data-callout
+            className="flex max-w-[906px] flex-col gap-inline rounded-[var(--radius-sm)] border border-line-emphasis bg-surface-inverse p-40"
+          >
+            <h3 className="type-heading-h3 text-on-inverse">
+              Give your people a benefit worth <em className="italic">coming back</em> to
+            </h3>
+            <code className="type-caption text-on-inverse">
+              [data-callout] heading / blockquote em · --text-accent-blue
+            </code>
+          </div>
+        </div>
+      </section>
+
       {/* Spacing */}
       <section>
         <SectionHeading title="Spacing" subtitle="Fixed pixel scale — p-16, gap-64, etc." />

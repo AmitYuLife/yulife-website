@@ -2,26 +2,24 @@ import { assetPath } from "@/lib/assetPath";
 
 /**
  * UI sound player for the ChallengeSuccess app screen. Plays two small static
- * MP3s (originally from uisfx.com's `minimal` pack, CC0) via the Web Audio
- * API. Deliberately file-based rather than uisfx's runtime synthesis: we only
- * ever need these two fixed cues, so shipping ~8KB of audio that lazy-loads on
- * first interaction beats bundling the ~12KB-gzip synthesis engine into the
- * homepage's critical JS.
+ * MP3s bundled in /public via the Web Audio API, both from Kenney's Interface
+ * Sounds pack (CC0), converted from OGG so every browser, Safari included,
+ * can decode them.
  *
  * Cues:
- *  - `long-press` — the hold-to-collect button press.
- *  - `reward`     — the coin landing in the YuCoinCounter.
+ *  - `press`   — the hold-to-collect button press (`toggle_001`).
+ *  - `collect` — the coin landing in the YuCoinCounter (`confirmation_002`).
  *
  * Nothing here runs at page load: the AudioContext is created, and the files
  * fetched/decoded, only on the first `playCue` call — which is always the
  * button's press-down, i.e. a user gesture, so the context is allowed to start.
  */
 
-type Cue = "long-press" | "reward";
+type Cue = "press" | "collect";
 
 const SOUND_URLS: Record<Cue, string> = {
-  "long-press": assetPath("/app-screens/challenge-success/long-press.mp3"),
-  reward: assetPath("/app-screens/challenge-success/reward.mp3"),
+  press: assetPath("/app-screens/challenge-success/button-press.mp3"),
+  collect: assetPath("/app-screens/challenge-success/yucoin-collect.mp3"),
 };
 const MASTER_VOLUME = 0.6;
 
@@ -78,18 +76,18 @@ function playBuffer(context: AudioContext, buffer: AudioBuffer) {
 /**
  * Play a cue. Must first be reached from a user gesture (the collect button's
  * press-down) so the browser lets the AudioContext start — that press always
- * precedes the later reward chime, so by then the context is already running.
+ * precedes the later collect chime, so by then the context is already running.
  */
 export function playCue(cue: Cue) {
   const context = getCtx();
   if (!context) return;
   if (context.state === "suspended") void context.resume();
-  // On the first gesture, warm both cues so the reward chime that follows is
+  // On the first gesture, warm both cues so the collect chime that follows is
   // already decoded and latency-free when it fires.
   if (!warmed) {
     warmed = true;
-    void loadBuffer("long-press");
-    void loadBuffer("reward");
+    void loadBuffer("press");
+    void loadBuffer("collect");
   }
   const cached = buffers.get(cue);
   if (cached) {

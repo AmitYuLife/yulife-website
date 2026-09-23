@@ -38,7 +38,7 @@ wireframing phase. The same structure drives the live scaffold
 | **Solutions** (secondary) | Solutions (landing) | `/solutions` | ⚪ | — | Section hub |
 | | Employee Engagement | `/solutions/employee-engagement` | 🟢 | Employee Engagement | |
 | | Rewards | `/solutions/rewards` | 🟢 | Incentives & Rewards | |
-| | Benefit Consolidation | `/solutions/benefit-consolidation` | ⚪ | — | In IA, no copy yet |
+| | Wellbeing Hub | `/solutions/wellbeing-hub` | 🟢 | Figma 2896:14660 | Formerly Benefit Consolidation |
 | | Mental Health & EAP | `/solutions/mental-health-eap` | 🟢 | Mental Health (EAP) | |
 | | Virtual GP | `/solutions/virtual-gp` | 🟢 | Virtual GP | |
 | | Wellbeing Insights & Reporting | `/solutions/wellbeing-insights-reporting` | 🟢 | Reporting | |
@@ -54,7 +54,7 @@ wireframing phase. The same structure drives the live scaffold
 These are the points where the agreed IA and the content doc don't line up. Flagged in the scaffold and diagram so nothing gets lost.
 
 ### Gaps — pages in the IA with no copy (FACT)
-`Dental Insurance` and `Wellbeing Platform (SaaS)` (Products), `Benefit Consolidation` (Solutions), and the whole Resources section (`Case Studies`, `Blog`, `News & Events`, `Ebooks`) have no copy in the doc. These are real, agreed pages — they need copy commissioned before they can be built beyond placeholder.
+`Dental Insurance` and `Wellbeing Platform (SaaS)` (Products), and the whole Resources section (`Case Studies`, `Blog`, `News & Events`, `Ebooks`) have no copy in the doc. These are real, agreed pages — they need copy commissioned before they can be built beyond placeholder.
 
 ### Orphan — copy with no home (DECISION NEEDED)
 **Reward & Recognition** has full approved copy in the content doc but does not appear in the "Revised" frame. I've parked it under `/solutions/reward-and-recognition` and flagged it. *Decision:* confirm it belongs in Solutions, or remove it from scope.
@@ -72,7 +72,7 @@ These are the points where the agreed IA and the content doc don't line up. Flag
 
 ## Recommendations
 
-1. **Commission copy for the 8 stub-only content pages** (Dental, Wellbeing Platform, Benefit Consolidation, and the four Resources pages) — these block wireframing.
+1. **Commission copy for the 6 stub-only content pages** (Dental, Wellbeing Platform, and the four Resources pages) — these block wireframing.
 2. **Resolve the three naming decisions** (Who we help / Solutions vs Features / public name for SaaS) early — they set URLs and redirects.
 3. **Make a call on Reward & Recognition** (keep under Solutions or drop) and on **Individuals** (standalone vs folded).
 4. Treat each page as a stack of **sections**, not a monolith — see `README.md`. There is no

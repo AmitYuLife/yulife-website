@@ -3,6 +3,7 @@ import "./globals.css";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import IntroFlashGuard from "@/components/layout/IntroFlashGuard";
+import SectionSurfaceAuditor from "@/components/dev/SectionSurfaceAuditor";
 import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +58,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Header />
         <main>{children}</main>
         <Footer />
+        {/* Dev-only: warns when section backgrounds stop alternating. Inert and
+            dead-code-eliminated in production. */}
+        {process.env.NODE_ENV !== "production" && <SectionSurfaceAuditor />}
       </body>
     </html>
   );

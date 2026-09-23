@@ -177,6 +177,10 @@ export const products = {
 export type PillarVideo = {
   mp4: string;
   poster: string;
+  /** Horizontal object-position on mobile, where the video crops tightly and
+   *  no floating cards cover it: the subject's face centre. Tablet and up
+   *  always crop to the right edge so the face clears the floating cards. */
+  focusX: string;
 };
 
 export const pillars = [
@@ -187,12 +191,13 @@ export const pillars = [
     video: {
       mp4: assetPath("/home/platform/engage.mp4"),
       poster: assetPath("/home/platform/engage-poster.jpg"),
+      focusX: "50%",
     },
     bullets: [
-      "Daily Health Challenges: Our gamified app transforms walking, meditation, and cycling into a rewarding daily quest.",
-      "Seamless Connectivity: Integrates instantly with Garmin, Fitbit, Apple Health, and Google Fit to track every move.",
-      "Real-World Rewards: Earn YuCoin for healthy habits to spend at Amazon, Nike, and Tesco, or fund global impact projects.",
-      'Team Challenges: Spark healthy competition with company-wide leaderboards and 1-on-1 "Duels."',
+      { title: "Daily Health Challenges", description: "Our gamified app transforms walking, meditation, and cycling into a rewarding daily quest.", href: "/solutions/employee-engagement/" },
+      { title: "Seamless Connectivity", description: "Integrates instantly with Garmin, Fitbit, Apple Health, and Google Fit to track every move.", href: "/products/wellbeing-platform/" },
+      { title: "Real-World Rewards", description: "Earn YuCoin for healthy habits to spend at Amazon, Nike, and Tesco, or fund global impact projects.", href: "/solutions/rewards/" },
+      { title: "Team Challenges", description: "Spark healthy competition with company-wide leaderboards and 1-on-1 \"Duels.\"", href: "/solutions/employee-engagement/" },
     ],
   },
   {
@@ -202,12 +207,13 @@ export const pillars = [
     video: {
       mp4: assetPath("/home/platform/prevent.mp4"),
       poster: assetPath("/home/platform/prevent-poster.jpg"),
+      focusX: "46%",
     },
     bullets: [
-      "Daily Reflections: Short, daily check-ins that sense shifts in stress and energy and trigger support when patterns change.",
-      "24/7 Virtual GP: Unlimited video calls and private prescriptions available at your team's fingertips.",
-      "Comprehensive EAP: 24/7 mental health support and CBT tools triggered by real-life signals.",
-      "Centralised Employee Benefits Hub: One digital home for all your company's insurance and wellness policies.",
+      { title: "Daily Reflections", description: "Short, daily check-ins that sense shifts in stress and energy and trigger support when patterns change.", href: "/products/wellbeing-platform/" },
+      { title: "24/7 Virtual GP", description: "Unlimited video calls and private prescriptions available at your team's fingertips.", href: "/solutions/virtual-gp/" },
+      { title: "Comprehensive EAP", description: "24/7 mental health support and CBT tools triggered by real-life signals.", href: "/solutions/mental-health-eap/" },
+      { title: "Centralised Benefits Hub", description: "One digital home for all your company's insurance and wellness policies.", href: "/solutions/wellbeing-hub/" },
     ],
   },
   {
@@ -217,11 +223,12 @@ export const pillars = [
     video: {
       mp4: assetPath("/home/platform/protect.mp4"),
       poster: assetPath("/home/platform/protect-poster.jpg"),
+      focusX: "44%",
     },
     bullets: [
-      "Market-Leading Cover: Trusted policies integrated directly into the YuLife app.",
-      "Global Partnerships: The institutional weight and clinical excellence of world-leading insurance brands.",
-      "Total Transparency: 24/7 digital access ensures your team knows exactly how they are protected, anywhere in the world.",
+      { title: "Market-Leading Cover", description: "Trusted policies integrated directly into the YuLife app.", href: "/products/life-insurance/" },
+      { title: "Global Partnerships", description: "The institutional weight and clinical excellence of world-leading insurance brands.", href: "/who-we-help/carriers/" },
+      { title: "Total Transparency", description: "24/7 digital access ensures your team knows exactly how they are protected, anywhere in the world.", href: "/products/wellbeing-platform/" },
     ],
   },
   {
@@ -231,33 +238,49 @@ export const pillars = [
     video: {
       mp4: assetPath("/home/platform/empower.mp4"),
       poster: assetPath("/home/platform/empower-poster.jpg"),
+      focusX: "60%",
     },
     bullets: [
-      "Aggregated Wellbeing Data: Combine employee feedback with app activity for a clear, holistic view of workforce health.",
-      "Predictive Insights: Spot rising burnout and absence risk earlier, so you can act before it costs you.",
-      "Live eNPS Tracking: Monitor Employee Net Promoter Scores in real time to understand cultural health and retention risk.",
-      "Leadership-ready reporting: that turns wellbeing into boardroom outcomes and shows the ROI of your investment in people.",
+      { title: "Aggregated Wellbeing Data", description: "Combine employee feedback with app activity for a clear, holistic view of workforce health.", href: "/solutions/wellbeing-insights-reporting/" },
+      { title: "Predictive Insights", description: "Spot rising burnout and absence risk earlier, so you can act before it costs you.", href: "/solutions/wellbeing-insights-reporting/" },
+      { title: "Live eNPS Tracking", description: "Monitor Employee Net Promoter Scores in real time to understand cultural health and retention risk.", href: "/solutions/employee-surveys/" },
+      { title: "Leadership-ready reporting", description: "Turn wellbeing into boardroom outcomes and show the ROI of your investment in people.", href: "/solutions/wellbeing-insights-reporting/" },
     ],
   },
 ] as const;
 
-/** Brand reward tiles for the Engage tab's scrolling rewards pillar, top → bottom
- *  (Figma node 2699:4551). The pine coupon card is drawn in CSS (.engage-reward-coupon);
- *  only the white brand logo is an asset — vector where available, otherwise a
- *  retina WebP. `logoWidth` is the logo's width as a % of the card. The pillar is
- *  decorative motion, so its container is aria-hidden and the logos carry no alt. */
-export const engageRewardTiles = [
-  { brand: "Airbnb", logo: assetPath("/home/platform/logos/airbnb.svg"), logoWidth: "82%" },
-  { brand: "Amazon", logo: assetPath("/home/platform/logos/amazon.webp"), logoWidth: "78%" },
-  { brand: "Nike", logo: assetPath("/home/platform/logos/nike.webp"), logoWidth: "74%" },
-  { brand: "Garmin", logo: assetPath("/home/platform/logos/garmin.webp"), logoWidth: "82%" },
-  { brand: "Starbucks", logo: assetPath("/home/platform/logos/starbucks.svg"), logoWidth: "44%" },
-  { brand: "Withings", logo: assetPath("/home/platform/logos/withings.webp"), logoWidth: "80%" },
-] as const;
+/** Real-World Rewards brand cards for the Engage tab's two scrolling columns
+ *  (Figma node 2836:9324). Each tile is a lifestyle photo with the brand's white
+ *  logo, exported flat (photo + dark overlay + logo) as a retina WebP — pixel-
+ *  faithful brand art, never rebuilt in markup; the white card frame around it is
+ *  CSS. The columns scroll in opposite directions (left down, right up). The whole
+ *  band is decorative motion, so its container is aria-hidden and tiles carry no
+ *  alt. `brand` is the react key / dev label only. */
+const rewardTile = (slug: string, brand: string) => ({
+  brand,
+  src: assetPath(`/home/platform/rewards/${slug}.webp`),
+});
+
+export const rewardColumns = {
+  left: [
+    rewardTile("amazon", "Amazon"),
+    rewardTile("marks-and-spencer", "M&S"),
+    rewardTile("nike", "Nike"),
+    rewardTile("garmin", "Garmin"),
+    rewardTile("aldi", "Aldi"),
+  ],
+  right: [
+    rewardTile("john-lewis", "John Lewis"),
+    rewardTile("apple", "Apple"),
+    rewardTile("starbucks", "Starbucks"),
+    rewardTile("adidas", "Adidas"),
+    rewardTile("sainsburys", "Sainsbury's"),
+  ],
+} as const;
 
 export const yunity = {
   eyebrow: "Powered by",
-  heading: "The more your people use it, the smarter it gets",
+  heading: "The more your people use it,\nthe smarter it gets",
   // Words within `heading` rendered in italic serif (Figma 2706:4997).
   emphasis: ["more", "smarter"],
   intro:

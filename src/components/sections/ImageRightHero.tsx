@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { TRUST_MARKS } from "@/components/ui/TrustRatings";
 import { cn } from "@/lib/utils";
 import { domSrc } from "@/lib/domSrc";
+import { surfaceData } from "@/lib/surface";
 import type { Cta, Rating } from "@/data/pages/types";
 
 // Deferred so its three.js / R3F weight never lands on the initial bundle —
@@ -44,8 +45,12 @@ export type HeroVisual =
 
 export type ImageRightHeroContent = {
   eyebrow?: string;
-  /** Split so the trailing clause (`accent`) renders in italic serif. */
-  headline: { lead: string; accent?: string };
+  /**
+   * Split so `accent` renders in italic serif. `trail` is any plain text after
+   * the accent, which lets the italic fall mid-headline (e.g. "Trusted cover for
+   * *everyday* health expenses") rather than only at the end.
+   */
+  headline: { lead: string; accent?: string; trail?: string };
   body: string;
   /** First CTA renders solid, the rest outline. */
   ctas: Cta[];
@@ -130,9 +135,9 @@ function TrustRow({ ratings }: { ratings: Rating[] }) {
  *   The row's `gap-80` is the design's fixed 80px gutter between them; the copy
  *   column takes the rest (`flex-1`), so for a 436px device it lands at exactly
  *   700px (1216 − 80 − 436), matching the design without hardcoding its width.
- * - The copy sits in an equal 160px top/bottom band (`py-160`). On desktop the
- *   hero is at least 900px tall; taller copy grows it, revealing more of the
- *   device, which overflows the bottom border and is cropped by the root's
+ * - The copy sits in an equal 160px top/bottom band (`py-160`), and that alone
+ *   sets the hero's height — never the asset. Taller copy grows it, revealing
+ *   more of the device, which overflows the bottom border and is cropped by the root's
  *   `overflow-hidden`. The visual is out of flow (absolute) so it never drives
  *   the section height.
  */
@@ -188,6 +193,7 @@ export default function ImageRightHero({
   return (
     <div
       {...domSrc("ImageRightHero")}
+      {...surfaceData("inverse")}
       ref={scope}
       className="hero-dark relative overflow-hidden border-b border-line-emphasis"
       style={{
@@ -204,7 +210,7 @@ export default function ImageRightHero({
         height; the root's overflow-hidden crops it at the bottom border.
         Horizontal inset is the 1216 content grid.
       */}
-      <div className="page-container-wide relative flex flex-col gap-section-gap py-[var(--layout-section-y)] desktop:min-h-[900px] desktop:flex-row desktop:items-start desktop:gap-80 desktop:py-160">
+      <div className="page-container-wide relative flex flex-col gap-section-gap py-[var(--layout-section-y)] desktop:flex-row desktop:items-start desktop:gap-80 desktop:py-160">
         {/*
           z-30 keeps copy above the person/orbit stack (img z-10, canvas z-20).
           On desktop the copy column is flex-1: with a fixed-width visual and the
@@ -231,6 +237,7 @@ export default function ImageRightHero({
               >
                 {headline.lead}
                 {headline.accent && <em className="italic">{headline.accent}</em>}
+                {headline.trail}
               </h1>
             </div>
             <p
