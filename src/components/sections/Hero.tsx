@@ -19,6 +19,13 @@ const SpinningCoin3D = dynamic(() => import("@/components/app-screens/SpinningCo
   loading: () => <div className="size-full" />,
 });
 
+// Yuniversal space background — pure CSS motion over static SVGs. Loaded only
+// once the coin intro starts (see spaceMounted), so it never competes with the
+// coin for the network, the main thread or first paint.
+const YuniversalCanvas = dynamic(() => import("@/components/blocks/yuniversal/YuniversalCanvas"), {
+  ssr: false,
+});
+
 gsap.registerPlugin(useGSAP, CustomEase);
 
 /** The coin's flight into the phone, as two segments so the landing eases:
@@ -84,13 +91,27 @@ const COIN_READY_FALLBACK_MS = 2500;
  * resting spot) is final, not a fallback-face guess. */
 const FONTS_READY_TIMEOUT_MS = 350;
 
-export type HeroVariant = "product" | "character" | "atmosphere";
+const HERO_VARIANTS = ["product", "character", "atmosphere", "yuniversal"] as const;
+export type HeroVariant = (typeof HERO_VARIANTS)[number];
 
 interface HeroProps {
   variant?: HeroVariant;
 }
 
-export default function Hero({ variant = "atmosphere" }: HeroProps) {
+export default function Hero({ variant: variantProp = "atmosphere" }: HeroProps) {
+  // `?hero=<variant>` overrides the prop, so variants can be A/B-viewed on the
+  // same (static) URL. Read after mount — backgrounds only appear once the
+  // intro starts, so there's no visible swap.
+  const [variantOverride, setVariantOverride] = useState<HeroVariant | null>(null);
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get("hero");
+    const override = HERO_VARIANTS.find((v) => v === param);
+    if (override) setVariantOverride(override);
+  }, []);
+  const variant = variantOverride ?? variantProp;
+  // The Yuniversal background mounts as the coin intro begins, so its chunk
+  // and assets load only after the coin is up; it then fades itself in.
+  const [spaceMounted, setSpaceMounted] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<HTMLElement>(null);
   const introCoinRef = useRef<HTMLDivElement>(null);
@@ -158,6 +179,7 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
         });
         gsap.set("[data-cs-coin-slot]", { opacity: 1 });
         setIntroCoinMounted(false);
+        setSpaceMounted(true);
         document.documentElement.classList.remove("js-intro");
       });
 
@@ -185,6 +207,7 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
         const startIntro = () => {
           if (started) return;
           started = true;
+          setSpaceMounted(true);
 
           const ctaRow = section.querySelector<HTMLElement>(".hero-cta-row");
           const slot = section.querySelector<HTMLElement>("[data-cs-coin-slot]");
@@ -327,6 +350,12 @@ export default function Hero({ variant = "atmosphere" }: HeroProps) {
       }}
     >
       <section ref={sceneRef} className="relative isolate flex flex-col items-center overflow-visible">
+        {/* Spans the Figma frame: page top (up under the header) to the
+            scene's foot — not the logo band, which would inflate the cover
+            scale. First child, so every content layer paints over it. */}
+        {variant === "yuniversal" && spaceMounted && (
+          <YuniversalCanvas style={{ top: "calc(-1 * var(--header-h))", bottom: 0, left: 0, right: 0 }} />
+        )}
         {variant === "product" && <ProductBackground />}
         {variant === "character" && <CharacterBackground />}
 

@@ -1009,6 +1009,230 @@ section[aria-labelledby="block-7-label"] h2 {
   }
 }
 
+/* Yuniversal hero background (YuniversalCanvas, Hero variant "yuniversal").
+   Every layer is one pre-baked image (scripts/generate-yuniversal.mjs), so
+   this is motion only: keyframes on transform / rotate / translate / opacity,
+   all compositor-driven. A layer's loop is declared as --yc-loop so the
+   scroll parallax can join the same animation list instead of needing a
+   wrapper layer. Per-layer timing comes in as --yc-dur / --yc-offset /
+   --yc-dir (set in YuniversalCanvas's MOTION table). */
+.yc-root {
+  container-type: size;
+  /* Off-screen, Chrome skips rendering the whole sky and frees its layers. */
+  content-visibility: auto;
+}
+
+/* The 1920×1465 frame, scaled to cover the hero (object-fit: cover) and
+   pinned to the page top like the Figma frame, so any excess crops at the
+   foot, behind the phone and logo band. Static — never animated, so the
+   centring translate is safe. */
+.yc-stage {
+  width: max(100cqw, calc(100cqh * 1920 / 1465));
+  height: max(100cqh, calc(100cqw * 1465 / 1920));
+  transform: translateX(-50%);
+}
+
+/* Staggered entrance, once every asset has decoded (data-yc-on). */
+.yc-reveal {
+  opacity: 0;
+  transition: opacity var(--yc-fade, 1.2s) cubic-bezier(0.33, 0, 0.2, 1) var(--yc-in, 0s);
+}
+
+.yc-root[data-yc-on] .yc-reveal {
+  opacity: 1;
+}
+
+.yc-anim {
+  animation: var(--yc-loop);
+}
+
+/* Off-screen (data-yc-paused) everything holds; while scrolling
+   (data-yc-scrolling) the loops hold so scroll frames only composite the
+   parallax — the @supports block below keeps the parallax itself running. */
+.yc-root[data-yc-paused] .yc-anim,
+.yc-root[data-yc-scrolling] .yc-anim {
+  animation-play-state: paused;
+}
+
+.yc-planet {
+  --yc-loop: ycPlanetFloat var(--yc-dur) ease-in-out var(--yc-offset, 0s) infinite var(--yc-dir, normal);
+}
+
+@keyframes ycPlanetFloat {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-9px, 5px);
+  }
+  50% {
+    transform: translate(-15px, -3px);
+  }
+  75% {
+    transform: translate(-6px, -6px);
+  }
+}
+
+.yc-nebula {
+  --yc-loop: ycNebulaDrift var(--yc-dur) ease-in-out var(--yc-offset, 0s) infinite var(--yc-dir, alternate);
+}
+
+@keyframes ycNebulaDrift {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(12px, -18px) scale(1.02);
+  }
+  to {
+    transform: translate(24px, 14px) scale(1.035);
+  }
+}
+
+/* Dwarf-star twinkle — one rule, three depths via the keyframe name. */
+.yc-twinkle {
+  --yc-loop: var(--yc-twinkle-keyframes, ycTwinkle) var(--yc-dur) ease-in-out var(--yc-offset, 0s) infinite;
+}
+
+.yc-twinkle-soft {
+  --yc-twinkle-keyframes: ycTwinkleSoft;
+}
+
+.yc-twinkle-deep {
+  --yc-twinkle-keyframes: ycTwinkleDeep;
+}
+
+@keyframes ycTwinkleSoft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 0.7;
+  }
+  60% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes ycTwinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.45;
+  }
+  45% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes ycTwinkleDeep {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  45% {
+    opacity: 0.2;
+  }
+  55% {
+    opacity: 0.35;
+  }
+  80% {
+    opacity: 0.95;
+  }
+}
+
+/* Bright stars — a slow spin (on `rotate`) with an irregular pulse (on
+   `transform` + opacity, uneven stops so it never beats like a metronome). */
+.yc-bright-star {
+  --yc-loop:
+    ycStarSpin var(--yc-dur) linear infinite var(--yc-dir, normal),
+    ycStarPulse var(--yc-pulse-dur) ease-in-out var(--yc-pulse-offset, 0s) infinite;
+}
+
+@keyframes ycStarSpin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes ycStarPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  14% {
+    transform: scale(0.88);
+    opacity: 0.62;
+  }
+  31% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  46% {
+    transform: scale(0.94);
+    opacity: 0.78;
+  }
+  63% {
+    transform: scale(1.16);
+    opacity: 1;
+  }
+  78% {
+    transform: scale(0.9);
+    opacity: 0.55;
+  }
+  90% {
+    transform: scale(1.04);
+    opacity: 0.92;
+  }
+}
+
+/* Scroll parallax (the planets): `translate` lags the page by --yc-depth over
+   the first 1500px of scroll (keep in step with Motion.depth in
+   YuniversalCanvas), appended to the layer's single loop. Browsers without
+   scroll-driven animations skip this block. */
+@keyframes ycParallax {
+  to {
+    translate: 0 var(--yc-depth);
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .yc-depth {
+    animation:
+      var(--yc-loop),
+      ycParallax linear both;
+    animation-timeline: auto, scroll(root block);
+    animation-range: normal, 0px 1500px;
+  }
+
+  /* Play-state list mirrors the animation list: loop held, parallax on. */
+  .yc-root[data-yc-scrolling] .yc-depth {
+    animation-play-state: paused, running;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* .yc-root-qualified to outrank .yc-depth above. */
+  .yc-root .yc-anim {
+    animation: none;
+  }
+
+  .yc-reveal {
+    transition: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-line outline-accent-blue/50;

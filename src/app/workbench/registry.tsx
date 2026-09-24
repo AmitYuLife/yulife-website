@@ -413,6 +413,13 @@ export const sectionSpecs: Spec[] = [
     padded: false,
     render: () => <Hero />,
   },
+  {
+    name: "Hero — Yuniversal background",
+    source: "src/components/blocks/yuniversal/YuniversalCanvas.tsx",
+    note: "test variant; on the homepage via /?hero=yuniversal",
+    padded: false,
+    render: () => <Hero variant="yuniversal" />,
+  },
 ];
 
 // ── App screens ───────────────────────────────────────────────────────────────
